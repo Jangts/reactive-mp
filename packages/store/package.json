@@ -1,0 +1,22 @@
+{
+  "name": "@reactive-mp/store",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src/**/*.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@reactive-mp/reactivity": "1.0.0"
+  }
+}

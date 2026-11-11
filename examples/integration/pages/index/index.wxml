@@ -1,0 +1,9 @@
+<view>每次点击：count +1；double 应始终等于 count ×2；watch 更新状态。</view>
+<view class="result">count={{count}} / double={{double}}</view>
+<view class="result">{{status}}</view>
+<button bindtap="increment">增加</button><button bindtap="reset">重置</button>
+<button open-type="share">验证分享返回值</button>
+<probe title="first"/><probe title="second"/>
+<view>两个组件应显示同一父级计数，但各自 local 独立。退出后控制台 active 应归零。</view>
+
+<button bindtap="openComponentPage">验证 Component 页面</button>

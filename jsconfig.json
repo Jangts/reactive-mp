@@ -1,10 +1,17 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "skipLibCheck": true
-    },
-    "include": [
-        "**/*.js", // 包含所有JS文件
-        "**/*.d.ts" // 包含类型声明文件
-    ],
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2022"
+  },
+  "include": [
+    "packages/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "examples/*/vendor",
+    "apps/docs/dist"
+  ]
 }

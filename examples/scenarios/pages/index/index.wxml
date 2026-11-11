@@ -1,0 +1,4 @@
+<view>共享购物车：打开第二个页面后应保留数量；返回后两个页面仍共享同一 Store。</view>
+<view class="result">数量 {{quantity}} / 合计 ¥{{total}}</view>
+<button bindtap="add">加购 ¥18</button><button bindtap="reset">清空</button>
+<button bindtap="openAgain">打开第二个实例</button>

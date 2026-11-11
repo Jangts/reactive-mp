@@ -1,1 +1,7 @@
 project.private.config.json
+node_modules/
+examples/*/vendor/
+examples/*/project.private.config.json
+apps/docs/dist/
+artifacts/
+*.tgz

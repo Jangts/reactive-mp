@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/component/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "平台集成验证"
+  },
+  "sitemapLocation": "sitemap.json"
+}
