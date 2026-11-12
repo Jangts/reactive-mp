@@ -1,3 +1,4 @@
+/** 实例阶段的声明处理器：拥有方法、props、注入、事件及视图绑定。 */
 import {
   computed,
   isSignal,
@@ -7,26 +8,27 @@ import {
   useSignal,
   interpretSignal,
   watch,
-} from "@reactive-mp/reactivity";
-import { SignalCarrier } from "@reactive-mp/reactivity/signal-carriers/carriers";
-import { protectSignal } from "@reactive-mp/reactivity/signal";
+} from '@reactive-mp/reactivity';
+import { SignalCarrier } from '@reactive-mp/reactivity/signal-carriers/carriers';
+import { protectSignal } from '@reactive-mp/reactivity/signal';
 import {
   EventBus,
   isFunction,
   isNonEmptyString,
   isPlainObject,
   isSymbol,
-} from "@reactive-mp/shared";
+} from '@reactive-mp/shared';
 import {
   componentLifetimeNames,
   componentPageLifetimeNames,
   onceLifetimeNames,
   pageEventNames,
   pageLifetimeMap,
-} from "../etc/constants.js";
-import { createDataBinder, createMixedObserver } from "../etc/creators.js";
-import { formatObserveSource } from "../etc/formatters.js";
-import SetupContext from "./SetupContext.js";
+} from '../etc/constants.js';
+import { createDataBinder } from '../etc/data-binding.js';
+import { createMixedObserver } from '../etc/creators.js';
+import { formatObserveSource } from '../etc/formatters.js';
+import SetupContext from './SetupContext.js';
 
 class SetupProps extends SignalCarrier {}
 const crossInstanceEventBus = new EventBus();
@@ -34,6 +36,7 @@ const crossInstanceEventBus = new EventBus();
 export default class extends SetupContext {
   eventBus = new EventBus();
   activateView = () => {};
+  deactivateView = () => {};
   setupProps = {
     defined: false,
     signal: null,
@@ -45,9 +48,9 @@ export default class extends SetupContext {
 
   addLifetimeListener(scope, lifetime, listener) {
     if (super.addLifetimeListener(scope, lifetime, listener)) {
-      const listenType = onceLifetimeNames.includes(lifetime) ? "once" : "on";
+      const listenType = onceLifetimeNames.includes(lifetime) ? 'once' : 'on';
       scope[listenType](`lifetimes/${lifetime}`, ({ payload }) =>
-        listener.call(this.instance, ...payload)
+        listener.call(this.instance, ...payload),
       );
       return true;
     }
@@ -57,11 +60,11 @@ export default class extends SetupContext {
     super.addPageEventHandle(scope, eventname, handle);
     if (pageEventNames.includes(eventname) && isFunction(handle)) {
       scope.addLifetimeHandle(
-        "dispose",
+        'dispose',
         crossInstanceEventBus.on(
           `${scope.pageId}/events/${eventname}`,
-          ({ payload }) => handle.call(this.instance, ...payload)
-        )
+          ({ payload }) => handle.call(this.instance, ...payload),
+        ),
       );
       return true;
     }
@@ -113,8 +116,8 @@ export default class extends SetupContext {
     const [_, set] = useSignal(signal);
     protectSignal(signal);
     if (isNonEmptyString(key) || isSymbol(key)) {
-      scope.addLifetimeHandle("beforemounted", () =>
-        this.bindProvidedData(scope, key, set)
+      scope.addLifetimeHandle('beforemounted', () =>
+        this.bindProvidedData(scope, key, set),
       );
     }
     return signal;
@@ -124,7 +127,7 @@ export default class extends SetupContext {
     if (isFunction(callback)) {
       const { source, key, signals, indexesMap } = formatObserveSource(
         src,
-        scope
+        scope,
       );
       if (key) {
         if (signals.length) {
@@ -137,69 +140,82 @@ export default class extends SetupContext {
             signals,
             indexesMap,
           });
-          scope.addLifetimeHandle("dispose", stop);
+          scope.addLifetimeHandle('dispose', stop);
           return stop;
         }
         const stop = this.eventBus.on(`datachange/${key}`, ({ payload }) =>
-          callback.call(this.instance, ...payload)
+          callback.call(this.instance, ...payload),
         );
-        scope.addLifetimeHandle("dispose", stop);
+        scope.addLifetimeHandle('dispose', stop);
         return stop;
       }
-      if (signals.length) return watch(signals, (v) => callback(...v)).stop;
+      if (signals.length) {
+        return watch(signals, (v) => callback(...v)).stop;
+      }
     }
     return () => false;
   }
 
   bindSignalsAndMethods() {
-    this.assertIsActive("bind signals and methods");
+    this.assertIsActive('bind signals and methods');
     const { instance, setupReturns, setupMethods } = this;
-    const { setData, bind, unbinds, activate } = createDataBinder(instance);
+    const { setData, bind, activate, dispose } = createDataBinder(
+      instance,
+      this.nativeOptions?.pureDataPattern,
+    );
     const data = {};
     Object.entries(setupReturns).forEach(([name, item]) => {
       if (isFunction(item)) {
         if (isSignal(item, true)) {
-          if (isWatchable(item)) bind(name, item);
-        } else setupMethods?.set(name, item);
-      } else if (isWatchable(item)) bind(name, item);
-      if (isSignal(item)) data[name] = interpretSignal(item, true);
-      else if (!isFunction(item)) data[name] = item;
+          if (isWatchable(item)) {
+            bind(name, item);
+          }
+        } else {
+          setupMethods?.set(name, item);
+        }
+      } else if (isWatchable(item)) {
+        bind(name, item);
+      }
+      if (isSignal(item)) {
+        data[name] = interpretSignal(item, true);
+      } else if (!isFunction(item)) {
+        data[name] = item;
+      }
     });
     this.activateView = () => activate(data);
-    if (unbinds.length) {
-      instance.setData = setData;
-    }
-    return unbinds;
+    this.deactivateView = dispose;
+    instance.setData = setData;
+    return [dispose];
   }
   mountPageLifetimeHandles(scope, options) {
-    this.assertIsActive("mount page lifetime handles");
+    this.assertIsActive('mount page lifetime handles');
     const { instance } = this;
     pageLifetimeMap.forEach(([handleName, replace], lifetime) => {
       this.addLifetimeListener(scope, lifetime, options[handleName]);
       if (replace) {
         instance[handleName] = scope.forwardInstanceLifetimeEvent.bind(
           scope,
-          lifetime
+          lifetime,
         );
       }
     });
     return this;
   }
   mountPageEventHandle(scope, options) {
-    this.assertIsActive("mount page event handles");
+    this.assertIsActive('mount page event handles');
     pageEventNames.forEach((eventname) => {
       const handleName = `on${eventname}`;
       this.addPageEventHandle(scope, eventname, options[handleName]);
       this.instance[handleName] = this.forwardPageEvent.bind(
         this,
         scope,
-        eventname
+        eventname,
       );
     });
     return this;
   }
   registerComponentLifetimeListener(scope, options) {
-    this.assertIsActive("register component lifetime listeners");
+    this.assertIsActive('register component lifetime listeners');
     new Set([
       ...this.setupLifetimes,
       ...Object.keys(options.lifetimes || {}),
@@ -211,7 +227,9 @@ export default class extends SetupContext {
         optHandler = options.lifetimes?.[lifetime] || options[lifetime];
       } else if (componentPageLifetimeNames.includes(lifetime)) {
         optHandler = options.pageLifetimes?.[lifetime];
-      } else return;
+      } else {
+        return;
+      }
       this.addLifetimeListener(scope, lifetime, optHandler);
     });
     return this;
@@ -220,29 +238,29 @@ export default class extends SetupContext {
   bindProvidedData(scope, key, onData) {
     const data = scope.getAncestorProvidedData(
       key,
-      this.runtimeContext.getPageScope.bind(this.runtimeContext)
+      this.runtimeContext.getPageScope.bind(this.runtimeContext),
     );
-    // console.log("bindProvidedData", key, data);
+
     if (data) {
       if (isSignal(data.data)) {
         if (isWatchable(data.data)) {
           scope.addLifetimeHandle(
-            "dispose",
-            trackSignal(data.data, ({ value }) => onData(value))
+            'dispose',
+            trackSignal(data.data, ({ value }) => onData(value)),
           );
         }
         onData(interpretSignal(data.data, true));
-      } else onData(data.data);
+      } else {
+        onData(data.data);
+      }
     }
     return this;
   }
   getProvidedData(key) {
-    // console.log("getProvidedData", key, providedData);
     return this.providedData?.get(key) || null;
   }
 
   forwardPageEvent(scope, eventname, ...payload) {
-    // console.log(`forwardPageEvent ${scope.pageId}/events/${eventname}`, payload);
     crossInstanceEventBus.emit(`${scope.pageId}/events/${eventname}`, payload);
     return this;
   }
@@ -257,20 +275,29 @@ export default class extends SetupContext {
   }
   syncSetupPropValues(values) {
     const { defined, assign } = this.setupProps;
-    if (defined && assign) assign(values);
+    if (defined && assign) {
+      assign(values);
+    }
   }
   invokePageHook(name, fallback, ...args) {
-    const handle = this.setupPageHooks.get(name) || this.setupMethods.get(`on${name}`) || fallback;
+    const handle =
+      this.setupPageHooks.get(name) ||
+      this.setupMethods.get(`on${name}`) ||
+      fallback;
     return handle?.apply(this.instance, args);
   }
   invokeSetupMethod(methodname, ...args) {
     return this.setupMethods?.get(methodname)?.call(this.instance, ...args);
   }
   onExpose() {
-    if (isFunction(this.setupRecords.exports)) {
-      return this.setupRecords.exports.call(this);
-    } else if (isPlainObject(this.setupRecords.exports)) {
-      return this.setupRecords.exports;
+    const exports = this.setupRecords.exports;
+    const value = isFunction(exports) ? exports.call(this.instance) : exports;
+    if (value !== null && typeof value === 'object') {
+      this.runtimeContext.setComponentScope(
+        value,
+        this.runtimeContext.getComponentScope(this.instance),
+      );
+      return value;
     }
   }
 

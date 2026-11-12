@@ -1,16 +1,17 @@
-import { useSignal } from "@reactive-mp/reactivity/signal";
+/** 收集与实例共用的声明协议，保存配置结构并校验真实调用边界。 */
+import { useSignal } from '@reactive-mp/reactivity/signal';
 import {
   isConstructor,
   isFunction,
   isNonEmptyString,
   isNonNullObject,
   isPlainObject,
-} from "@reactive-mp/shared";
+} from '@reactive-mp/shared';
 import {
   componentFullLifetimeNames,
   pageLifetimeMap,
   relationTypes,
-} from "../etc/constants.js";
+} from '../etc/constants.js';
 
 export default class {
   runtimeContext = null;
@@ -39,17 +40,22 @@ export default class {
 
   constructor(configs = {}, instance) {
     Object.assign(this, configs);
-    if (instance) this.#instance = new WeakRef(instance);
+    if (instance) {
+      this.#instance = new WeakRef(instance);
+    }
   }
   assertIsActive(action) {
-    if (this.isSetupIdle)
+    if (this.isSetupIdle) {
       throw new Error(`cannot ${action} without setup context`);
+    }
   }
 
   addLifetimeListener(scope, lifetime, listener) {
-    this.assertIsActive("add lifetime listeners");
+    this.assertIsActive('add lifetime listeners');
     if (isFunction(listener)) {
-      if (this.setupLifetimes.includes(lifetime)) return true;
+      if (this.setupLifetimes.includes(lifetime)) {
+        return true;
+      }
       if (
         pageLifetimeMap.has(lifetime) ||
         componentFullLifetimeNames.includes(lifetime)
@@ -61,90 +67,112 @@ export default class {
     return false;
   }
   addPageEventHandle(scope, eventname, handle) {
-    this.assertIsActive("add page event handle");
+    this.assertIsActive('add page event handle');
     return false;
   }
 
   defineOptions(options) {
-    this.assertIsActive("define options");
+    this.assertIsActive('define options');
   }
   defineRelation(id, description) {
-    this.assertIsActive("define relations");
-    const { type, target, linked, unlinked, linkChanged } = description;
-    if (relationTypes.includes(type)) {
-      if (isNonEmptyString(target)) {
-        this.setupRecords.relations.set(id, {
-          type,
-          target,
-        });
-      } else {
-        this.setupRecords.relations.set(id, {
-          type,
-          handler: { linked, unlinked, linkChanged },
-        });
-      }
+    this.assertIsActive('define relations');
+    const { type, linked, unlinked, linkChanged, ...options } = description;
+    if (!relationTypes.includes(type)) {
+      throw new TypeError(`unknown relation type: ${type}`);
     }
+    this.setupRecords.relations.set(id, {
+      ...options,
+      type,
+      handler: { linked, unlinked, linkChanged },
+    });
   }
+
   mixInBehaviors(behaviors, ...more) {
-    this.assertIsActive("mix in behaviors");
+    this.assertIsActive('mix in behaviors');
   }
   setProvidedData(scope, key, data) {
-    this.assertIsActive("provide data");
+    this.assertIsActive('provide data');
     return false;
   }
 
   addExternalClasses(attrs, ...more) {
-    this.assertIsActive("add external classes");
+    this.assertIsActive('add external classes');
   }
   defineProperties(definations = {}) {
-    this.assertIsActive("define properties");
-    if (isNonNullObject(definations) === false)
-      throw new Error("properties must be a non-null object");
+    this.assertIsActive('define properties');
+    if (isNonNullObject(definations) === false) {
+      throw new Error('properties must be a non-null object');
+    }
 
-    definations = { ...this.nativeProperties, ...this.setupRecords.props.option, ...definations };
+    definations = {
+      ...this.nativeProperties,
+      ...this.setupRecords.props.option,
+      ...definations,
+    };
     const names = [],
       option = {},
       values = {};
     Object.entries(definations).forEach(([name, property]) => {
-      if (isNonNullObject(property)) values[name] = property.value;
-      else if (isConstructor(property)) {
-        try {
-          values[name] = property();
-        } catch (error) {
-          console.error(`init property ${name} error`);
-          values[name] = undefined;
+      if (
+        this.instance &&
+        Object.hasOwn(this.instance.properties ?? {}, name)
+      ) {
+        values[name] = this.instance.properties[name];
+      } else {
+        let type = property;
+        if (isNonNullObject(property)) {
+          type = property.type;
+          if (Object.hasOwn(property, 'value')) {
+            values[name] = property.value;
+          } else if (typeof property.default === 'function') {
+            values[name] = property.default();
+          }
         }
-      } else return;
+        if (!Object.hasOwn(values, name)) {
+          if (type === String) {
+            values[name] = '';
+          } else if (type === Number) {
+            values[name] = 0;
+          } else if (type === Boolean) {
+            values[name] = false;
+          } else if (type === Array) {
+            values[name] = [];
+          } else if (type === Object || type === null) {
+            values[name] = null;
+          } else {
+            values[name] = undefined;
+          }
+        }
+      }
       option[name] = property;
       names.push(name);
-      if (this.instance && name in (this.instance.properties || {})) {
-        values[name] = this.instance.properties[name];
-      }
     });
     this.setupRecords.props = { names, option, values };
     return values;
   }
   injectProvidedData(scope, key, defaultValue) {
-    this.assertIsActive("inject provided data");
+    this.assertIsActive('inject provided data');
     const [signal] = useSignal(defaultValue);
     return signal;
   }
   defineExportObject(exports) {
-    this.assertIsActive("define export object");
+    this.assertIsActive('define export object');
     if (isFunction(exports) || isPlainObject(exports)) {
       this.setupRecords.exports = exports;
     }
   }
   addMixedObserver(scope, src, callback) {
-    this.assertIsActive("observe data or signals");
+    this.assertIsActive('observe data or signals');
     return () => false;
   }
 
   addPageHook(scope, name, handle) {
-    if (typeof handle === 'function') this.setupPageHooks.set(name, handle);
+    if (typeof handle === 'function') {
+      this.setupPageHooks.set(name, handle);
+    }
   }
   markPageComponent(setupReturns) {
-    this.assertIsActive("mark page component");
+    this.assertIsActive('mark page component');
     this.isPage = true;
     return setupReturns;
   }

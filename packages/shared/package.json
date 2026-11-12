@@ -8,8 +8,7 @@
     ".": {
       "types": "./index.d.ts",
       "default": "./src/index.js"
-    },
-    "./*": "./src/*.js"
+    }
   },
   "files": [
     "src/**/*.js",
@@ -17,5 +16,12 @@
     "README.md"
   ],
   "license": "ISC",
-  "dependencies": {}
+  "dependencies": {},
+  "description": "Platform-independent event, scheduling and value utilities for Reactive MP",
+  "keywords": [
+    "javascript",
+    "events",
+    "microtask",
+    "utilities"
+  ]
 }

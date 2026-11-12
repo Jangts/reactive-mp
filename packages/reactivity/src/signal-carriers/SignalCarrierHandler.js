@@ -1,4 +1,5 @@
-import { hasOwnProp } from "@reactive-mp/shared";
+/** 只读、可写与嵌套对象的 Proxy 操作，保留合法假值及原型接收者。 */
+import { hasOwnProp } from '@reactive-mp/shared';
 
 export class SignalCarrierHandler {
   __signal = null;
@@ -13,9 +14,11 @@ export class SignalCarrierHandler {
   get(t, p, r) {
     if (hasOwnProp(t, p)) {
       const value = this.__signal()[p];
-      return this.__visitors.Reading ? this.__visitors.Reading([p, value]) : value;
+      return this.__visitors.Reading
+        ? this.__visitors.Reading([p, value])
+        : value;
     }
-    return t[p];
+    return Reflect.get(t, p, r);
   }
   set(t, p, v, r) {
     return false;
@@ -27,18 +30,30 @@ export class SignalCarrierHandler {
 
 export class MutableSignalCarrierHandler extends SignalCarrierHandler {
   set(t, p, v, r) {
-    if (this.__visitors?.Assignment?.([p, v])) this.__emit();
+    if (this.__visitors?.Assignment?.([p, v])) {
+      this.__emit();
+    }
     return true;
   }
 }
 
 export class NestedSignalCarrierHandler extends SignalCarrierHandler {
   set(t, p, v, r) {
-    if (v === t[p]) return true;
+    if (v === t[p]) {
+      return true;
+    }
     const untracked = hasOwnProp(t, p)
       ? this.__visitors?.Replacement?.([p, t[p]])
       : false;
-    t[p] = this.__visitors.Assignment ? this.__visitors.Assignment([p, v]) : v;
+    const value = this.__visitors.Assignment
+      ? this.__visitors.Assignment([p, v])
+      : v;
+    Object.defineProperty(t, p, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
     this.__emit(untracked);
     return true;
   }

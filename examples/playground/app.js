@@ -1,17 +1,14 @@
-import { defineApp } from "./vendor/reactive-mp/src/index.js";
+/** 原生开发宿主的 app 场景，用于交互复现与核心包联调。 */
+import { defineApp } from './vendor/reactive-mp/src/index.js';
 
 defineApp(() => {
   const onLaunch = () => {
-    // 展示本地存储能力
-    const logs = wx.getStorageSync("logs") || [];
+    const logs = wx.getStorageSync('logs') || [];
     logs.unshift(Date.now());
-    wx.setStorageSync("logs", logs);
+    wx.setStorageSync('logs', logs);
 
-    // 登录
     wx.login({
-      success: (res) => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      },
+      success: (res) => {},
     });
   };
   return {

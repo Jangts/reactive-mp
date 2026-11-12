@@ -20,3 +20,19 @@ defineComponent(({ defineProps, $emit }) => {
 definePage(() => { onShareAppMessage(() => ({ title: 'share' })); return { count }; });
 const useCounter = defineStore('counter', () => ({ count, increment: () => setCount(count() + 1) }));
 const store = useCounter(); store.increment(); storeToRefs(store).count(); store.$dispose();
+import { defineApp, onLaunch, onThemeChange, onBeforeDetach, useSignalCarrier } from 'reactive-mp';
+defineApp(() => {
+  onLaunch(options => { const path: string | undefined = options.path; void path; });
+  onThemeChange(event => { const theme: 'dark' | 'light' = event.theme; void theme; });
+  return { count };
+}, { globalData: { staticValue: 0 } });
+definePage(() => { onShareAppMessage(async () => ({ title: 'async share' })); });
+defineComponent(({ defineProps }) => {
+  const props = defineProps({ anything: null, made: { type: Object, default: () => ({ ok: true }) } });
+  const unknownValue: unknown = props.anything; void unknownValue;
+  onBeforeDetach(() => {});
+  return {};
+});
+const [readonlyObject] = useSignalCarrier({ value: 1 });
+const [, carrierEmitter] = useSignal(readonlyObject);
+const absent: null = carrierEmitter; void absent;

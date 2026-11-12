@@ -233,10 +233,20 @@ test('registration data is serializable and native Behavior objects survive merg
 test('App signal data and formerly empty app helpers form a working API', async () => {
   let appOptions;
   globalThis.App = options => { appOptions = options; };
-  const { defineApp, subscribeGlobalData, pickGlobalData, dispatchAppAction } = api;
+  const { defineApp, subscribeGlobalData, pickGlobalData, dispatchAppAction, onLaunch, onShow, onThemeChange } = api;
+  const events = [];
   let set;
-  defineApp(() => { const [count, update] = useSignal(1); set = update;
-    return { count, add: () => update(count() + 1) }; });
+  defineApp(() => {
+    const [count, update] = useSignal(1); set = update;
+    onLaunch(function (event) { events.push(['launch', event.path, this === appOptions]); });
+    onShow(() => events.push(['show']));
+    onThemeChange(event => events.push(['theme', event.theme]));
+    return { count, readonly: computed(() => count() * 2), add: () => update(count() + 1) };
+  }, { globalData: { native: 'kept' }, customFlag: 'root', onLaunch() { events.push(['native']); } });
+  appOptions.onLaunch({ path: 'home' }); appOptions.onShow({}); appOptions.onThemeChange({theme:'dark'});
+  assert.deepEqual(events, [['native'], ['launch','home',true], ['show'], ['theme','dark']]);
+  assert.equal(appOptions.customFlag, 'root'); assert.equal(appOptions.globalData.native, 'kept');
+  assert.throws(() => { appOptions.globalData.readonly = 9; }, /readonly/);
   assert.equal(appOptions.globalData.count, 1);
   appOptions.globalData.count = 2; assert.equal(appOptions.globalData.count, 2);
   const seen = []; const stop = subscribeGlobalData('count', value => seen.push(value));
@@ -256,4 +266,32 @@ test('throwing unmount cleanup still releases watchers and the remaining cleanup
   const options = definition, instance = instantiate(options);
   assert.throws(() => options.lifetimes.detached.call(instance), AggregateError);
   setCount(1); await tick(); assert.equal(effects, 1); assert.equal(disposed, 1);
+});
+
+test('native defaults, relation target callbacks, beforeDetach and nested collection preserve their contracts', () => {
+  let linked = 0, late = 0;
+  defineComponent(({ defineProps, defineRelation }) => {
+    const props = defineProps({ any: null, text: String, list: Array, made: { type: Object, default: () => ({ n: 1 }) } });
+    defineRelation('parent', { type: 'parent', target: 'native-behavior', linked() { linked++; } });
+    api.onBeforeDetach(() => late++);
+    return { text: props.text, any: props.any, made: props.made };
+  });
+  const options = definition;
+  assert.equal(options.data.text, ''); assert.equal(options.data.any, null); assert.deepEqual(options.data.made, {n:1});
+  const instance = instantiate(options);
+  options.relations.parent.linked.call(instance, {}); assert.equal(linked,1);
+  options.lifetimes.beforeDetach.call(instance); assert.equal(late,1);
+  assert.throws(() => instance.setData({text:'late'}), /disposed/);
+  options.lifetimes.detached.call(instance);
+  let mounted = 0;
+  defineComponent(() => {
+    if (useCurrentInstance()) defineComponent(() => { onMounted(() => mounted++); return {}; });
+    return {};
+  });
+  const outer=definition;const owner=instantiate(outer); outer.lifetimes.attached.call(owner);
+  assert.equal(mounted,0); outer.lifetimes.detached.call(owner);
+});
+test('asynchronous setup is rejected and required hooks fail outside setup', () => {
+  assert.throws(() => defineComponent(() => Promise.resolve({})), /synchronously/);
+  assert.throws(() => api.inject('missing'), /inside setup/);
 });

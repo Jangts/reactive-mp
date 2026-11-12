@@ -1,34 +1,36 @@
+/** 平台生命周期、事件与关系的集中声明，供收集和分发共同使用。 */
 export const configOptionKeys = [
-  "multipleSlots",
-  "addGlobalClass",
-  "styleIsolation",
-  "pureDataPattern",
-  "virtualHost",
+  'multipleSlots',
+  'addGlobalClass',
+  'styleIsolation',
+  'pureDataPattern',
+  'virtualHost',
 ];
 
 export const internalBehaviors = [
-  "wx://form-field",
-  "wx://form-field-group",
-  "wx://form-field-button",
-  "wx://component-export",
+  'wx://form-field',
+  'wx://form-field-group',
+  'wx://form-field-button',
+  'wx://component-export',
 ];
 
-export const relationTypes = ["parent", "child", "ancestor", "descendant"];
-export const relationEventNames = ["linked", "unlinked", "linkChanged"];
+export const relationTypes = ['parent', 'child', 'ancestor', 'descendant'];
+export const relationEventNames = ['linked', 'unlinked', 'linkChanged'];
 
-export const scopeLifetimeNames = ["beforemounted", "mounted", "dispose"];
-export const componentMountLifetimeNames = ["attached", "detached"];
+export const scopeLifetimeNames = ['beforemounted', 'mounted', 'dispose'];
+export const componentMountLifetimeNames = ['attached', 'detached'];
 export const onceLifetimeNames = [
-  "created",
-  "ready",
+  'created',
+  'ready',
   ...componentMountLifetimeNames,
+  'beforeDetach',
 ];
-export const componentLifetimeNames = [...onceLifetimeNames, "moved", "error"];
+export const componentLifetimeNames = [...onceLifetimeNames, 'moved', 'error'];
 export const componentPageLifetimeNames = [
-  "show",
-  "hide",
-  "resize",
-  "routeDone",
+  'show',
+  'hide',
+  'resize',
+  'routeDone',
 ];
 export const componentFullLifetimeNames = [
   ...componentLifetimeNames,
@@ -36,23 +38,34 @@ export const componentFullLifetimeNames = [
 ];
 
 export const pageLifetimeMap = new Map([
-  ["load", ["onLoad", false]],
-  ["show", ["onShow", true]],
-  ["ready", ["onReady", true]],
-  ["hide", ["onHide", true]],
-  ["unload", ["onUnload", false]],
-  ["resize", ["onResize", true]],
-  ["routeDone", ["onRouteDone", true]],
+  ['load', ['onLoad', false]],
+  ['show', ['onShow', true]],
+  ['ready', ['onReady', true]],
+  ['hide', ['onHide', true]],
+  ['unload', ['onUnload', false]],
+  ['resize', ['onResize', true]],
+  ['routeDone', ['onRouteDone', true]],
 ]);
 export const pageEventNames = [
-  "PullDownRefresh",
-  "ReachBottom",
-  "PageScroll",
-  "TabItemTap",
+  'PullDownRefresh',
+  'ReachBottom',
+  'PageScroll',
+  'TabItemTap',
 ];
 export const pageHookNames = [
-  "AddToFavorites",
-  "ShareAppMessage",
-  "ShareTimeline",
-  "SaveExitState",
+  'AddToFavorites',
+  'ShareAppMessage',
+  'ShareTimeline',
+  'SaveExitState',
 ];
+
+/** App 生命周期与原生字段；公开 Hook 与 App 分发共同消费。 */
+export const appLifetimeMap = new Map([
+  ['launch', 'onLaunch'],
+  ['show', 'onShow'],
+  ['hide', 'onHide'],
+  ['appError', 'onError'],
+  ['pageNotFound', 'onPageNotFound'],
+  ['unhandledRejection', 'onUnhandledRejection'],
+  ['themeChange', 'onThemeChange'],
+]);

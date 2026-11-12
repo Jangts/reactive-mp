@@ -8,11 +8,11 @@ reactive(object) 支持嵌套对象与数组；ref(value) 通过 value 属性读
 
 ## 监听与清理
 
-watch(source, callback, options) 支持 Signal、getter、响应式对象和多个来源；回调收到当前值与上次交付值。同一微任务内的多次修改合并交付。immediate 首次回调的旧值为 undefined，once 表示只交付一次。返回句柄可 stop、pause、resume。
+watch(source, callback, options) 支持 Signal、getter、响应式对象和多个来源；回调收到当前值与上次交付值。同一微任务内的多次修改合并交付。immediate 首次回调的旧值为 undefined，once 表示只交付一次。返回句柄可 stop、pause、resume。watch 回调可以写回监听来源，只要更新最终收敛；同一刷新批次单个任务执行超过 100 次时报循环未收敛错误，该保护用于终止持续自激。computed 的 getter 仍禁止写入状态。
 
-watchEffect 自动追踪同步读取，创建后立即执行；动态分支变化时放弃旧分支依赖。配置收集时 watch/watchEffect 不执行回调或建立订阅。
+watchEffect 自动追踪同步读取，创建后立即执行；动态分支变化时放弃旧分支依赖。配置收集时 watch/watchEffect 不执行回调或建立订阅。手动停止 watch 也会释放为 getter 创建的内部计算；首次 watchEffect 抛错时解除已收集依赖。
 
-setup 中创建的监听随实例销毁。createEffectScope 提供独立资源作用域；默认随父作用域清理，传入 true 创建独立作用域，调用方应负责 stop。runInEffectFreeScope 是高级适配工具，在其中创建的状态不建立响应式订阅。
+setup 中创建的监听随实例销毁。createEffectScope 提供独立资源作用域；默认随父作用域清理，传入 true 创建独立作用域，调用方应负责 stop。作用域的 onDispose(handle) 登记清理并返回解除登记函数，解除登记不会执行清理。runInEffectFreeScope 是高级适配工具，在其中创建的状态不建立响应式订阅。
 
 ## 生命周期与原生实例
 
@@ -29,3 +29,5 @@ onShareAppMessage、onShareTimeline 等需要返回值的回调直接返回给�
 可运行组件来源：
 
 <<< examples/integration/components/probe/probe.js
+
+声明型 Hook 必须在同步 setup 中调用；无活动上下文时会明确报错。useCurrentInstance/useCurrentPage 属于查询，缺少实例时返回 null。Signal.value 只读，状态写入使用更新函数。

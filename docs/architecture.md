@@ -10,7 +10,7 @@
 | @reactive-mp/runtime | setup 收集、实例连接、平台适配和小程序 Hook | shared / reactivity |
 | reactive-mp | 用户统一入口 | 以上四包 |
 
-reactivity 与 store 不认识 wx。runtime 只在注册 API 被调用时接触 Page/Component/Behavior，不在导入包时注册平台监听。保留的 lib/index.js 仅为旧统一入口的迁移桥，不包含另一份实现。
+reactivity 与 store 不认识 wx。runtime 只在注册 API 被调用时接触 Page/Component/Behavior，不在导入包时注册平台监听。lib/index.js 是兼容的统一入口，不包含另一份实现。
 
 生命周期和平台事件以 runtime 的 constants 声明表为基础，集中驱动转发。上下文进入和恢复由 RuntimeContext 的作用域方法维护；注册配置由闭包持有，不写入 data。实例作用域拥有订阅与清理任务。
 
@@ -27,7 +27,7 @@ npm run docs:build
 npm run docs:dev
 ```
 
-文档本地地址默认 http://127.0.0.1:4173。源码链接指向本次构建随附的源码页面，公开托管和 npm 发布另行执行。
+文档本地地址默认 http://127.0.0.1:4173。源码链接指向构建随附的源码页面，公开托管和 npm 发布另行执行。
 
 ## 贡献检查
 
@@ -49,3 +49,13 @@ npm run check 是统一检查入口。CI 使用锁文件安装，不需要个人
 - [验证记录](verification.md)
 
 这些资料服务实现与维护，不构成另一套使用合同；正式接口以指南与 API 参考为准。
+
+## 代码与包体检查
+
+根格式配置由 .prettierrc.json 和 .editorconfig 维护。npm run format:check 检查正式源码、工具和原生宿主；npm run format 在同一范围应用排版。测试、临时证据及生成内容不参与机械格式化。结构检查、类型、行为与实际平台验证仍分别执行。
+
+包的 description、keywords、README 和实际 tarball 一起检查。统一入口的 reactive-mp-prepare 命令在 Node 中读取安装包的公开导出，准备原生 vendor；该工具与开发宿主使用同一实现，不进入小程序依赖图。生成目录必须由工具拥有，未知内容和符号链接会被拒绝。
+
+开发宿主准备采用 staging 和工作区互斥目录，完成后切换 vendor，失败保留上一份产物。不要在准备或 watch 写入期间执行真实平台验收；中断遗留的 artifacts/examples-prepare.lock 只在确认没有准备进程时处理。
+
+三份规范的全量审阅、修复映射和未验证边界见 [规范检查记录](standards-review.md)。代码清单由 `npm run code:check` 生成到 artifacts/code-inventory.json；该检查验证语法、模块说明和控制流格式，不能替代语义审阅。

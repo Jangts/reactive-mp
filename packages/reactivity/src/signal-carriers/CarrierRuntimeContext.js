@@ -1,5 +1,6 @@
-import { onScopeDispose } from "../EffectScope.js";
-import { carrySignal, protectSignal, trackSignal } from "../signal.js";
+/** 载体元信息与原始对象身份映射，维护嵌套订阅及作用域清理。 */
+import { onScopeDispose } from '../EffectScope.js';
+import { carrySignal, protectSignal, trackSignal } from '../signal.js';
 
 export default class CarrierRuntimeContext {
   CAN_CONSTRUCT = false;
@@ -31,7 +32,9 @@ export default class CarrierRuntimeContext {
     protectSignal(meta.signal);
     carrySignal(carrier, meta.signal);
     this.setSignalCarrierMeta(carrier, meta);
-    if (target) this.mapTargetToCarrier(target, carrier);
+    if (target) {
+      this.mapTargetToCarrier(target, carrier);
+    }
     onScopeDispose(() => meta.trackings?.forEach((stop) => stop()));
   }
   restore(targetOrCarrier) {
@@ -41,7 +44,10 @@ export default class CarrierRuntimeContext {
     return signal ? { ...this.getSignalCarrierMeta(signal), signal } : {};
   }
   trackCarrierProp(t, emt, p, sp) {
-    const { trackings } = this.restore(t);
+    const { trackings, signal } = this.restore(t);
+    if (signal === sp) {
+      return sp;
+    }
     trackings?.get(p)?.();
     trackings?.set(p, trackSignal(sp, emt));
     return sp;

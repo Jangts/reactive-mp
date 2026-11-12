@@ -1,4 +1,5 @@
-import { useActiveSetupContext } from "../main.js";
+/** 可复用声明 Hook，调用当前宿主能力并保留返回值。 */
+import { callSetupCapability } from './context.js';
 
 /**
  * [ behaviors ] 混入通用行为
@@ -7,7 +8,7 @@ import { useActiveSetupContext } from "../main.js";
  * @param {...(string | string[])} more
  */
 export function behaviors(ids, ...more) {
-  return useActiveSetupContext()?.settingUpContext?.behaviors?.(ids, ...more);
+  return callSetupCapability('behaviors', ids, ...more);
 }
 
 /**
@@ -17,7 +18,7 @@ export function behaviors(ids, ...more) {
  * @param {...(string | string[])} more
  */
 export function extClasses(attrs, ...more) {
-  return useActiveSetupContext()?.settingUpContext?.extClasses?.(attrs, ...more);
+  return callSetupCapability('extClasses', attrs, ...more);
 }
 
 /**
@@ -26,41 +27,41 @@ export function extClasses(attrs, ...more) {
  * @template T
  * @param {string | symbol} key
  * @param {T} [defaultValue = undefined]
- * @returns {ComputedSignalImpl<T>}
+ * @returns {import('@reactive-mp/reactivity').ComputedSignal<T>}
  */
 export function inject(key, defaultValue) {
-  return useActiveSetupContext()?.settingUpContext?.inject(key, defaultValue);
+  return callSetupCapability('inject', key, defaultValue);
 }
 
 /**
  * [ observe ] 观察组件、页面数据或 signal payload 的变化
  *
- * @template {ObserveSource} T
+ * @template {readonly unknown[]} T
  * @param {T} source
- * @param {(...values: WatchValues<T>)=>void} callback
- * @returns {ParamlessFunction<boolean>}
+ * @param {(...values: import('@reactive-mp/reactivity').WatchValues<T>)=>void} callback
+ * @returns {() => void}
  */
 export function observe(source, callback) {
-  return useActiveSetupContext()?.settingUpContext?.observe(source, callback);
+  return callSetupCapability('observe', source, callback);
 }
 
 /**
- * [ provide ] 向子组件和后代组件提供数组
+ * [ provide ] 向子组件和后代组件提供数据
  *
  * @template T
  * @param {string | symbol} key
  * @param {T} data
  */
 export function provide(key, data) {
-  return useActiveSetupContext()?.settingUpContext?.provide(key, data);
+  return callSetupCapability('provide', key, data);
 }
 
 /**
  * [ relation ] 定义组件间关系
  *
  * @param {string} id
- * @param {RelationDescription} description
+ * @param {object} 合法原生关系描述，保留 target 与关系回调。 description
  */
 export function relation(id, description) {
-  return useActiveSetupContext()?.settingUpContext?.defineRelation(id, description);
+  return callSetupCapability('defineRelation', id, description);
 }

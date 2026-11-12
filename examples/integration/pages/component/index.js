@@ -1,6 +1,15 @@
-import { defineComponentPage, useSignal, onLoad, onMounted, onUnload } from '../../vendor/reactive-mp/src/index.js';
+/** 所属模块的公开导出入口，复用原实现，不创建平行状态。 */
+import {
+  defineComponentPage,
+  useSignal,
+  onLoad,
+  onMounted,
+  onUnload,
+} from '../../vendor/reactive-mp/src/index.js';
 defineComponentPage(({ defineProps }) => {
-  const props = defineProps({ title: { type: String, value: 'Component 页面' } });
+  const props = defineProps({
+    title: { type: String, value: 'Component 页面' },
+  });
   const [phase, setPhase] = useSignal('created');
   onLoad(() => console.info('component-page load'));
   onMounted(() => setPhase('mounted'));

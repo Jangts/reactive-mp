@@ -1,9 +1,14 @@
-import { pageEventNames, pageHookNames, scopeLifetimeNames } from "./constants.js";
+/** 向组合 Hook 暴露活动上下文与作用域，只在有真实实例时提供实例能力。 */
+import {
+  pageEventNames,
+  pageHookNames,
+  scopeLifetimeNames,
+} from './constants.js';
 
 /**
  *
- * @param {RuntimeContext} rtCtx
- * @returns {ExposedSettingUpContext | {}}
+ * @param {import('../SetupRuntimeContext.js').default} rtCtx
+ * @returns {Partial<import('@reactive-mp/runtime').SetupContext>}
  */
 function exposeSettingUpContext(rtCtx) {
   const settingUpContext = rtCtx.getSettingUpContext();
@@ -23,9 +28,9 @@ function exposeSettingUpContext(rtCtx) {
 }
 
 /**
- * @param {ReturnType<createInstanceLifetimeScope>} scope
- * @param {RuntimeContext} rtCtx
- * @returns {ExposedLifetimeScope | null}
+ * @param {ReturnType<typeof import('../InstanceLifetimeScope.js').default>} scope
+ * @param {import('../SetupRuntimeContext.js').default} rtCtx
+ * @returns {object | null}
  */
 const formatExposedILTScope = (scope, rtCtx) => {
   if (scope) {
@@ -58,7 +63,7 @@ const formatExposedILTScope = (scope, rtCtx) => {
       /**
        *
        * @param {string} lifetime
-       * @param {ParamLessCallback} handle
+       * @param {() => void} handle
        * @returns
        */
       on: (lifetime, handle) => {
@@ -72,18 +77,21 @@ const formatExposedILTScope = (scope, rtCtx) => {
   return null;
 };
 function exposeInstanceLifetimeScope(rtCtx) {
-  return formatExposedILTScope(rtCtx.getInstanceLifetimeScope(), rtCtx);
+  return formatExposedILTScope(
+    rtCtx.getSetupContext()?.instance ? rtCtx.getInstanceLifetimeScope() : null,
+    rtCtx,
+  );
 }
 
 /**
- * @param {RuntimeContext} rtCtx
- * @returns {ExposedActiveSetupContext}
+ * @param {import('../SetupRuntimeContext.js').default} rtCtx
+ * @returns {object}
  */
 export function exposeActiveSetupContext(rtCtx) {
   const ctx = rtCtx.getSetupContext();
   if (ctx) {
     const { isPage, isComponent } = ctx;
-    const scope = rtCtx.getInstanceLifetimeScope();
+    const scope = ctx.instance ? rtCtx.getInstanceLifetimeScope() : null;
     return {
       isPage,
       isComponent,
@@ -91,11 +99,13 @@ export function exposeActiveSetupContext(rtCtx) {
       settingUpContext: exposeSettingUpContext(rtCtx),
       /**
        * @param {string} name
-       * @param {EventHandle | ParamLessCallback} listener
+       * @param {(...args: unknown[]) => void} listener
        * @returns
        */
       on: (name, listener) => {
-        if (pageHookNames.includes(name)) return ctx.addPageHook(scope, name, listener);
+        if (pageHookNames.includes(name)) {
+          return ctx.addPageHook(scope, name, listener);
+        }
         if (pageEventNames.includes(name)) {
           if (scope) {
             return ctx.addPageEventHandle(scope, name, listener);

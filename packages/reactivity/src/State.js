@@ -1,4 +1,5 @@
-import { EventBus, isFunction } from "@reactive-mp/shared";
+/** 单值存储：区分读取追踪、写入校验和变更通知，不依赖小程序平台。 */
+import { EventBus, isFunction } from '@reactive-mp/shared';
 
 export default class State {
   #value = undefined;
@@ -9,10 +10,10 @@ export default class State {
     this.#value = value;
     if (watchable) {
       this.#watchable = watchable;
-      this.#eventBus.on("getstate", onGet);
-      this.#eventBus.on("beforesetstate", onBeforeSet);
+      this.#eventBus.on('getstate', onGet);
+      this.#eventBus.on('beforesetstate', onBeforeSet);
     }
-    this.#eventBus.on("aftersetstate", onAfterSet);
+    this.#eventBus.on('aftersetstate', onAfterSet);
   }
 
   get watchable() {
@@ -22,7 +23,7 @@ export default class State {
   get value() {
     const payload = { value: this.#value };
     if (this.#watchable) {
-      this.#eventBus?.emit("getstate", payload);
+      this.#eventBus?.emit('getstate', payload);
     }
     return payload.value;
   }
@@ -37,31 +38,31 @@ export default class State {
     const oldValue = this.#value;
     if (this.#watchable) {
       const payload = { value: oldValue, newValue };
-      this.#eventBus?.emit("beforesetstate", payload);
+      this.#eventBus?.emit('beforesetstate', payload);
 
       if (forced || payload.newValue !== oldValue) {
         this.#value = payload.newValue;
-        this.#eventBus?.emit("aftersetstate", { value: this.#value, oldValue });
-        this.#eventBus?.emit("setstate", { value: this.#value, oldValue });
+        this.#eventBus?.emit('aftersetstate', { value: this.#value, oldValue });
+        this.#eventBus?.emit('setstate', { value: this.#value, oldValue });
         return true;
       }
       return false;
     } else {
       this.#value = newValue;
-      this.#eventBus?.emit("aftersetstate", { value: this.#value, oldValue });
+      this.#eventBus?.emit('aftersetstate', { value: this.#value, oldValue });
       return true;
     }
   }
 
   subscribe(onSet) {
     if (this.#watchable && isFunction(onSet)) {
-      return this.#eventBus.on("setstate", (e) => onSet(e.payload));
+      return this.#eventBus.on('setstate', (e) => onSet(e.payload));
     }
     return () => {};
   }
 
   clearSubscriptions() {
-    this.#eventBus.off("setstate");
+    this.#eventBus.off('setstate');
   }
 
   freeze() {

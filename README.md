@@ -36,6 +36,6 @@ npm run docs:dev
 
 npm run docs:api 从真实导出与类型声明生成参考；npm run docs:check 验证同步、导航、链接和源码引用。
 
-目前以工作区源码交付，未执行公开发布。自动化回归与真实微信环境验证分别记录。
+包体独立接入见各包 README；维护资料见 [架构与贡献](docs/architecture.md)。
 
 License: ISC。

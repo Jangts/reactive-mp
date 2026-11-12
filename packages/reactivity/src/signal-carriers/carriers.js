@@ -1,15 +1,25 @@
-import { hasOwnProp, isNonNullObject, isPlainObject } from "@reactive-mp/shared";
-import { interpretSignal, isSignal, isWatchable, useSignal } from "../signal.js";
-import RuntimeContext from "./CarrierRuntimeContext.js";
+/** 对象与 ref 载体：将代理身份映射到 Signal，并管理嵌套属性传播。 */
+import {
+  hasOwnProp,
+  isNonNullObject,
+  isPlainObject,
+} from '@reactive-mp/shared';
+import {
+  interpretSignal,
+  isSignal,
+  isWatchable,
+  useSignal,
+} from '../signal.js';
+import RuntimeContext from './CarrierRuntimeContext.js';
 import {
   MutableSignalCarrierHandler,
   NestedSignalCarrierHandler,
   SignalCarrierHandler,
-} from "./SignalCarrierHandler.js";
+} from './SignalCarrierHandler.js';
 
 const CONTEXT = new RuntimeContext();
-const IsConstructor = Symbol("IsSignalCarrierConstructor");
-const AssignProperty = Symbol("AssignSignalCarrierProperty");
+const IsConstructor = Symbol('IsSignalCarrierConstructor');
+const AssignProperty = Symbol('AssignSignalCarrierProperty');
 
 /**
  * @template {Record<string, any>} T
@@ -19,8 +29,15 @@ export class SignalCarrier {
     return type === SignalCarrier || type.prototype instanceof SignalCarrier;
   }
   static [AssignProperty]([p, v]) {
-    if (v === this[p]) return false;
-    this[p] = v;
+    if (v === this[p]) {
+      return false;
+    }
+    Object.defineProperty(this, p, {
+      value: v,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
     return true;
   }
   /**
@@ -31,16 +48,37 @@ export class SignalCarrier {
   constructor(target, mutable = false) {
     if (!CONTEXT.CAN_CONSTRUCT) {
       throw new Error(
-        "cannot instantiate an SignalCarrier using the new expression directly. Please instead of using the useSignalCarrier function to instantiate it."
+        'cannot instantiate an SignalCarrier using the new expression directly. Please instead of using the useSignalCarrier function to instantiate it.',
       );
     }
-    if (!isPlainObject(target))
-      throw new Error("object signal target must be a non-null-object");
+    if (!isPlainObject(target)) {
+      throw new Error('object signal target must be a non-null-object');
+    }
 
-    Object.assign(this, target);
+    Object.defineProperties(
+      this,
+      Object.fromEntries(
+        Object.entries(target).map(([key, value]) => [
+          key,
+          { value, writable: true, enumerable: true, configurable: true },
+        ]),
+      ),
+    );
     const [signal, emitSignal] = useSignal({ ...this });
     const emit = () => emitSignal({ ...this });
     const Assignment = SignalCarrier[AssignProperty].bind(this);
+    const replace = (source) => {
+      if (!isPlainObject(source)) {
+        throw new TypeError('carrier data must be a plain object');
+      }
+      for (const key of Object.keys(this)) {
+        if (!Object.hasOwn(source, key)) {
+          delete this[key];
+        }
+      }
+      Object.entries(source).forEach(Assignment);
+      return emit();
+    };
     const assign = (source) => {
       if (isPlainObject(source)) {
         Object.entries(source).forEach(Assignment);
@@ -60,7 +98,7 @@ export class SignalCarrier {
         })
       : new SignalCarrierHandler({ signal });
     const carrier = new Proxy(this, handler);
-    CONTEXT.store(this, { carrier, signal, assign });
+    CONTEXT.store(this, { carrier, signal, assign, replace });
   }
 }
 
@@ -76,32 +114,47 @@ export function isInternalSignalCarrier(signal) {
  * @template {SignalCarrier<T1>} T2
  * @param {T1} target
  * @param {typeof T2} type
- * @returns {[ProxyWrapper<SignalCarrier<T1>>, (source: T1)=>boolean]}
+ * @returns {[import('@reactive-mp/reactivity').ReadonlyCarrier<T1>, (source: T1)=>boolean]}
  */
 export function useSignalCarrier(target, type = SignalCarrier) {
   if (SignalCarrier[IsConstructor](type)) {
     CONTEXT.CAN_CONSTRUCT = true;
     let instance;
-    try { instance = new type(target); }
-    finally { CONTEXT.CAN_CONSTRUCT = false; }
+    try {
+      instance = new type(target);
+    } finally {
+      CONTEXT.CAN_CONSTRUCT = false;
+    }
     const { signal, assign } = CONTEXT.restore(instance);
     return [signal, assign];
   }
-  throw new Error("type must be an SignalCarrierConstructor");
+  throw new Error('type must be an SignalCarrierConstructor');
 }
 
 /**
  * @template {Record<string, any>} T
  * @param {T} target
- * @returns {NestedSignalCarrierImpl<T>}
+ * @returns {import('@reactive-mp/reactivity').Reactive<T>}
  */
 function wrapNestedCarrier(target) {
   const existsSignal = CONTEXT.getCarrierByTarget(target);
-  if (existsSignal) return existsSignal;
+  if (existsSignal) {
+    return existsSignal;
+  }
 
   const [signal, emitSignal] = useSignal(target);
-  const emit = (shouldBeRetrack) =>
-    emitSignal(target, { forced: true, shouldBeRetrack });
+  let emitting = false;
+  const emit = (shouldBeRetrack) => {
+    if (emitting) {
+      return false;
+    }
+    emitting = true;
+    try {
+      return emitSignal(target, { forced: true, shouldBeRetrack });
+    } finally {
+      emitting = false;
+    }
+  };
   const track = CONTEXT.trackCarrierProp.bind(CONTEXT, target, () => emit());
   const DeletionOrReplacement = CONTEXT.removeCarrierProp.bind(CONTEXT, target);
 
@@ -115,7 +168,7 @@ function wrapNestedCarrier(target) {
 
   const carrier = new Proxy(
     target,
-    new NestedSignalCarrierHandler({ signal, visitors, emit })
+    new NestedSignalCarrierHandler({ signal, visitors, emit }),
   );
   CONTEXT.store(target, { carrier, signal, trackings: new Map() });
   Object.entries(target).forEach(visitors.Assignment);
@@ -124,7 +177,7 @@ function wrapNestedCarrier(target) {
 
 export function reactive(target) {
   if (!isPlainObject(target) && !Array.isArray(target)) {
-    throw new Error("object signal target must be a non-null-object");
+    throw new Error('object signal target must be a non-null-object');
   }
   return wrapNestedCarrier(target);
 }
@@ -158,8 +211,8 @@ class SignalPayloadRef {
       return CONTEXT.trackCarrierProp(
         this,
         () => meta.emitSignal(value, { forced: true }),
-        "value",
-        wrapNestedCarrier(value)
+        'value',
+        wrapNestedCarrier(value),
       );
     }
     return value;
@@ -171,7 +224,7 @@ class SignalPayloadRef {
   set value(newValue) {
     const meta = CONTEXT.getSignalCarrierMeta(this);
     if (newValue !== meta.value) {
-      const untracked = CONTEXT.removeCarrierProp(this, ["value", meta.value]);
+      const untracked = CONTEXT.removeCarrierProp(this, ['value', meta.value]);
       meta.value = newValue;
       return meta.emitSignal(newValue, {
         forced: true,
@@ -184,7 +237,7 @@ class SignalPayloadRef {
 
 /**
  * @param {any} ref
- * @returns {ref is  SignalPayloadRefImpl}
+ * @returns {ref is  import('@reactive-mp/reactivity').Ref<unknown>}
  */
 export function isSignalPayloadRef(ref) {
   return ref instanceof SignalPayloadRef;
@@ -197,4 +250,19 @@ export function isSignalPayloadRef(ref) {
  */
 export function ref(value) {
   return new SignalPayloadRef(value);
+}
+
+/**
+ * 平台适配入口：整体替换浅层 carrier 数据，不开放代理的任意写权限。
+ * @param {object} carrier useSignalCarrier 创建的载体。
+ * @param {object} value 新逻辑数据。
+ * @returns {boolean} 是否处理；其他载体由其自身写入协议处理。
+ */
+export function replaceShallowCarrierData(carrier, value) {
+  const meta = CONTEXT.getSignalCarrierMeta(carrier);
+  if (!meta?.replace) {
+    return false;
+  }
+  meta.replace(value);
+  return true;
 }

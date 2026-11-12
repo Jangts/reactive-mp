@@ -9,15 +9,37 @@
       "types": "./index.d.ts",
       "default": "./src/index.js"
     },
-    "./*": "./src/*.js"
+    "./signal": {
+      "types": "./signal.d.ts",
+      "default": "./src/signal.js"
+    },
+    "./EffectScope": {
+      "types": "./effect-scope.d.ts",
+      "default": "./src/EffectScope.js"
+    },
+    "./signal-carriers/carriers": {
+      "types": "./carriers.d.ts",
+      "default": "./src/signal-carriers/carriers.js"
+    }
   },
   "files": [
     "src/**/*.js",
     "index.d.ts",
-    "README.md"
+    "README.md",
+    "signal.d.ts",
+    "effect-scope.d.ts",
+    "carriers.d.ts"
   ],
   "license": "ISC",
   "dependencies": {
     "@reactive-mp/shared": "1.0.0"
-  }
+  },
+  "description": "Standalone signals, computed values, reactive objects and effect scopes",
+  "keywords": [
+    "signals",
+    "reactivity",
+    "computed",
+    "watch",
+    "javascript"
+  ]
 }

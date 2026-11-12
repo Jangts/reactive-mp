@@ -1,4 +1,5 @@
-import { isArray } from "./type.js";
+/** 数组合并工具：明确旧项与新项的顺序和重复值处理。 */
+import { isArray } from './type.js';
 
 /**
  * @template T
@@ -10,13 +11,15 @@ import { isArray } from "./type.js";
 export function mergeArrayOrderByExists(
   existsEles,
   newComeEles,
-  check = () => true
+  check = () => true,
 ) {
   const arr = isArray(existsEles)
-    ? existsEles.filter((el) => !newComeEles.includes(el))
+    ? existsEles.filter(
+        (el) => !(isArray(newComeEles) && newComeEles.includes(el)),
+      )
     : [];
   if (isArray(newComeEles)) {
-    newComeEles.forEach((el) => check(el) && arr.push(el));
+    newComeEles.forEach((el) => check(el) && !arr.includes(el) && arr.push(el));
   }
 
   return arr;
@@ -32,9 +35,9 @@ export function mergeArrayOrderByExists(
 export function mergeArrayOrderByNewCome(
   existsEles,
   newComeEles,
-  check = () => true
+  check = () => true,
 ) {
-  const arr = isArray(existsEles) ? [...existsEles] : [];
+  const arr = isArray(existsEles) ? [...new Set(existsEles)] : [];
   if (isArray(newComeEles)) {
     newComeEles.forEach((el) => check(el) && !arr.includes(el) && arr.push(el));
   }

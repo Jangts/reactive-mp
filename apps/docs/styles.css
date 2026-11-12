@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  color: #23302c;
+  background: #fafbf9;
+  font:
+    16px/1.75 system-ui,
+    sans-serif;
+}
+aside {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 230px;
+  padding: 24px;
+  background: #edf2ef;
+  overflow: auto;
+  box-sizing: border-box;
+}
+aside strong {
+  display: block;
+  margin-bottom: 20px;
+}
+nav a {
+  display: block;
+  padding: 7px;
+  color: #315c4b;
+  text-decoration: none;
+}
+nav a[aria-current] {
+  font-weight: bold;
+  background: #dbe7e0;
+  border-radius: 6px;
+}
+main {
+  margin-left: 230px;
+  max-width: 1000px;
+  padding: 32px 48px;
+}
+pre {
+  background: #eaf0ed;
+  padding: 20px;
+  overflow: auto;
+  border-radius: 8px;
+}
+code {
+  font-family: ui-monospace, monospace;
+}
+table {
+  border-collapse: collapse;
+  display: block;
+  overflow: auto;
+}
+td,
+th {
+  border: 1px solid #ccd9d0;
+  padding: 10px;
+  text-align: left;
+}
+a {
+  color: #176348;
+}
+h1,
+h2,
+h3 {
+  line-height: 1.35;
+}
+@media (max-width: 720px) {
+  aside {
+    position: static;
+    width: auto;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  main {
+    margin: 0;
+    padding: 20px;
+  }
+  nav a {
+    padding: 5px 10px;
+  }
+}

@@ -1,4 +1,6 @@
-import { useActiveSetupContext } from "../main.js";
+/** 实例查询与挂载／清理 Hook；收集阶段没有真实实例。 */
+import { requireSetupContext } from './context.js';
+import { useActiveSetupContext } from '../main.js';
 
 /**
  * [ useCurrentPage ]
@@ -23,10 +25,10 @@ export function useCurrentInstance() {
  *
  * Priority exec before: page/behavior/attached, component/attached
  *
- * @param {ParamLessCallback} handle Lifetime Scope 生命周期处理函数
+ * @param {() => void} handle Lifetime Scope 生命周期处理函数
  */
 export function onBeforeMounted(handle) {
-  useActiveSetupContext()?.lifetimeScope?.on("beforemounted", handle);
+  requireSetupContext().lifetimeScope?.on('beforemounted', handle);
 }
 
 /**
@@ -34,10 +36,10 @@ export function onBeforeMounted(handle) {
  *
  * Final exec after: page/onLoad, component/attached
  *
- * @param {ParamLessCallback} handle Lifetime Scope 生命周期处理函数
+ * @param {() => void} handle Lifetime Scope 生命周期处理函数
  */
 export function onMounted(handle) {
-  useActiveSetupContext()?.lifetimeScope?.on("mounted", handle);
+  requireSetupContext().lifetimeScope?.on('mounted', handle);
 }
 
 /**
@@ -45,8 +47,8 @@ export function onMounted(handle) {
  *
  * Final exec after: page/onUnload, component/detached
  *
- * @param {ParamLessCallback} handle Lifetime Scope 生命周期处理函数
+ * @param {() => void} handle Lifetime Scope 生命周期处理函数
  */
 export function onUnmounted(handle) {
-  useActiveSetupContext()?.lifetimeScope?.on("dispose", handle);
+  requireSetupContext().lifetimeScope?.on('dispose', handle);
 }

@@ -95,7 +95,7 @@ function emitAndSchedule(task, schedule) {
 | packages/reactivity | Signal、依赖追踪、对象响应式、effect scope | 原生组件注册和视图渲染适配 |
 | packages/store | 共享状态、惰性实例及其资源寿命 | 页面实例管理与原生平台初始化 |
 | packages/runtime | 配置收集、实例、平台适配、生命周期与 Hook | 工具端文件操作或业务应用规则 |
-| packages/reactive-mp | 用户统一导出 | 第二套状态、注册或执行机制 |
+| packages/reactive-mp | 用户统一导出；独立 Node 子入口提供原生源码准备工具 | 第二套状态、注册或执行机制；小程序主入口导入 Node 工具 |
 | examples | 场景组合、复现和实际平台验证 | 核心包的复制实现或私有替代版本 |
 | scripts / apps/docs | 工作区工具与文档站 | 被小程序入口导入的生产依赖 |
 

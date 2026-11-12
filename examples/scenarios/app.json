@@ -1,7 +1,5 @@
 {
-  "pages": [
-    "pages/index/index"
-  ],
+  "pages": ["pages/index/index"],
   "window": {
     "navigationBarTitleText": "业务组合验证"
   },

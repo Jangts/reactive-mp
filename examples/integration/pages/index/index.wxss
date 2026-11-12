@@ -1,1 +1,9 @@
-page { padding: 32rpx; box-sizing: border-box; } .result { padding: 16rpx; margin: 12rpx 0; background: #edf5ef; }
+page {
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+.result {
+  padding: 16rpx;
+  margin: 12rpx 0;
+  background: #edf5ef;
+}

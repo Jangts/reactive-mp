@@ -1,4 +1,5 @@
-import { useActiveSetupContext } from "../main.js";
+/** 平台事件、返回值回调及 App Hook 的组合式入口。 */
+import { requireSetupContext } from './context.js';
 
 /**
  * @typedef {{windowWidth: number; windowHeight: number;}} PageSize 打开当前页面路径中的参数
@@ -12,7 +13,7 @@ import { useActiveSetupContext } from "../main.js";
  * @param {EventHandle<PageResizePayload>} handle 生命周期处理函数
  */
 export function onPageResize(handle) {
-  useActiveSetupContext()?.on("resize", handle);
+  requireSetupContext().on('resize', handle);
 }
 
 /**
@@ -23,7 +24,7 @@ export function onPageResize(handle) {
  * @param {EventHandle<Error>} handle 生命周期处理函数
  */
 export function onComponentError(handle) {
-  useActiveSetupContext()?.on("error", handle);
+  requireSetupContext().on('error', handle);
 }
 
 /**
@@ -31,10 +32,10 @@ export function onComponentError(handle) {
  *
  * Map to: Page/onPullDownRefresh
  *
- * @param {ParamLessCallback} handle
+ * @param {() => void} handle
  */
 export function onPullDownRefresh(handle) {
-  useActiveSetupContext()?.on("PullDownRefresh", handle);
+  requireSetupContext().on('PullDownRefresh', handle);
 }
 
 /**
@@ -42,10 +43,10 @@ export function onPullDownRefresh(handle) {
  *
  * Map to: Page/onReachBottom
  *
- * @param {ParamLessCallback} handle
+ * @param {() => void} handle
  */
 export function onReachBottom(handle) {
-  useActiveSetupContext()?.on("ReachBottom", handle);
+  requireSetupContext().on('ReachBottom', handle);
 }
 
 /**
@@ -56,7 +57,7 @@ export function onReachBottom(handle) {
  * @param {EventHandle<PageScrollEvent>} handle
  */
 export function onPageScroll(handle) {
-  useActiveSetupContext()?.on("PageScroll", handle);
+  requireSetupContext().on('PageScroll', handle);
 }
 
 /**
@@ -67,18 +68,39 @@ export function onPageScroll(handle) {
  * @param {EventHandle<TabItemTapEvent>} handle
  */
 export function onTabItemTap(handle) {
-  useActiveSetupContext()?.on("TabItemTap", handle);
+  requireSetupContext().on('TabItemTap', handle);
 }
 
 export function onShareAppMessage(handle) {
-  return useActiveSetupContext()?.on("ShareAppMessage", handle);
+  return requireSetupContext().on('ShareAppMessage', handle);
 }
 export function onShareTimeline(handle) {
-  return useActiveSetupContext()?.on("ShareTimeline", handle);
+  return requireSetupContext().on('ShareTimeline', handle);
 }
 export function onAddToFavorites(handle) {
-  return useActiveSetupContext()?.on("AddToFavorites", handle);
+  return requireSetupContext().on('AddToFavorites', handle);
 }
 export function onSaveExitState(handle) {
-  return useActiveSetupContext()?.on("SaveExitState", handle);
+  return requireSetupContext().on('SaveExitState', handle);
+}
+
+/** 应用初始化回调，仅在 defineApp 的同步 setup 中登记。 */
+export function onLaunch(handle) {
+  return requireSetupContext().on('launch', handle);
+}
+/** 应用脚本错误回调。 */
+export function onAppError(handle) {
+  return requireSetupContext().on('appError', handle);
+}
+/** 应用页面不存在回调。 */
+export function onPageNotFound(handle) {
+  return requireSetupContext().on('pageNotFound', handle);
+}
+/** 应用未处理的 Promise 拒绝回调。 */
+export function onUnhandledRejection(handle) {
+  return requireSetupContext().on('unhandledRejection', handle);
+}
+/** 应用主题变化回调。 */
+export function onThemeChange(handle) {
+  return requireSetupContext().on('themeChange', handle);
 }

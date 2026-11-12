@@ -1,16 +1,15 @@
-
 /**
  *
- * @param { PageInstance } page
- * @returns { InstanceSetupContext }
+ * @param {import('@reactive-mp/runtime').NativeInstance} page
+ * @returns {import('./InstanceSetupContext.js').default}
  */
 function getPageScope(page) {
   return this.getPageScope(page.getPageId());
 }
 /**
  *
- * @param { ComponentInstance } component
- * @returns { InstanceSetupContext }
+ * @param {import('@reactive-mp/runtime').NativeInstance} component
+ * @returns {import('./InstanceSetupContext.js').default}
  */
 function getComponentScope(component) {
   return this.getComponentScope(component);
@@ -20,7 +19,7 @@ export function createRelationEventForwarder(
   rtCtx,
   relationid,
   eventname,
-  isPage
+  isPage,
 ) {
   const getScope = isPage
     ? getPageScope.bind(rtCtx)
@@ -29,7 +28,7 @@ export function createRelationEventForwarder(
     return getScope(this)?.context.forwardRelationEvent(
       relationid,
       eventname,
-      ...args
+      ...args,
     );
   };
 }
@@ -38,7 +37,7 @@ export function createDataChangeEventForwarder(
   rtCtx,
   src,
   isPage,
-  optObserver
+  optObserver,
 ) {
   const getScope = isPage
     ? getPageScope.bind(rtCtx)
@@ -52,12 +51,12 @@ export function createDataChangeEventForwarder(
 export function createPropSyncingForwarder(
   rtCtx,
   propnames,
-  sameSourceCallback
+  sameSourceCallback,
 ) {
   const getScope = getComponentScope.bind(rtCtx);
   return function (...values) {
     getScope(this)?.context.syncSetupPropValues(
-      Object.fromEntries(propnames.map((prop, i) => [prop, values[i]]))
+      Object.fromEntries(propnames.map((prop, i) => [prop, values[i]])),
     );
     sameSourceCallback?.call(this, ...values);
   };

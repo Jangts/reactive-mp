@@ -34,7 +34,7 @@
 | 根 README | 项目定位、首次接入及使用／开发入口；不复制全部指南 |
 | 包 README | 包的独立用途、运行前提、真实安装与最小用法、继续使用和交付链接 |
 | docs 使用指南 | 状态、Hook、原生混用、共享状态等确定合同 |
-| docs/api.md | 由各包实际 exports 与 index.d.ts 生成的 API 签名参考 |
+| docs/api.md | 由各包实际 exports 与对应模块类型声明生成的 API 签名参考 |
 | docs/setup-runtime.md | 配置收集、实例、上下文、追踪及视图同步原理 |
 | docs/architecture.md | 包边界、源码组织、工具与维护操作的入口 |
 | apps/docs | 导航、渲染、预览与文档站交付，不维护第二份正文 |

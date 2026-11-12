@@ -1,4 +1,5 @@
-import { isSignal, interpretSignal } from "@reactive-mp/reactivity";
+/** 注册阶段的声明收集器：生成原生配置、数据快照与实例转发入口。 */
+import { isSignal, interpretSignal } from '@reactive-mp/reactivity';
 import {
   isFunction,
   isNonEmptyArray,
@@ -6,20 +7,21 @@ import {
   isNonEmptyString,
   mergeArrayOrderByExists,
   mergeArrayOrderByNewCome,
-} from "@reactive-mp/shared";
+} from '@reactive-mp/shared';
 import {
   componentMountLifetimeNames,
   componentPageLifetimeNames,
-} from "../etc/constants.js";
-import { formatObserveSource } from "../etc/formatters.js";
+} from '../etc/constants.js';
+import { formatObserveSource } from '../etc/formatters.js';
 import {
   createExportHandleCallingForwarder,
   createMethodInvokationForwarder,
   createDataChangeEventForwarder,
   createPropSyncingForwarder,
   createRelationEventForwarder,
-} from "./calling-forwarding.js";
-import SetupContext from "./SetupContext.js";
+} from './calling-forwarding.js';
+import SetupContext from './SetupContext.js';
+import { snapshotViewData } from '../etc/data-binding.js';
 
 export default class extends SetupContext {
   defineOptions(options) {
@@ -35,7 +37,7 @@ export default class extends SetupContext {
     this.setupRecords.behaviorRefs = mergeArrayOrderByNewCome(
       this.setupRecords.behaviorRefs,
       behaviors,
-      () => true
+      () => true,
     );
   }
 
@@ -45,7 +47,7 @@ export default class extends SetupContext {
     this.setupRecords.extClasses = mergeArrayOrderByExists(
       this.setupRecords.extClasses,
       attrs,
-      isNonEmptyString
+      isNonEmptyString,
     );
   }
   defineProperties(definations = {}) {
@@ -56,7 +58,9 @@ export default class extends SetupContext {
     if (isFunction(callback)) {
       const { observers } = this.setupRecords;
       const { key } = formatObserveSource(src, scope);
-      if (key) observers[key] = observers[key] || [];
+      if (key) {
+        observers[key] = observers[key] || [];
+      }
     }
     return () => false;
   }
@@ -78,7 +82,7 @@ export default class extends SetupContext {
       formattedOptions.behaviors = mergeArrayOrderByNewCome(
         behaviors,
         behaviorRefs,
-        () => true
+        () => true,
       );
     } else if (isNonEmptyArray(behaviors)) {
       formattedOptions.behaviors = behaviors;
@@ -88,61 +92,54 @@ export default class extends SetupContext {
     return formattedOptions;
   }
   formatOptions(options) {
-    this.assertIsActive("format options");
+    this.assertIsActive('format options');
     const { externalClasses, export: optExport, ...formattedOptions } = options;
     const { relations, behaviorRefs, extClasses, exports } = this.setupRecords;
     if (this.isComponent) {
       if (relations.size) {
         formattedOptions.relations = { ...options.relations };
         Array.from(relations).forEach(([id, desc]) => {
-          const { type, target, handler } = desc;
-          if (target) {
-            formattedOptions.relations[id] = desc;
-          } else {
-            const _desc = { type };
-            Object.entries(handler).forEach(([eventname, handle]) => {
-              if (isFunction(handle)) {
-                _desc[eventname] = createRelationEventForwarder(
-                  this.runtimeContext,
-                  id,
-                  eventname,
-                  this.isPage
-                );
-              }
-            });
-            formattedOptions.relations[id] = _desc;
+          const { handler, ...relation } = desc;
+          for (const [eventName, handle] of Object.entries(handler)) {
+            if (isFunction(handle)) {
+              relation[eventName] = createRelationEventForwarder(
+                this.runtimeContext,
+                id,
+                eventName,
+                this.isPage,
+              );
+            }
           }
+          formattedOptions.relations[id] = relation;
         });
       }
       if (isNonEmptyArray(extClasses)) {
         formattedOptions.externalClasses = mergeArrayOrderByExists(
           externalClasses,
           extClasses,
-          isNonEmptyString
+          isNonEmptyString,
         );
       } else if (isNonEmptyArray(externalClasses)) {
         formattedOptions.externalClasses = externalClasses;
       }
       if (exports) {
         // 添加必要的行为 wx://component-export
-        behaviorRefs.push("wx://component-export");
+        behaviorRefs.push('wx://component-export');
         formattedOptions.export = createExportHandleCallingForwarder(
-          this.runtimeContext
+          this.runtimeContext,
         );
       } else if (isFunction(optExport)) {
-        behaviorRefs.push("wx://component-export");
+        behaviorRefs.push('wx://component-export');
         formattedOptions.export = optExport;
       }
     }
     return this.formatCommonOptions(formattedOptions);
   }
   createPropertiesOption(options) {
-    // this.assertIsActive("create properties option");
     const { option } = this.setupRecords.props;
     return { ...options.properties, ...option };
   }
   formatDataAndMethods(optData, optMethod) {
-    // this.assertIsActive("format data and methods");
     const { runtimeContext, isPage } = this;
     const data = { ...optData };
     const methods = { ...optMethod };
@@ -154,7 +151,7 @@ export default class extends SetupContext {
           methods[name] = createMethodInvokationForwarder(
             runtimeContext,
             name,
-            isPage
+            isPage,
           );
         }
       } else if (isSignal(item)) {
@@ -163,16 +160,33 @@ export default class extends SetupContext {
         data[name] = item;
       }
     });
-    // this.setupReturns = {};
-    return { data, methods };
+    const pattern =
+      this.setupRecords.options?.pureDataPattern ??
+      this.nativeOptions?.pureDataPattern;
+    const viewData = Object.fromEntries(
+      Object.entries(data)
+        .filter(([name]) => {
+          if (!(pattern instanceof RegExp)) {
+            return true;
+          }
+          pattern.lastIndex = 0;
+          return !pattern.test(name);
+        })
+        .map(([name, value]) => [name, snapshotViewData(value)]),
+    );
+    return { data: viewData, methods };
   }
   createLifetimeOptions(options) {
-    // this.assertIsActive("create lifetime option");
     const { runtimeContext, setupLifetimes } = this;
     const lifetimes = { ...options.lifetimes };
     const pageLifetimes = { ...options.pageLifetimes };
     setupLifetimes.forEach((lifetime) => {
-      if (componentMountLifetimeNames.includes(lifetime) || lifetime === "created") return;
+      if (
+        componentMountLifetimeNames.includes(lifetime) ||
+        lifetime === 'created'
+      ) {
+        return;
+      }
       function lifetimehandle(...args) {
         runtimeContext
           .getComponentScope(this)
@@ -188,7 +202,6 @@ export default class extends SetupContext {
     return { lifetimes, pageLifetimes };
   }
   createObserversOption(optObservers = {}) {
-    // this.assertIsActive("create observers option");
     const { runtimeContext, isPage, setupRecords } = this;
     const { observers: setupObservers, props } = setupRecords;
     const observers = { ...optObservers };
@@ -197,16 +210,16 @@ export default class extends SetupContext {
         runtimeContext,
         src,
         isPage,
-        observers[src]
+        observers[src],
       );
     });
     if (this.isComponent && props.names?.length) {
-      const propsWatcherSource = props.names.join(",");
+      const propsWatcherSource = props.names.join(',');
       const sameSourceCallback = observers[propsWatcherSource];
       observers[propsWatcherSource] = createPropSyncingForwarder(
         runtimeContext,
         props.names,
-        sameSourceCallback
+        sameSourceCallback,
       );
     }
     // this.setupRecords.observers = {};

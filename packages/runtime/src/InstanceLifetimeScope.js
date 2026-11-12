@@ -1,6 +1,7 @@
-import { createEffectScope } from "@reactive-mp/reactivity";
-import { EventBus } from "@reactive-mp/shared";
-import InstanceSetupContext from "./setup-context/InstanceSetupContext.js";
+/** 单个原生实例的资源所有者：建立绑定、挂载依赖并完整清理。 */
+import { createEffectScope } from '@reactive-mp/reactivity';
+import { EventBus } from '@reactive-mp/shared';
+import InstanceSetupContext from './setup-context/InstanceSetupContext.js';
 
 class InstanceLifetimeScope extends EventBus {
   #effectScope = null;
@@ -41,11 +42,15 @@ class InstanceLifetimeScope extends EventBus {
       this.#effectScope.run(() => {
         fn(this.context);
         this.context.runtimeContext.withSetupContext(this.context, () =>
-          this.context.bindSignalsAndMethods().forEach((stop) => this.addLifetimeHandle("dispose", stop))
+          this.context
+            .bindSignalsAndMethods()
+            .forEach((stop) => this.addLifetimeHandle('dispose', stop)),
         );
       });
       return this.context;
-    } finally { this.#isRunning = false; }
+    } finally {
+      this.#isRunning = false;
+    }
   }
   attachTo(parentScope) {
     if (parentScope) {
@@ -64,37 +69,64 @@ class InstanceLifetimeScope extends EventBus {
     return null;
   }
   addLifetimeHandle(lifetime, handle) {
-    if (lifetime === 'dispose') this.#disposers.add(handle);
-    else this.once(`scopelifetimes/${lifetime}`, handle);
+    if (lifetime === 'dispose') {
+      this.#disposers.add(handle);
+    } else {
+      this.once(`scopelifetimes/${lifetime}`, handle);
+    }
     return true;
   }
   forwardInstanceLifetimeEvent(lifetime, ...payload) {
-    if ((lifetime === 'unload' || lifetime === 'detached') && this.completed?.has(lifetime)) return this;
+    if (
+      (lifetime === 'unload' || lifetime === 'detached') &&
+      this.completed?.has(lifetime)
+    ) {
+      return this;
+    }
     if (lifetime === 'unload' || lifetime === 'detached') {
       this.completed ||= new Set();
       this.completed.add(lifetime);
+    }
+    if (lifetime === 'beforeDetach') {
+      this.context.deactivateView?.();
     }
     this.emit(`lifetimes/${lifetime}`, payload);
     return this;
   }
 
   stop() {
-    if (!this.#effectScope) return;
+    if (!this.#effectScope) {
+      return;
+    }
     const effectScope = this.#effectScope;
     this.#effectScope = null;
     const errors = [];
-    const attempt = fn => { try { fn(); } catch (error) { errors.push(error); } };
-    if (this.isPage) attempt(() => this.forwardInstanceLifetimeEvent('unload'));
-    if (this.isComponent) attempt(() => this.forwardInstanceLifetimeEvent('detached'));
-    for (const dispose of this.#disposers) attempt(dispose);
+    const attempt = (fn) => {
+      try {
+        fn();
+      } catch (error) {
+        errors.push(error);
+      }
+    };
+    attempt(() => this.context.deactivateView?.());
+    if (this.isPage) {
+      attempt(() => this.forwardInstanceLifetimeEvent('unload'));
+    }
+    if (this.isComponent) {
+      attempt(() => this.forwardInstanceLifetimeEvent('detached'));
+    }
+    for (const dispose of this.#disposers) {
+      attempt(dispose);
+    }
     this.#disposers.clear();
     attempt(() => effectScope.stop());
     attempt(() => this.context.reset());
     this.clear();
     this.#parentScope = null;
-    if (errors.length) throw new AggregateError(errors, 'instance cleanup failed');
+    if (errors.length) {
+      throw new AggregateError(errors, 'instance cleanup failed');
+    }
   }
-
 }
 
 export default function createInstanceLifetimeScope(instance, configs) {

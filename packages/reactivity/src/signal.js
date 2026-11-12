@@ -1,7 +1,8 @@
-import { isArray, isFunction, isPlainObject } from "@reactive-mp/shared";
-import { isRunInEffectFreeScope } from "./EffectScope.js";
-import State from "./State.js";
-import TrackingScope from "./TrackingScope.js";
+/** 响应式核心：可调用状态、派生计算和监听，收集阶段仅求值而不订阅。 */
+import { isArray, isFunction } from '@reactive-mp/shared';
+import createEffectScope, { isRunInEffectFreeScope } from './EffectScope.js';
+import State from './State.js';
+import TrackingScope from './TrackingScope.js';
 
 /* ******************* *
  *        定义组        *
@@ -41,18 +42,20 @@ const CONTEXT = {
   },
 };
 
-const SignalSource = Symbol("SignalSource");
-const SignalPayload = Symbol("SignalPayload");
-const SignalEmitters = Symbol("SignalEmitters");
-const PreviousPayload = Symbol("PreviousPayload");
-const IsWatchableSignal = Symbol("IsWatchableSignal");
-const IsProtectedSignal = Symbol("IsProtectedSignal");
-const IsComputedSignal = Symbol("IsComputedSignal");
+const SignalSource = Symbol('SignalSource');
+const SignalPayload = Symbol('SignalPayload');
+const SignalEmitters = Symbol('SignalEmitters');
+const PreviousPayload = Symbol('PreviousPayload');
+const IsWatchableSignal = Symbol('IsWatchableSignal');
+const IsProtectedSignal = Symbol('IsProtectedSignal');
+const IsComputedSignal = Symbol('IsComputedSignal');
 const isTrueSignal = (target) => target?.[SignalSource] !== undefined;
 const isWatchableSignal = (target) => target?.[IsWatchableSignal] === true;
 const assertIsNotInWatchingScope = (action) => {
   const cause = CONTEXT.getTopWatchingScope();
-  if (cause) throw new Error(`cannot ${action} in effect`, { cause });
+  if (cause) {
+    throw new Error(`cannot ${action} in effect`, { cause });
+  }
 };
 
 /* ******************* *
@@ -71,8 +74,11 @@ class WatchingScope extends TrackingScope {
     });
     this.#effect = effect;
     this.isTrackedForCompute = !!isTrackedForCompute;
-    if (once) this.once("effect", this.runEffect.bind(this));
-    else this.on("effect", this.runEffect.bind(this));
+    if (once) {
+      this.once('effect', this.runEffect.bind(this));
+    } else {
+      this.on('effect', this.runEffect.bind(this));
+    }
     this.on = () => () => {};
   }
   run(fn) {
@@ -82,7 +88,9 @@ class WatchingScope extends TrackingScope {
     });
   }
   runEffect() {
-    if (this.canTrack !== WatchingScope.noTracking) this.unTrackAll();
+    if (this.canTrack !== WatchingScope.noTracking) {
+      this.unTrackAll();
+    }
     this.run(this.#effect);
     return this;
   }
@@ -97,28 +105,20 @@ class TrackableState extends State {
         if (signal) {
           CONTEXT.getTopWatchingScope()?.track({
             signal: this.$ref?.deref(),
-            type: "track",
+            type: 'track',
             value: payload.value,
           });
-        } else this.freeze();
+        } else {
+          this.freeze();
+        }
       },
       onBeforeSet: ({ payload }) => {
         const scope = CONTEXT.getTopWatchingScope();
         if (scope) {
           if (scope.isTrackedForCompute) {
             payload.newValue = payload.value;
-            throw new Error("cannot update state of signal in computed effect");
+            throw new Error('cannot update state of signal in computed effect');
           }
-          const signal = this.$ref?.deref();
-          if (signal) {
-            if (scope.hasTracked(signal)) {
-              payload.newValue = payload.value;
-              throw new Error(
-                "cannot update state of signal in circular-dependency effect"
-              );
-            }
-            signal[SignalEmitters].add(scope);
-          } else this.freeze();
         }
       },
       onAfterSet: ({ payload }) => {
@@ -126,7 +126,9 @@ class TrackableState extends State {
         if (signal) {
           signal[PreviousPayload] = signal[SignalPayload];
           signal[SignalPayload] = { value: payload.value };
-        } else this.freeze();
+        } else {
+          this.freeze();
+        }
       },
     });
   }
@@ -144,14 +146,20 @@ class Signal {
     const signal = new Proxy(this, {
       apply: () => state.value,
       get: (t, p) =>
-        p === "__is_signal"
+        p === '__is_signal'
           ? true
-          : p === "__is_computed"
-          ? signal[IsComputedSignal]
-          : p === "value"
-          ? state.value
-          : meta[p],
-      set: (t, p, v) => ((meta[p] = v), true),
+          : p === '__is_computed'
+            ? signal[IsComputedSignal]
+            : p === 'value'
+              ? state.value
+              : meta[p],
+      set: (target, property, value) => {
+        if (property === 'value') {
+          throw new TypeError('Signal.value is readonly; use its emitter');
+        }
+        meta[property] = value;
+        return true;
+      },
     });
     state.$ref = new WeakRef(signal);
     return signal;
@@ -159,13 +167,16 @@ class Signal {
   static update(
     signal,
     value,
-    { forced = false, shouldBeRetrack = false } = {}
+    { forced = false, shouldBeRetrack = false } = {},
   ) {
     const previous = CONTEXT.RETRACKFLAG;
     try {
       CONTEXT.RETRACKFLAG = shouldBeRetrack;
-      if (forced) signal[SignalSource].set(value, true);
-      else signal[SignalSource].value = value;
+      if (forced) {
+        signal[SignalSource].set(value, true);
+      } else {
+        signal[SignalSource].value = value;
+      }
       return true;
     } finally {
       CONTEXT.RETRACKFLAG = previous;
@@ -180,17 +191,17 @@ class Signal {
 
 /**
  * @template T
- * @param {ParamlessFunction} fn
- * @returns {fn is Getter<T>}
+ * @param {() => unknown} fn
+ * @returns {fn is () => T}
  */
 export const isGetter = (fn) => isFunction(fn);
 
 /**
  * @template T
  * @template {boolean} B
- * @param {ParamlessFunction<T> | Record<string, any>} target
+ * @param {() => T | Record<string, any>} target
  * @param {B} isRealSignal
- * @returns {target is B extends true? SignalImpl<T> : SignalImpl<T> | MutableSignalCarrierImpl<T>}
+ * @returns {target is B extends true? import('@reactive-mp/reactivity').Signal<T> : import('@reactive-mp/reactivity').Signal<T> | import('@reactive-mp/reactivity').Reactive<object> | import('@reactive-mp/reactivity').ReadonlyCarrier<object>}
  */
 export const isSignal = (target, isRealSignal) =>
   isRealSignal
@@ -198,8 +209,9 @@ export const isSignal = (target, isRealSignal) =>
     : isTrueSignal(target) || CONTEXT.isSignalCarrier(target);
 
 /**
- * @param {*} target
- * @returns {target is SignalImpl<T> | MutableSignalCarrierImpl<T>}
+ * @template T
+ * @param {unknown} target
+ * @returns {target is import('@reactive-mp/reactivity').Signal<T> | import('@reactive-mp/reactivity').Reactive<object> | import('@reactive-mp/reactivity').ReadonlyCarrier<object>}
  */
 export const isWatchable = (target) =>
   isWatchableSignal(target) ||
@@ -207,8 +219,8 @@ export const isWatchable = (target) =>
 
 /**
  * @template T
- * @param {ParamlessFunction<T> | Record<string, any>} target
- * @returns {target is ComputedSignalImpl<T>}
+ * @param {() => T | Record<string, any>} target
+ * @returns {target is import('@reactive-mp/reactivity').ComputedSignal<T>}
  */
 export const isComputedSignal = (target) =>
   !!CONTEXT.captureSignal(target)?.[IsComputedSignal];
@@ -223,11 +235,13 @@ export const isComputedSignal = (target) =>
  *
  * @template T
  * @param {T} value
- * @returns {[SignalImpl<T>, SignalEmitter<T>]}
+ * @returns {[import('@reactive-mp/reactivity').Signal<T>, import('@reactive-mp/reactivity').SignalEmitter<T>]}
  */
 export function useSignal(value) {
   const signal = CONTEXT.captureSignal(value) || Signal.create(value);
-  if (signal[IsProtectedSignal]) return [signal, null];
+  if (signal[IsProtectedSignal]) {
+    return [signal, null];
+  }
   return [signal, Signal.update.bind(null, signal)];
 }
 
@@ -235,29 +249,34 @@ export function useSignal(value) {
  * Create And Use Computed Signal
  *
  * @template T
- * @param {Getter<T>} getter
- * @param {Pick<TrackScopeObserver<T>, 'onTrack'|'onTrigger'>} options
- * @returns {ComputedSignalImpl<T>}
+ * @param {() => T} getter
+ * @param {import('@reactive-mp/reactivity').TrackOptions} options
+ * @returns {import('@reactive-mp/reactivity').ComputedSignal<T>}
  */
 export function useComputedSignal(
   getter,
-  { onTrack = null, onTrigger = null } = {}
+  { onTrack = null, onTrigger = null } = {},
 ) {
   assertIsNotInWatchingScope(`define computed signal`);
   if (!isGetter(getter)) {
-    throw new Error("getter for computed signal must be a function");
+    throw new Error('getter for computed signal must be a function');
   }
   const signal = Signal.create();
   signal[IsProtectedSignal] = true;
   signal[IsComputedSignal] = true;
-  signal[SignalEmitters].add(
-    new WatchingScope(() => getter(), {
-      onTrack,
-      onTrigger,
-      isTrackedForCompute: true,
-      onResult: ({ payload }) => (signal[SignalSource].value = payload),
-    }).runEffect()
-  );
+  const scope = new WatchingScope(() => getter(), {
+    onTrack,
+    onTrigger,
+    isTrackedForCompute: true,
+    onResult: ({ payload }) => (signal[SignalSource].value = payload),
+  });
+  try {
+    scope.runEffect();
+  } catch (error) {
+    scope.stop();
+    throw error;
+  }
+  signal[SignalEmitters].add(scope);
   return signal;
 }
 
@@ -266,14 +285,19 @@ export function useComputedSignal(
  *
  * @template {Record<string, any>} T
  * @param {T} target
- * @param {SignalImpl<T|any>} signal
+ * @param {import('@reactive-mp/reactivity').Signal<T|any>} signal
  * @returns {()=>boolean} stop
  */
 export function carrySignal(target, signal) {
-  if (target === null || (typeof target !== "object" && typeof target !== "function")) {
-    throw new Error("signal carrier must be a plain object");
+  if (
+    target === null ||
+    (typeof target !== 'object' && typeof target !== 'function')
+  ) {
+    throw new Error('signal carrier must be a plain object');
   }
-  if (CONTEXT.isSignalCarrier(target)) return () => false;
+  if (CONTEXT.isSignalCarrier(target)) {
+    return () => false;
+  }
   if (isTrueSignal(signal)) {
     CONTEXT.startToCarrySignal(target, signal);
     return () => CONTEXT.stopToCarrySignal(target);
@@ -289,13 +313,13 @@ export function carrySignal(target, signal) {
 /**
  * Protect Signal
  *
- * @param {SignalImpl} signal
+ * @param {import('@reactive-mp/reactivity').Signal} signal
  */
 export function protectSignal(signal) {
   if (isTrueSignal(signal)) {
     return (signal[IsProtectedSignal] = true);
   }
-  throw new Error("signal carrier must be a plain object");
+  throw new Error('signal carrier must be a plain object');
 }
 
 /* ******************* *
@@ -307,15 +331,18 @@ export function protectSignal(signal) {
  * Track Signal
  *
  * @template T
- * @param {SignalImpl<T> | MutableSignalCarrierImpl<T>} target
- * @param {(payload: TrackEffectPayload<T>)=>void} effect
+ * @param {import('@reactive-mp/reactivity').Signal<T> | import('@reactive-mp/reactivity').Reactive<object> | import('@reactive-mp/reactivity').ReadonlyCarrier<object>} target
+ * @param {(payload: import('@reactive-mp/reactivity').TrackPayload<T>)=>void} effect
  * @returns {()=>boolean} stop
  */
 export function trackSignal(target, effect) {
   if (!isRunInEffectFreeScope() && isFunction(effect)) {
     const signal = CONTEXT.captureSignal(target);
+    if (!signal) {
+      throw new TypeError('trackSignal requires a Signal or carrier');
+    }
     return signal[SignalSource].subscribe((payload) =>
-      effect({ ...payload, shouldBeRetrack: CONTEXT.RETRACKFLAG })
+      effect({ ...payload, shouldBeRetrack: CONTEXT.RETRACKFLAG }),
     );
   }
   return () => {};
@@ -325,7 +352,7 @@ export function trackSignal(target, effect) {
  * Emit Signal
  *
  * @template T
- * @param {SignalImpl<T> | MutableSignalCarrierImpl<T>} target
+ * @param {import('@reactive-mp/reactivity').Signal<T> | import('@reactive-mp/reactivity').Reactive<object> | import('@reactive-mp/reactivity').ReadonlyCarrier<object>} target
  * @param {{value: T} & UpdateSignalValueOptions} payload
  * @returns {boolean}
  */
@@ -342,13 +369,15 @@ export function emitSignal(target, payload) {
  * Interpret Signal
  *
  * @template T
- * @param {SignalImpl<T> | MutableSignalCarrierImpl<T>} target
+ * @param {import('@reactive-mp/reactivity').Signal<T> | import('@reactive-mp/reactivity').Reactive<object> | import('@reactive-mp/reactivity').ReadonlyCarrier<object>} target
  * @param {boolean} slient
  * @returns {T | void}
  */
 export function interpretSignal(target, slient = false) {
   const signal = CONTEXT.captureSignal(target);
-  if (slient) return signal?.[SignalSource].get();
+  if (slient) {
+    return signal?.[SignalSource].get();
+  }
   return signal?.();
 }
 
@@ -360,67 +389,106 @@ export function interpretSignal(target, slient = false) {
 /**
  * Watch Signals
  *
- * @template {WatchSource} T
+ * @template T
  * @param {Readonly<T>} source
- * @param {(values: WatchValues<T>, oldValues: WatchValues<T>)=>void} callback
- * @param {WatchOptions} options
- * @returns {WatchHandle}
+ * @param {(values: import('@reactive-mp/reactivity').WatchValue<T>, oldValues: import('@reactive-mp/reactivity').WatchValue<T>)=>void} callback
+ * @param {import('@reactive-mp/reactivity').WatchOptions} options
+ * @returns {import('@reactive-mp/reactivity').WatchHandle}
  */
 export function watchSignals(
   source,
   callback,
-  { immediate = false, once = false, onTrack = null, onTrigger = null } = {}
+  { immediate = false, once = false, onTrack = null, onTrigger = null } = {},
 ) {
   assertIsNotInWatchingScope(`watch signal`);
   if (isFunction(callback) === false) {
-    console.warn("watch callback must be a function");
+    throw new TypeError('watch callback must be a function');
+  }
+  if (isRunInEffectFreeScope()) {
     return TrackingScope.emptyWatchHandle;
   }
-  if (isRunInEffectFreeScope()) return TrackingScope.emptyWatchHandle;
+  const getterScopes = [];
+  const createGetter = (getter) => {
+    const owner = createEffectScope();
+    getterScopes.push(owner);
+    try {
+      return owner.run(() => useComputedSignal(getter));
+    } catch (error) {
+      owner.stop();
+      throw error;
+    }
+  };
   const isArrSrc = isArray(source);
   source = isSignal(source)
     ? [CONTEXT.captureSignal(source)]
     : isGetter(source)
-    ? [useComputedSignal(source)]
-    : isArrSrc
-    ? source.map((s) =>
-        isSignal(s)
-          ? CONTEXT.captureSignal(s)
-          : isGetter(s)
-          ? useComputedSignal(s)
-          : s
-      )
-    : [];
-  if (source.length === 0) return TrackingScope.emptyWatchHandle;
-  let previous = source.map(signal => isSignal(signal) ? interpretSignal(signal, true) : signal);
+      ? [createGetter(source)]
+      : isArrSrc
+        ? source.map((s) =>
+            isSignal(s)
+              ? CONTEXT.captureSignal(s)
+              : isGetter(s)
+                ? createGetter(s)
+                : s,
+          )
+        : [];
+  if (source.length === 0) {
+    return TrackingScope.emptyWatchHandle;
+  }
+  let previous = source.map((signal) =>
+    isSignal(signal) ? interpretSignal(signal, true) : signal,
+  );
   let first = true;
   const effect = () => {
-    const values = source.map(signal => isSignal(signal) ? interpretSignal(signal, true) : signal);
-    const oldValues = immediate && first ? source.map(() => undefined) : previous;
+    const values = source.map((signal) =>
+      isSignal(signal) ? interpretSignal(signal, true) : signal,
+    );
+    const oldValues =
+      immediate && first ? source.map(() => undefined) : previous;
     previous = values;
     first = false;
-    if (isArrSrc) callback?.(values, oldValues);
-    else callback?.(values[0], oldValues[0]);
-    if (once) CONTEXT.getTopWatchingScope()?.stop();
+    if (isArrSrc) {
+      callback?.(values, oldValues);
+    } else {
+      callback?.(values[0], oldValues[0]);
+    }
+    if (once) {
+      CONTEXT.getTopWatchingScope()?.stop();
+    }
   };
   const scope = new WatchingScope(effect, { onTrack, onTrigger });
+  scope.onStop(() => {
+    for (const owner of getterScopes) {
+      owner.stop();
+    }
+    source = null;
+    callback = null;
+  });
   scope.run(() => source.forEach((signal) => interpretSignal(signal)));
   scope.canTrack = WatchingScope.noTracking;
-  if (immediate) scope.runEffect();
-  return scope.exposeHanlde(() => ((source = null), (callback = null)));
+  if (immediate) {
+    scope.runEffect();
+  }
+  return scope.exposeHandle();
 }
 
 /**
  * Watch Effect
  *
- * @param {ParamlessFunction} effect
- * @param {Pick<TrackScopeObserver<T>, 'onTrack'|'onTrigger'>} options
- * @returns {WatchHandle}
+ * @param {() => unknown} effect
+ * @param {import('@reactive-mp/reactivity').TrackOptions} options
+ * @returns {import('@reactive-mp/reactivity').WatchHandle}
  */
 export function watchEffect(effect, { onTrack = null, onTrigger = null } = {}) {
   assertIsNotInWatchingScope(`watch effect`);
-  if (isRunInEffectFreeScope()) return TrackingScope.emptyWatchHandle;
-  return new WatchingScope(effect, { onTrack, onTrigger })
-    .runEffect()
-    .exposeHanlde();
+  if (isRunInEffectFreeScope()) {
+    return TrackingScope.emptyWatchHandle;
+  }
+  const scope = new WatchingScope(effect, { onTrack, onTrigger });
+  try {
+    return scope.runEffect().exposeHandle();
+  } catch (error) {
+    scope.stop();
+    throw error;
+  }
 }

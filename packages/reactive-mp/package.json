@@ -8,12 +8,18 @@
     ".": {
       "types": "./index.d.ts",
       "default": "./src/index.js"
+    },
+    "./native-tools": {
+      "types": "./native-tools.d.ts",
+      "node": "./tools/prepare-native.mjs"
     }
   },
   "files": [
     "src/**/*.js",
     "index.d.ts",
-    "README.md"
+    "README.md",
+    "tools/*.mjs",
+    "native-tools.d.ts"
   ],
   "license": "ISC",
   "dependencies": {
@@ -21,5 +27,19 @@
     "@reactive-mp/reactivity": "1.0.0",
     "@reactive-mp/store": "1.0.0",
     "@reactive-mp/shared": "1.0.0"
+  },
+  "bin": {
+    "reactive-mp-prepare": "./tools/prepare-native.mjs"
+  },
+  "description": "Reactive composition APIs and native package preparation for WeChat Mini Programs",
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "composition-api",
+    "signals",
+    "state-management"
+  ],
+  "engines": {
+    "node": ">=22"
   }
 }

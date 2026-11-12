@@ -1,67 +1,112 @@
-import { interpretSignal, isSignal } from "@reactive-mp/reactivity";
-import { emitSignal } from "@reactive-mp/reactivity/signal";
-import { hasOwnProp, isFunction, isPlainObject } from "@reactive-mp/shared";
+/** App 的一次性 setup 上下文：组合生命周期与原生配置，持有应用级状态。 */
+import { interpretSignal, isSignal } from '@reactive-mp/reactivity';
+import { emitSignal } from '@reactive-mp/reactivity/signal';
+import { appLifetimeMap } from '../etc/constants.js';
 
 export default class AppSetupContext {
-  setupRecords = null;
-  setupMethods = null;
-  setupSignals = null;
-  providedData = null;
+  isApp = true;
+  isPage = false;
+  isComponent = false;
+  instance = null;
+  setupRecords = {};
+  #listeners = new Map();
 
-  constructor(setupRecords) {
-    const setupMethods = {};
-    const setupSignals = {};
-    const providedData = {};
-    if (isPlainObject(setupRecords)) {
-      Object.entries(setupRecords).forEach(([key, record]) => {
-        if (isSignal(record)) {
-          setupSignals[key] = record;
-        } else if (isFunction(record)) {
-          setupMethods[key] = record;
-        } else {
-          providedData[key] = record;
-        }
-      });
+  /** 登记应用生命周期；不把 App show/hide 误发给页面或组件。 */
+  addLifetimeListener(scope, lifetime, listener) {
+    const name = appLifetimeMap.get(lifetime);
+    if (!name) {
+      throw Error(`unsupported App lifecycle: ${lifetime}`);
     }
-    this.setupRecords = setupRecords;
-    this.setupMethods = setupMethods;
-    this.setupSignals = setupSignals;
-    this.providedData = providedData;
+    if (typeof listener !== 'function') {
+      throw new TypeError('App lifecycle handler must be a function');
+    }
+    const listeners = this.#listeners.get(name) ?? [];
+    listeners.push(listener);
+    this.#listeners.set(name, listeners);
+    return true;
   }
 
-  formatDataAndMethods() {
-    const { setupSignals, providedData, setupMethods } = this;
-    class GlobalDataHandler {
-      get(t, p, r) {
-        if (hasOwnProp(setupSignals, p)) {
-          return interpretSignal(setupSignals[p], true);
-        }
-        if (hasOwnProp(providedData, p)) {
-          return providedData[p];
-        }
-        return t[p];
-      }
-      set(t, p, v, r) {
-        if (hasOwnProp(setupSignals, p)) {
-          emitSignal(setupSignals[p], { value: v });
-        } else if (hasOwnProp(providedData, p)) {
-          providedData[p] = v;
-        }
-        t[p] = v;
-        return true;
-      }
-      deleteProperty(t, p, r) {
-        if (hasOwnProp(setupSignals, p) || hasOwnProp(providedData, p)) {
-          return false;
-        }
-        return delete t[p];
+  /** 将原生 globalData 与 setup 状态合并；读取 Signal 值，保留应用动作接收者。 */
+  formatDataAndMethods(native = {}) {
+    const { globalData: original = {}, ...methods } = native;
+    const values = { ...original };
+    const signals = new Map();
+    for (const [key, record] of Object.entries(this.setupRecords)) {
+      if (isSignal(record)) {
+        signals.set(key, record);
+      } else if (typeof record === 'function') {
+        methods[key] = record;
+      } else {
+        Object.defineProperty(values, key, {
+          value: record,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
       }
     }
-
-    const globalData = new Proxy(
-      { ...setupSignals, ...providedData },
-      new GlobalDataHandler()
-    );
-    return { globalData, setupMethods };
+    const globalData = new Proxy(values, {
+      get(target, key, receiver) {
+        if (signals.has(key)) {
+          return interpretSignal(signals.get(key), true);
+        }
+        return Reflect.get(target, key, receiver);
+      },
+      set(target, key, value) {
+        if (signals.has(key)) {
+          if (!emitSignal(signals.get(key), { value })) {
+            throw new TypeError(`App state ${String(key)} is readonly`);
+          }
+          return true;
+        }
+        Object.defineProperty(target, key, {
+          value,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+        return true;
+      },
+      ownKeys(target) {
+        return [...new Set([...Reflect.ownKeys(target), ...signals.keys()])];
+      },
+      getOwnPropertyDescriptor(target, key) {
+        if (signals.has(key)) {
+          return {
+            configurable: true,
+            enumerable: true,
+            value: interpretSignal(signals.get(key), true),
+            writable: true,
+          };
+        }
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      },
+      deleteProperty(target, key) {
+        if (signals.has(key)) {
+          return false;
+        }
+        return Reflect.deleteProperty(target, key);
+      },
+    });
+    for (const name of new Set([
+      ...appLifetimeMap.values(),
+      ...this.#listeners.keys(),
+    ])) {
+      const nativeHandler = native[name];
+      const setupHandler =
+        methods[name] !== nativeHandler ? methods[name] : undefined;
+      const listeners = this.#listeners.get(name) ?? [];
+      if (!nativeHandler && !setupHandler && !listeners.length) {
+        continue;
+      }
+      methods[name] = function (...args) {
+        nativeHandler?.apply(this, args);
+        setupHandler?.apply(this, args);
+        for (const listener of listeners) {
+          listener.apply(this, args);
+        }
+      };
+    }
+    return { globalData, setupMethods: methods };
   }
 }

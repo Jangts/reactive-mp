@@ -1,21 +1,44 @@
-import { createEffectScope } from "@reactive-mp/reactivity";
-import { isFunction } from "@reactive-mp/shared";
-import { createSettingUpContext } from "./etc/creators.js";
-import createInstanceLifetimeScope from "./InstanceLifetimeScope.js";
-import AppSetupContext from "./setup-context/AppSetupContext.js";
-import SetupContext from "./setup-context/SetupContext.js";
+/** 应用、页面和组件的运行时登记，集中维护活动上下文及恢复边界。 */
+import { createEffectScope } from '@reactive-mp/reactivity';
+import { isFunction } from '@reactive-mp/shared';
+import { createSettingUpContext } from './etc/creators.js';
+import createInstanceLifetimeScope from './InstanceLifetimeScope.js';
+import AppSetupContext from './setup-context/AppSetupContext.js';
+import SetupContext from './setup-context/SetupContext.js';
 
 class AppLifetimeScope {
-  #effectScope = createEffectScope();
+  #effectScope = createEffectScope(true);
   context = null;
-  run(setup) {
+  run(setup, native, runtime) {
+    const context = new AppSetupContext();
+    context.runtimeContext = runtime;
+    this.context = context;
     try {
-      this.context = new AppSetupContext(
-        isFunction(setup) ? this.#effectScope.run(setup) : setup
+      runtime.withSetupContext(context, () =>
+        this.#effectScope.run(() => {
+          const result =
+            typeof setup === 'function'
+              ? setup(createSettingUpContext(context, null))
+              : {};
+          if (result && typeof result.then === 'function') {
+            throw new TypeError('App setup must be synchronous');
+          }
+          if (result != null && typeof result !== 'object') {
+            throw new TypeError('App setup must return an object');
+          }
+          context.setupRecords = result ?? {};
+        }),
       );
-      return this.context;
+      return context;
     } catch (error) {
-      this.#effectScope.stop();
+      try {
+        this.#effectScope.stop();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          'App setup and cleanup failed',
+        );
+      }
       throw error;
     }
   }
@@ -51,16 +74,20 @@ export default class {
    * @type {AppLifetimeScope | null}
    */
   #AppLifetimeScope = null;
-  runAppSetup(setup) {
+  runAppSetup(setup, native) {
     if (this.#AppLifetimeScope) {
-      throw new Error("cannot define App more than one time.");
+      throw new Error('cannot define App more than one time.');
     }
     this.#AppLifetimeScope = new AppLifetimeScope();
-    try { return this.#AppLifetimeScope.run(setup); }
-    catch (error) { this.#AppLifetimeScope = null; throw error; }
+    try {
+      return this.#AppLifetimeScope.run(setup, native, this);
+    } catch (error) {
+      this.#AppLifetimeScope = null;
+      throw error;
+    }
   }
   getAppSetupRecords() {
-    return Object.freeze(this.#AppLifetimeScope?.context?.setupRecords || {});
+    return Object.freeze({ ...this.#AppLifetimeScope?.context?.setupRecords });
   }
 
   /**
@@ -82,12 +109,20 @@ export default class {
   withInstanceScope(scope, fn) {
     const previous = this.#InstanceLifetimeScope;
     this.#InstanceLifetimeScope = scope;
-    try { return fn(); } finally { this.#InstanceLifetimeScope = previous; }
+    try {
+      return fn();
+    } finally {
+      this.#InstanceLifetimeScope = previous;
+    }
   }
   withSetupContext(context, fn) {
     const previous = this.#ActiveSetupContext;
     this.#ActiveSetupContext = context;
-    try { return fn(); } finally { this.#ActiveSetupContext = previous; }
+    try {
+      return fn();
+    } finally {
+      this.#ActiveSetupContext = previous;
+    }
   }
   getInstanceLifetimeScope() {
     return this.#InstanceLifetimeScope;
@@ -148,16 +183,18 @@ export default class {
         return page === scope ? null : page;
       }
       parent = this.getComponentScope(instance);
-      if (parent) return parent;
+      if (parent) {
+        return parent;
+      }
     }
   }
 
   /**
-   * @type {PageSettingUpContext & ComponentSettingUpContext | null}
+   * @type {import('@reactive-mp/runtime').ComponentContext | null}
    */
   #SettingUpContext = null;
   /**
-   * @param {PageSettingUpContext | ComponentSettingUpContext | null} ctx
+   * @param {import('@reactive-mp/runtime').SetupContext | null} ctx
    */
   setSettingUpContext(ctx) {
     return (this.#SettingUpContext = ctx);
@@ -167,7 +204,7 @@ export default class {
   }
 
   /**
-   * @param {CommonFunction<Record<string,unknown>, [SettingUpContext]>} setup
+   * @param {(context: object) => Record<string, unknown>} setup
    * @param {SetupContext} ctx
    * @returns {SetupContext}
    */
@@ -181,10 +218,17 @@ export default class {
         const settingUpContext = this.setSettingUpContext(
           createSettingUpContext(
             ctx,
-            ctx.instance ? this.getInstanceLifetimeScope() : null
-          )
+            ctx.instance ? this.getInstanceLifetimeScope() : null,
+          ),
         );
-        ctx.setupReturns = setup(settingUpContext) || {};
+        const result = setup(settingUpContext);
+        if (result && typeof result.then === 'function') {
+          throw new TypeError('setup must synchronously return an object');
+        }
+        if (result != null && typeof result !== 'object') {
+          throw new TypeError('setup must return an object or undefined');
+        }
+        ctx.setupReturns = result ?? {};
       }
       return ctx;
     } finally {

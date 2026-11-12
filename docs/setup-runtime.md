@@ -31,16 +31,4 @@ reactive-mp 是原生微信小程序的运行时增强库。源码直接在小�
 
 setup 是同步函数；异步工作放入方法或生命周期回调。收集时 `$this` / useCurrentInstance() 没有真实实例，返回 null；需要原生实例的操作放入生命周期中。
 
-已有 `isSettingUpOptions` / `isSettingUpInstance` 保留供高级适配使用，为不可枚举属性。普通业务不必读取它们。它们可以区分求值阶段，但不能让注册后才出现的新方法名或 properties 生效。
-
-## 本地验证
-
-使用 Node 22+：
-
-```sh
-npm test
-```
-
-测试通过 Node 专用 loader 直接加载原始模块，模拟 Page、Component、Behavior 的必要行为。覆盖阶段隔离、多实例、配置合并、props、原生生命周期、页面事件、注入、observer、setData 和资源清理。这些验证不能替代微信开发者工具中的真实生命周期、序列化和渲染验证。
-
-Store、深层响应式对象和组件页面均有独立回归；平台验证状态见 [验证记录](verification.md)。
+`isSettingUpOptions` / `isSettingUpInstance` 供高级适配使用，为不可枚举属性。普通业务不必读取它们。它们可以区分求值阶段，但不能让注册后才出现的新方法名或 properties 生效。

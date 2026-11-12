@@ -19,5 +19,13 @@
   "dependencies": {
     "@reactive-mp/shared": "1.0.0",
     "@reactive-mp/reactivity": "1.0.0"
-  }
+  },
+  "description": "Composition-style runtime for native WeChat Mini Programs",
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "composition-api",
+    "signals",
+    "runtime"
+  ]
 }

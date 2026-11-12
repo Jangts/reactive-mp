@@ -22,7 +22,7 @@ export function isNonEmptyArray(arr) {
  * 检查是否是布尔类型
  */
 export function isBoolean(bool) {
-  return typeof bool === "boolean";
+  return typeof bool === 'boolean';
 }
 
 /**
@@ -30,7 +30,7 @@ export function isBoolean(bool) {
  * @returns {fn is (...args:unknown[])=>unknown}
  */
 export function isFunction(fn) {
-  return typeof fn === "function";
+  return typeof fn === 'function';
 }
 
 /**
@@ -40,17 +40,18 @@ export function isFunction(fn) {
 export function isConstructor(fn) {
   return (
     isFunction(fn) &&
-    Object.prototype.hasOwnProperty.call(fn, "prototype") &&
+    Object.prototype.hasOwnProperty.call(fn, 'prototype') &&
+    fn.prototype != null &&
     fn.prototype.constructor === fn
   );
 }
 
 /**
  * 检查是否是函数
- * @returns {fn is ParamlessFunction}
+ * @returns {fn is () => unknown}
  */
 export function isParamlessFunction(fn) {
-  return typeof fn === "function" && fn.length === 0;
+  return typeof fn === 'function' && fn.length === 0;
 }
 
 /**
@@ -58,7 +59,7 @@ export function isParamlessFunction(fn) {
  * @returns {fn is (...args)=>unknown}
  */
 export function isNameLessFunction(fn) {
-  return typeof fn === "function" && fn.name === "";
+  return typeof fn === 'function' && fn.name === '';
 }
 
 /**
@@ -66,7 +67,7 @@ export function isNameLessFunction(fn) {
  * @returns {num is number}
  */
 export function isNumber(num) {
-  return typeof num === "number" && Number.isFinite(num);
+  return typeof num === 'number' && Number.isFinite(num);
 }
 
 /**
@@ -122,7 +123,7 @@ export function isPositiveFloat(num) {
  * @returns {obj is object}
  */
 export function isObject(obj) {
-  return typeof obj === "object";
+  return typeof obj === 'object';
 }
 
 /**
@@ -179,7 +180,7 @@ export function isWeakMap(map) {
  */
 export function isPlainObject(obj) {
   return (
-    isObject(obj) && Object.prototype.toString.call(obj) === "[object Object]"
+    isObject(obj) && Object.prototype.toString.call(obj) === '[object Object]'
   );
 }
 
@@ -187,7 +188,7 @@ export function isPlainObject(obj) {
  * 检查是否是字符串类型
  */
 export function isString(str) {
-  return typeof str === "string";
+  return typeof str === 'string';
 }
 
 /**
@@ -195,7 +196,7 @@ export function isString(str) {
  * @returns {str is string}
  */
 export function isNonEmptyString(str) {
-  return typeof str === "string" && str !== "";
+  return typeof str === 'string' && str !== '';
 }
 
 /**
@@ -203,8 +204,10 @@ export function isNonEmptyString(str) {
  * @returns {str is `${number}`}
  */
 export function isNumericString(str) {
-  if (typeof str !== "string") return false;
-  return !isNaN(str) && !isNaN(parseFloat(str));
+  if (typeof str !== 'string') {
+    return false;
+  }
+  return str.trim() !== '' && Number.isFinite(Number(str));
 }
 
 /**
@@ -212,7 +215,7 @@ export function isNumericString(str) {
  * @returns {str is `${number}`}
  */
 export function isIntegerString(str) {
-  return typeof str === "string" && /^-?\d+$/.test(str.trim());
+  return typeof str === 'string' && /^-?\d+$/.test(str.trim());
 }
 
 /**
@@ -220,7 +223,9 @@ export function isIntegerString(str) {
  * @returns {str is `${number}`}
  */
 export function isFloatString(str) {
-  if (typeof str !== "string") return false;
+  if (typeof str !== 'string') {
+    return false;
+  }
   const trimmed = str.trim();
   return /^-?\d*\.\d+$/.test(trimmed) || /^-?\d+\.\d*$/.test(trimmed);
 }
@@ -230,9 +235,11 @@ export function isFloatString(str) {
  * @returns {str is `${number}${unit}`}
  */
 export function isDimensionString(str) {
-  if (typeof str !== "string") return false;
+  if (typeof str !== 'string') {
+    return false;
+  }
   return /^-?\d+(\.\d+)?(px|rpx|em|rem|vh|vw|vmin|vmax|cm|mm|in|pt|pc)$/.test(
-    str.trim()
+    str.trim(),
   );
 }
 
@@ -241,7 +248,9 @@ export function isDimensionString(str) {
  * @returns {str is `${number}%`}
  */
 export function isPercentageString(str) {
-  if (typeof str !== "string") return false;
+  if (typeof str !== 'string') {
+    return false;
+  }
   return /^-?\d+(\.\d+)?%$/.test(str.trim());
 }
 
@@ -267,5 +276,5 @@ export function isMeasurable(value) {
  * 检查是否是symbol类型
  */
 export function isSymbol(symbol) {
-  return typeof symbol === "symbol";
+  return typeof symbol === 'symbol';
 }

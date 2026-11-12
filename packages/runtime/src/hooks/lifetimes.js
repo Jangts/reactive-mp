@@ -1,4 +1,5 @@
-import { useActiveSetupContext } from "../main.js";
+/** 页面与组件生命周期 Hook，转交活动上下文而不自行推导实例身份。 */
+import { requireSetupContext } from './context.js';
 
 /**
  * [ onCreated ] 组件实例刚刚被创建时执行
@@ -7,10 +8,10 @@ import { useActiveSetupContext } from "../main.js";
  *
  * Special map to:: Page/behavior/created
  *
- * @param {ParamLessCallback} handle 生命周期处理函数
+ * @param {() => void} handle 生命周期处理函数
  */
 export function onCreated(handle) {
-  useActiveSetupContext()?.on("created", handle);
+  requireSetupContext().on('created', handle);
 }
 
 /**
@@ -20,10 +21,10 @@ export function onCreated(handle) {
  *
  * Special map to:: Page/behavior/attached
  *
- * @param {ParamLessCallback} handle 组件生命周期处理函数
+ * @param {() => void} handle 组件生命周期处理函数
  */
 export function onAttached(handle) {
-  useActiveSetupContext()?.on("attached", handle);
+  requireSetupContext().on('attached', handle);
 }
 
 /**
@@ -36,10 +37,10 @@ export function onAttached(handle) {
  *
  * Map to: Page/onLoad
  *
- * @param {EventHandle<PageLoadOptions>} handle 页面生命周期处理函数
+ * @param {(options: PageLoadOptions) => void} handle 页面生命周期处理函数
  */
 export function onLoad(handle) {
-  useActiveSetupContext()?.on("load", handle);
+  requireSetupContext().on('load', handle);
 }
 
 /**
@@ -47,10 +48,10 @@ export function onLoad(handle) {
  *
  * Map to: Page/onShow, Component/pageLifetimes/show
  *
- * @param {ParamLessCallback} handle 生命周期处理函数
+ * @param {() => void} handle 生命周期处理函数
  */
 export function onShow(handle) {
-  useActiveSetupContext()?.on("show", handle);
+  requireSetupContext().on('show', handle);
 }
 
 /**
@@ -60,10 +61,10 @@ export function onShow(handle) {
  *
  * Map to: Page/onReady, Component/lifetimes/ready, Component/ready
  *
- * @param {ParamLessCallback} handle 生命周期处理函数
+ * @param {() => void} handle 生命周期处理函数
  */
 export function onReady(handle) {
-  useActiveSetupContext()?.on("ready", handle);
+  requireSetupContext().on('ready', handle);
 }
 
 /**
@@ -76,7 +77,7 @@ export function onReady(handle) {
  * @param { (size) => void } handle 生命周期处理函数
  */
 export function onRouteDone(handle) {
-  useActiveSetupContext()?.on("routeDone", handle);
+  requireSetupContext().on('routeDone', handle);
 }
 
 /**
@@ -84,10 +85,10 @@ export function onRouteDone(handle) {
  *
  * Map to: Page/onHide, Component/pageLifetimes/hide
  *
- * @param {ParamLessCallback} handle 生命周期处理函数
+ * @param {() => void} handle 生命周期处理函数
  */
 export function onHide(handle) {
-  useActiveSetupContext()?.on("hide", handle);
+  requireSetupContext().on('hide', handle);
 }
 
 /**
@@ -95,10 +96,10 @@ export function onHide(handle) {
  *
  * Map to: Component/lifetimes/moved, Component/moved
  *
- * @param {ParamLessCallback} handle 生命周期处理函数
+ * @param {() => void} handle 生命周期处理函数
  */
 export function onMoved(handle) {
-  useActiveSetupContext()?.on("moved", handle);
+  requireSetupContext().on('moved', handle);
 }
 
 /**
@@ -106,10 +107,10 @@ export function onMoved(handle) {
  *
  * Map to: Component/lifetimes/detached, Component/detached
  *
- * @param {ParamLessCallback} handle 组件生命周期处理函数
+ * @param {() => void} handle 组件生命周期处理函数
  */
 export function onDetached(handle) {
-  useActiveSetupContext()?.on("detached", handle);
+  requireSetupContext().on('detached', handle);
 }
 
 /**
@@ -117,8 +118,16 @@ export function onDetached(handle) {
  *
  * Map to: Page/onUnload
  *
- * @param {ParamLessCallback} handle 页面生命周期处理函数
+ * @param {() => void} handle 页面生命周期处理函数
  */
 export function onUnload(handle) {
-  useActiveSetupContext()?.on("unload", handle);
+  requireSetupContext().on('unload', handle);
+}
+
+/** 在节点移除前执行；此时不得再更新视图，资源清理仍由 detached 完成。
+ * @param {() => void} handle 生命周期回调。
+ * @returns {void}
+ */
+export function onBeforeDetach(handle) {
+  requireSetupContext().on('beforeDetach', handle);
 }

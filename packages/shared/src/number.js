@@ -1,4 +1,5 @@
-import { isPositiveNumber } from "./type.js";
+/** 数字配置归一化工具，保持无效输入与显式缺省的区别。 */
+import { isPositiveNumber } from './type.js';
 
 /**
  *

@@ -1,4 +1,5 @@
-import { isFunction, isNonEmptyString, isString } from "./index.js";
+/** 通用事件总线：快照分发、一次性监听及命名空间解绑，无平台依赖。 */
+import { isFunction, isNonEmptyString, isString } from './type.js';
 
 /**
  * @template T
@@ -27,7 +28,7 @@ export default class EventBus {
    * 订阅事件
    * @param {string|symbol} eventType 事件名或标识（字符串或 Symbol）
    * @param {EventHandle<Event>} handle 事件处理函数
-   * @returns {ParamLessCallback} 取消订阅的函数
+   * @returns {() => void} 取消订阅的函数
    */
   on(eventType, handle) {
     if (isFunction(handle)) {
@@ -47,12 +48,12 @@ export default class EventBus {
    * 只订阅一次事件
    * @param {string|symbol} eventType 事件名或标识（字符串或 Symbol）
    * @param {EventHandle<Event>} handle 事件处理函数
-   * @returns {ParamLessCallback} 取消订阅的函数
+   * @returns {() => void} 取消订阅的函数
    */
   once(eventName, handle) {
     const onceWrapper = (...args) => {
-      handle(...args);
       this.off(eventName, onceWrapper);
+      handle(...args);
     };
     return this.on(eventName, onceWrapper);
   }
@@ -73,8 +74,12 @@ export default class EventBus {
       type: eventType,
       payload,
     };
-    if (target) event.target = target;
-    if (this.#withTimestamp) event.timestamp = Date.now();
+    if (target) {
+      event.target = target;
+    }
+    if (this.#withTimestamp) {
+      event.timestamp = Date.now();
+    }
 
     const exactHandlers = this.#eventMap.get(eventType);
     if (exactHandlers?.size) {
@@ -83,15 +88,15 @@ export default class EventBus {
     if (
       this.#shouldMatchWildcard &&
       isNonEmptyString(eventType) &&
-      eventType.includes("/")
+      eventType.includes('/')
     ) {
-      const parts = eventType.split("/");
+      const parts = eventType.split('/');
       parts.pop();
       while (parts.length) {
-        const wildcardEventName = [...parts, "*"].join("/");
+        const wildcardEventName = [...parts, '*'].join('/');
         const wildcardHandlers = this.#eventMap.get(wildcardEventName);
         if (wildcardHandlers?.size) {
-          wildcardHandlers.forEach((handle) => handle(event));
+          Array.from(wildcardHandlers).forEach((handle) => handle(event));
         }
         parts.pop();
       }
@@ -129,8 +134,8 @@ export default class EventBus {
    */
   offNamespace(namespace) {
     // 自动补充分隔符（如 'user' → 'user/'）
-    if (this.#shouldMatchWildcard && isNonEmptyString(namespace)) {
-      const normalize = namespace.endsWith("/") ? namespace : namespace + "/";
+    if (isNonEmptyString(namespace)) {
+      const normalize = namespace.endsWith('/') ? namespace : namespace + '/';
       for (const eventType of this.#eventMap.keys()) {
         if (isString(eventType) && eventType.startsWith(normalize)) {
           this.off(eventType);

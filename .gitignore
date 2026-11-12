@@ -5,3 +5,4 @@ examples/*/project.private.config.json
 apps/docs/dist/
 artifacts/
 *.tgz
+examples/*/.vendor-stage-*/

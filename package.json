@@ -16,15 +16,19 @@
     "docs:build": "node apps/docs/build.mjs",
     "docs:dev": "node apps/docs/serve.mjs",
     "docs:check": "node scripts/check-docs.mjs",
-    "check": "npm run test && npm run typecheck && npm run examples:prepare && npm run docs:check && npm run docs:build && npm run packages:check",
+    "check": "npm run format:check && npm run code:check && npm run test && npm run typecheck && npm run examples:prepare && npm run docs:check && npm run docs:build && npm run packages:check",
     "docs:api": "node scripts/api-reference.mjs --write",
     "pretest": "node scripts/examples.mjs",
     "verify:wechat": "node scripts/verify-wechat.mjs",
-    "packages:check": "node scripts/verify-packages.mjs"
+    "packages:check": "node scripts/verify-packages.mjs",
+    "format": "prettier --write \"packages/**/*.{js,mjs,ts,json}\" \"scripts/**/*.mjs\" \"apps/docs/**/*.{mjs,css}\" \"examples/**/*.{js,json,wxss}\" package.json .prettierrc.json",
+    "format:check": "prettier --check \"packages/**/*.{js,mjs,ts,json}\" \"scripts/**/*.mjs\" \"apps/docs/**/*.{mjs,css}\" \"examples/**/*.{js,json,wxss}\" package.json .prettierrc.json",
+    "code:check": "node scripts/check-code.mjs"
   },
   "devDependencies": {
     "marked": "^18.2.0",
     "miniprogram-automator": "^0.13.0",
+    "prettier": "^3.10.0",
     "typescript": "^6.0.3"
   }
 }

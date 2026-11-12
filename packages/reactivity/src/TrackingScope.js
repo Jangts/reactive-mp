@@ -1,6 +1,11 @@
-import { debounceMicrotask, EventBus } from "@reactive-mp/shared";
-import { trackSignal } from "./signal.js";
-import { onScopeDispose } from "./EffectScope.js";
+/** 依赖追踪作用域：拥有订阅、刷新调度和停止句柄，销毁后不再执行。 */
+import { queueJob } from './job-queue.js';
+import { EventBus } from '@reactive-mp/shared';
+import { trackSignal } from './signal.js';
+import {
+  getCurrentEffectScope,
+  isRunInEffectFreeScope,
+} from './EffectScope.js';
 
 export default class extends EventBus {
   static get emptyWatchHandle() {
@@ -15,6 +20,9 @@ export default class extends EventBus {
   #isSync = false;
   #isOccurringEffect = false;
   #paused = false;
+  #stopped = false;
+  #unlink = null;
+  #cleanup = [];
   #isTrackingSignal = false;
   trackedSignals = new Map();
 
@@ -33,33 +41,39 @@ export default class extends EventBus {
 
   constructor({ onTrigger, onTrack, onResult, isSync = false } = {}) {
     super();
-    this.on("track", onTrack);
-    this.on("result", onResult);
+    this.on('track', onTrack);
+    this.on('result', onResult);
     this.triggerEffect = this.triggerEffect.bind(this);
     if (isSync) {
       this.#isSync = true;
     } else {
-      this.triggerEffect = debounceMicrotask(this.triggerEffect, (payload) =>
-        onTrigger?.({
-          type: "trigger",
-          payload,
-        })
-      );
+      const run = this.triggerEffect;
+      this.triggerEffect = (payload) => {
+        queueJob(run);
+        onTrigger?.({ type: 'trigger', payload });
+      };
     }
-    onScopeDispose(this.stop.bind(this));
+    if (!isRunInEffectFreeScope()) {
+      this.#unlink = getCurrentEffectScope()?.onDispose(() => this.stop());
+    }
   }
-  triggerEffect({ shouldBeRetrack }) {
-    if (this.#paused) return;
+  triggerEffect() {
+    if (this.#paused || this.#stopped) {
+      return;
+    }
     this.#isOccurringEffect = true;
     try {
-      this.emit("effect");
+      this.emit('effect');
     } finally {
       this.#isOccurringEffect = false;
     }
   }
 
-  exposeHanlde(onAfterStop) {
-    const stop = () => (this.stop(), onAfterStop?.(), void 0);
+  exposeHandle(onAfterStop) {
+    const stop = () => {
+      this.stop();
+      onAfterStop?.();
+    };
     stop.pause = this.pause.bind(this);
     stop.resume = this.resume.bind(this);
     stop.stop = stop;
@@ -82,7 +96,7 @@ export default class extends EventBus {
       this.#isRunning = wasRunning;
       resetScope?.(this);
     }
-    this.emit("result", result, null);
+    this.emit('result', result, null);
     return result;
   }
 
@@ -93,7 +107,7 @@ export default class extends EventBus {
       trackedSignals.set(signal, trackSignal(signal, this.triggerEffect));
       this.#isTrackingSignal = false;
     }
-    this.emit("track", { signal, value }, null);
+    this.emit('track', { signal, value }, null);
   }
   unTrackAll() {
     const { trackedSignals } = this;
@@ -106,9 +120,22 @@ export default class extends EventBus {
     this.#paused = true;
   }
   resume() {
-    this.#paused = false;
+    if (!this.#stopped) {
+      this.#paused = false;
+    }
+  }
+  onStop(handle) {
+    this.#cleanup.push(handle);
   }
   stop() {
+    if (this.#stopped) {
+      return;
+    }
+    this.#stopped = true;
+    this.#unlink?.();
+    for (const cleanup of this.#cleanup.splice(0)) {
+      cleanup();
+    }
     this.unTrackAll();
     this.clear();
   }

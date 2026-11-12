@@ -1,13 +1,14 @@
-import { isArray, isFunction } from "./type.js";
+/** 函数组合与微任务调度工具，不持有页面或组件状态。 */
+import { isArray, isFunction } from './type.js';
 
 /**
  * @template {unknown} T
  * @template {any[]} A1
  * @template {any[]} A2
- * @param {CommonFunction<unknown, [...A1,...A2]>[]} callbacks
+ * @param {(...args: Array<unknown>) => unknown[]} callbacks
  * @param {T} [thisArg=null]
  * @param  {A1} bindArgs
- * @returns {CommonFunction<T, A2>}
+ * @returns {(...args: A2) => T}
  */
 export function mergeCallbacks(callbacks, thisArg = null, ...bindArgs) {
   return (...args) => {
@@ -22,14 +23,16 @@ export function mergeCallbacks(callbacks, thisArg = null, ...bindArgs) {
 /**
  * @template {unknown} T
  * @template {unknown[]} A
- * @param {CommonFunction<T, A>} fn
+ * @param {(...args: A) => T} fn
  * @param {string} msg
- * @returns {CommonFunction<T, A>}
+ * @returns {(...args: A) => T}
  */
 export function onceInvokable(fn, msg) {
   let invoked = false;
   return function (...args) {
-    if (invoked) throw new Error(msg);
+    if (invoked) {
+      throw new Error(msg);
+    }
     invoked = true;
     return fn.call(this, ...args);
   };
@@ -41,15 +44,15 @@ export function onceInvokable(fn, msg) {
  * 优先使用 queueMicrotask，否则降级到 Promise
  */
 export const scheduleMicrotask =
-  typeof queueMicrotask === "function"
+  typeof queueMicrotask === 'function'
     ? queueMicrotask
     : (task) => Promise.resolve().then(task);
 
 /**
  * @template {unknown[]} T
- * @param {RMPVoidFunction<T>} fn
- * @param {RMPVoidFunction<T>} onTrigger
- * @returns {RMPVoidFunction<T>}
+ * @param {(...args: T) => void} fn
+ * @param {(...args: T) => void} onTrigger
+ * @returns {(...args: T) => void}
  */
 export const debounceMicrotask = (fn, onTrigger) => {
   let pending = false;
