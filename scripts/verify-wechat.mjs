@@ -1,4 +1,6 @@
 /** 微信工具验证入口，检查目标宿主及实际交互，不以连接成功代替验收。 */
+import { verifyMixedUsage } from './lib/verify-mixed-usage.mjs';
+import { sourceDigest } from './lib/verification-evidence.mjs';
 import automator from 'miniprogram-automator';
 import MiniProgramModule from 'miniprogram-automator/out/MiniProgram.js';
 // Newer DevTools Tool.getInfo omits SDKVersion; validate the actual runtime
@@ -30,6 +32,15 @@ const host = process.argv[2] || 'integration';
 if (!['integration', 'scenarios', 'playground'].includes(host)) {
   throw Error('unknown validation host');
 }
+const baseline = {
+  startedAt: new Date().toISOString(),
+  sourceDigest: await sourceDigest(process.cwd(), [
+    'packages',
+    `examples/${host}`,
+    'scripts',
+  ]),
+  environment: null,
+};
 const checks = [],
   errors = [];
 let app;
@@ -40,7 +51,7 @@ const timeout = setTimeout(async () => {
     await mkdir('artifacts', { recursive: true });
     await writeFile(
       `artifacts/${host}-failure.json`,
-      JSON.stringify({ host, checks, errors, error }, null, 2),
+      JSON.stringify({ host, baseline, checks, errors, error }, null, 2),
     );
     await Promise.race([
       app?.disconnect(),
@@ -70,10 +81,33 @@ try {
     );
     endpoint = `ws://127.0.0.1:${port}`;
   }
-  app = await automator.connect({ wsEndpoint: endpoint });
+  // CLI 返回不代表自动化端口已就绪；仅连接阶段重试，功能断言不重试掩盖错误。
+  const connectDeadline = Date.now() + 15000;
+  while (!app) {
+    try {
+      app = await automator.connect({ wsEndpoint: endpoint });
+    } catch (error) {
+      if (Date.now() >= connectDeadline) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
   app.on('exception', (error) =>
     errors.push(String(error.message || JSON.stringify(error))),
   );
+  baseline.environment = await app.evaluate(() => {
+    const info = wx.getSystemInfoSync();
+    return {
+      SDKVersion: info.SDKVersion,
+      platform: info.platform,
+      system: info.system,
+      version: info.version,
+      features: ['Proxy', 'WeakMap', 'WeakRef', 'AggregateError'].map(
+        (name) => [name, typeof globalThis[name]],
+      ),
+    };
+  });
   console.log('Connected to WeChat runtime');
   if (host !== 'playground') {
     const actual = await app.evaluate(() => getApp().globalData.validationHost);
@@ -85,9 +119,8 @@ try {
   }
   const route =
     host === 'playground' ? '/pages/home/index/index' : '/pages/index/index';
-  const current = await app.currentPage();
-  const page =
-    current?.path === route.slice(1) ? current : await app.reLaunch(route);
+  const page = await app.reLaunch(route);
+  await page.waitFor(500);
   if (host === 'integration') {
     await page.callMethod('reset');
   }
@@ -118,6 +151,23 @@ try {
       'Counter 5',
     );
     checks.push('return-valued page hook');
+    const behaviorPage = await app.navigateTo('/pages/behavior/index');
+    await behaviorPage.waitFor(300);
+    const initial = await behaviorPage.callMethod('report');
+    assert.deepEqual(initial.native, { count: 4, label: 'count=4' });
+    assert.deepEqual(initial.reactive, initial.native);
+    assert.deepEqual(initial.isolated, initial.native);
+    await behaviorPage.callMethod('increment');
+    await behaviorPage.waitFor(300);
+    const updated = await behaviorPage.callMethod('report');
+    assert.deepEqual(updated.native, { count: 5, label: 'count=5' });
+    assert.deepEqual(updated.reactive, updated.native);
+    assert.deepEqual(updated.isolated, initial.isolated);
+    checks.push(
+      'BEH-01/EXT-01 native comparison: nested Behavior, filtered property, inherited method and instance isolation',
+    );
+    await app.navigateBack();
+    await verifyMixedUsage(app, checks);
   } else if (host === 'scenarios') {
     await page.callMethod('reset');
     await page.callMethod('add');
@@ -140,14 +190,14 @@ try {
   }
   await writeFile(
     `artifacts/${host}.json`,
-    JSON.stringify({ host, checks, errors }, null, 2),
+    JSON.stringify({ host, baseline, checks, errors }, null, 2),
   );
   console.log(JSON.stringify({ host, checks }, null, 2));
 } catch (error) {
   await writeFile(
     `artifacts/${host}-failure.json`,
     JSON.stringify(
-      { host, checks, errors, error: String(error.stack) },
+      { host, baseline, checks, errors, error: String(error.stack) },
       null,
       2,
     ),
@@ -156,5 +206,25 @@ try {
   process.exitCode = 1;
 } finally {
   clearTimeout(timeout);
-  await app?.disconnect();
+  let disconnectTimeout;
+  try {
+    await Promise.race([
+      app?.disconnect(),
+      new Promise((_, reject) => {
+        disconnectTimeout = setTimeout(
+          () => reject(new Error('WeChat disconnect timed out')),
+          1500,
+        );
+      }),
+    ]);
+  } catch (error) {
+    console.error(String(error));
+    process.exitCode = 1;
+  } finally {
+    clearTimeout(disconnectTimeout);
+    // A broken transport must not keep this bounded verification command alive.
+    if (process.exitCode) {
+      process.exit(process.exitCode);
+    }
+  }
 }

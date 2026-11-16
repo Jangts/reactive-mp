@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "native-probe": "/components/behavior-native/behavior-native",
+    "reactive-probe": "/components/behavior-reactive/behavior-reactive"
+  }
+}

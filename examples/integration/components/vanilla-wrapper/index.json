@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "mixed-counter": "/components/mixed-counter/index"
+  }
+}

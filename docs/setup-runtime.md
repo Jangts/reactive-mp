@@ -32,3 +32,8 @@ reactive-mp 是原生微信小程序的运行时增强库。源码直接在小�
 setup 是同步函数；异步工作放入方法或生命周期回调。收集时 `$this` / useCurrentInstance() 没有真实实例，返回 null；需要原生实例的操作放入生命周期中。
 
 `isSettingUpOptions` / `isSettingUpInstance` 供高级适配使用，为不可枚举属性。普通业务不必读取它们。它们可以区分求值阶段，但不能让注册后才出现的新方法名或 properties 生效。
+
+
+## 注册结构一致性
+
+Page/Component 的 setup 收集和实例执行必须声明相同的平台结构。可变化的是实例数据和回调闭包；返回字段名称及 data/method 分类、props、原生路径 observer、relations、options、Behavior 身份、externalClasses、页面标记和平台 Hook 必须保持一致。条件业务放进回调，不依据实例属性条件增加平台注册入口。不一致会在绑定前抛出 TypeError 并清理 setup 资源。纯 Signal watch、依赖注入和实例挂载/清理副作用不属于平台注册结构。详见[平台计划的定案合同](platform-coverage.md#八定案合同与执行门槛)。

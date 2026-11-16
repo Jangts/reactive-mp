@@ -1,0 +1,5 @@
+<view>{{kind}} / count={{count}} / double={{double}} / vanilla={{vanilla}}</view>
+<button bindtap="incrementRaw">页面原生增加</button>
+<button bindtap="openOther">打开另一种页面</button><button bindtap="toggle">卸载/重建组件</button>
+<view>事件次数={{events}} / 最近值={{lastValue}}</view>
+<view wx:if="{{visible}}"><mixed-counter id="mixed" prefix="{{prefix}}" bind:change="onChildChange"/><vanilla-counter id="raw" prefix="{{prefix}}" bind:change="onChildChange"/><vanilla-wrapper id="wrapper" prefix="{{prefix}}"/></view>

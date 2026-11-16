@@ -1,4 +1,5 @@
 /** 副作用资源作用域：维护嵌套归属、无追踪收集与异常安全清理。 */
+import { CombinedError } from '@reactive-mp/shared';
 let currentScope = null;
 
 class EffectScope {
@@ -58,7 +59,7 @@ class EffectScope {
     }
     this.#disposers.clear();
     if (errors.length) {
-      throw new AggregateError(errors, 'effect scope cleanup failed');
+      throw new CombinedError(errors, 'effect scope cleanup failed');
     }
   }
 }

@@ -107,10 +107,7 @@ export function exposeActiveSetupContext(rtCtx) {
           return ctx.addPageHook(scope, name, listener);
         }
         if (pageEventNames.includes(name)) {
-          if (scope) {
-            return ctx.addPageEventHandle(scope, name, listener);
-          }
-          return false;
+          return ctx.addPageEventHandle(scope, name, listener);
         }
         return ctx.addLifetimeListener(scope, name, listener);
       },

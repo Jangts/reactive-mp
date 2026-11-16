@@ -17,7 +17,8 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@reactive-mp/reactivity": "1.0.0"
+    "@reactive-mp/reactivity": "1.0.0",
+    "@reactive-mp/shared": "1.0.0"
   },
   "description": "Lazy shared stores with independent effect scopes for Reactive MP",
   "keywords": [

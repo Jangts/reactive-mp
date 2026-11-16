@@ -1,4 +1,5 @@
 /** 用户注册入口：持有一个运行时，具体收集和原生回调适配由下层拥有。 */
+import { assertRuntimeEnvironment } from './etc/environment.js';
 import { exposeActiveSetupContext } from './etc/exposers.js';
 import { formatSetupOptions } from './etc/formatters.js';
 import RuntimeContext from './SetupRuntimeContext.js';
@@ -9,6 +10,7 @@ const CONTEXT = new RuntimeContext();
 export const useSetupApp = () => CONTEXT.getAppSetupRecords();
 export const useActiveSetupContext = () => exposeActiveSetupContext(CONTEXT);
 export function defineApp(setup, options) {
+  assertRuntimeEnvironment();
   let native = options ?? {};
   let create = setup;
   if (typeof setup !== 'function') {

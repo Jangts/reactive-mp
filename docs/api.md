@@ -8,6 +8,7 @@
 
 | API | 类型签名 |
 | --- | --- |
+| CombinedError | `new (errors: Iterable<unknown>, message?: string) => Error & { errors: unknown[]; }` |
 | EventBus | `typeof import("@reactive-mp/shared").EventBus` |
 | behaviors | `(behavior: unknown \| unknown[], ...more: unknown[]) => void` |
 | computed | `<T>(getter: () => T, options?: import("@reactive-mp/reactivity").TrackOptions) => import("@reactive-mp/reactivity").ComputedSignal<T>` |
@@ -275,6 +276,7 @@
 
 | API | 类型签名 |
 | --- | --- |
+| CombinedError | `new (errors: Iterable<unknown>, message?: string) => Error & { errors: unknown[]; }` |
 | EventBus | `typeof EventBus` |
 | debounceMicrotask | `<A extends unknown[]>(fn: (...args: A) => void, onTrigger?: (...args: A) => void) => (...args: A) => void` |
 | formatPositiveInteger | `(value: unknown, fallback?: number) => number` |

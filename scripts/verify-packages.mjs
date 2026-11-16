@@ -1,7 +1,7 @@
 /** 在临时隔离消费者中安装真实 tarball，验证包体和导入。 */
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { workspacePackages } from './lib/workspace.mjs';
@@ -88,8 +88,42 @@ try {
     ],
     { cwd: consumer, env },
   );
+  const videoManifest = JSON.parse(
+    await readFile(
+      path.join(consumer, 'node_modules/@reactive-mp/video/package.json'),
+      'utf8',
+    ),
+  );
+  for (const file of [
+    'video/index.js',
+    'video/index.json',
+    'video/index.wxml',
+    'video/index.wxss',
+    'group/index.js',
+    'group/index.json',
+    'group/index.wxml',
+    'participant.js',
+  ]) {
+    await readFile(
+      path.join(
+        consumer,
+        'node_modules/@reactive-mp/video',
+        videoManifest.miniprogram,
+        file,
+      ),
+    );
+  }
+  await exec(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      "import { createPlaybackController } from '@reactive-mp/video'; createPlaybackController().dispose();",
+    ],
+    { cwd: consumer, env },
+  );
   console.log(
-    'Five packed packages installed and verified in an isolated offline consumer',
+    `${archives.length} packed packages installed and verified in an isolated offline consumer`,
   );
 } finally {
   await rm(temp, { recursive: true, force: true });

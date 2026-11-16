@@ -1,0 +1,3 @@
+<view>BEH-01 / EXT-01：两侧初始 count=4，增加后 count=5，第二实例仍为 4。</view>
+<native-probe id="native"/><reactive-probe id="reactive"/><reactive-probe id="isolated"/>
+<button bindtap="increment">同时增加</button>

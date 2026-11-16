@@ -7,3 +7,7 @@
 <view>两个组件应显示同一父级计数，但各自 local 独立。退出后控制台 active 应归零。</view>
 
 <button bindtap="openComponentPage">验证 Component 页面</button>
+
+<button bindtap="openBehaviorPage">验证 Behavior 原生对照</button>
+
+<button bindtap="openMixedPage">原生与 reactive 混用示例</button>

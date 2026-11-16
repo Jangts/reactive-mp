@@ -122,6 +122,13 @@ export function createDataBinder(instance, pureDataPattern) {
     if (data === null || typeof data !== 'object') {
       throw new TypeError('setData requires an object');
     }
+    const roots = new Set(
+      Object.keys(data).map((key) => key.split(/[.\[]/)[0]),
+    );
+    if (![...roots].some((key) => signals.has(key))) {
+      // 原生字段不参与 Signal 反馈，保留平台回调和提交路径。
+      return nativeSetData(data, callback);
+    }
     // 原生 data 同步变化；回调仅表示渲染完成。同步 mock 的回调也不能抢在状态反馈之前。
     let returned = false;
     let completed = false;
@@ -134,9 +141,6 @@ export function createDataBinder(instance, pureDataPattern) {
           callback?.call(instance);
         }
       });
-      const roots = new Set(
-        Object.keys(data).map((key) => key.split(/[.\[]/)[0]),
-      );
       for (const key of roots) {
         sync(key);
       }

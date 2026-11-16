@@ -1,0 +1,1 @@
+<view>{{label}} / vanilla={{vanilla}} / ready={{readyCount}}</view><button bindtap="incrementRaw">原生增加</button><button bindtap="incrementReactive">reactive 增加</button>

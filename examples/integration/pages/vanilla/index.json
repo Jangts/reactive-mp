@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "mixed-counter": "/components/mixed-counter/index",
+    "vanilla-counter": "/components/vanilla-counter/index",
+    "vanilla-wrapper": "/components/vanilla-wrapper/index"
+  }
+}

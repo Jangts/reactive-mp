@@ -1,4 +1,5 @@
 /** 所属模块的公开导出入口，复用原实现，不创建平行状态。 */
+import { CombinedError } from '@reactive-mp/shared';
 import {
   createEffectScope,
   isSignal,
@@ -60,7 +61,7 @@ export function defineStore(id, setup) {
         try {
           dispose();
         } catch (cleanupError) {
-          throw new AggregateError(
+          throw new CombinedError(
             [error, cleanupError],
             'store creation and cleanup failed',
           );

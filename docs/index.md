@@ -1,13 +1,46 @@
-# Reactive MP
+# 响应式与组合式，留在原生。
 
-原生小程序的响应式与组合式开发工具。保留 JS、WXML、WXSS 和平台注册机制，用 Signal、computed、watch 及组合 Hook 管理业务逻辑。不转换成 Vue，也不生成另一套组件语言。
+面向原生微信小程序的开发工具。保留熟悉的 JS、WXML、WXSS 和平台注册方式，让状态驱动界面，让业务逻辑自然组合。
 
-- [开始开发](getting-started.md)：安装工作区，打开第一个验证宿主。
-- [响应式与组合逻辑](guide.md)：状态、派生值、监听、生命周期和资源释放。
-- [原生配置与动态声明](native-options.md)：两种写法可以混合使用。
-- [共享状态](store.md)：惰性 Store 与跨页面共享。
-- [API 参考](api.md)：公开接口和类型签名。
-- [运行原理](setup-runtime.md)：想深入理解时再读。
-维护开发宿主、包或文档站，请从[维护者入口](architecture.md)进入。
+[开始使用](getting-started.md) · [浏览 API](api.md)
 
-源码工作区的接入方式见[开始开发](getting-started.md)。
+## 原生开发，更好组织
+
+| 能力 | 使用方式 |
+| --- | --- |
+| 响应式状态 | Signal、computed 与 watch，自动追踪读取的依赖 |
+| 组合逻辑 | 在 setup 中组织状态、生命周期、通信与资源清理 |
+| 原生混用 | Page/Component 配置和动态声明按需组合 |
+| 共享状态 | 惰性 Store，在页面与组件间复用 |
+
+## 一个原生计数器
+
+依赖准备后，在 `components/counter/counter.js` 中导入统一入口：
+
+```js
+import { defineComponent, useSignal, computed } from '../../vendor/reactive-mp/src/index.js';
+
+defineComponent(() => {
+  const [count, setCount] = useSignal(0);
+  const label = computed(() => `count=${count()}`);
+  return { label, increment: () => setCount(count() + 1) };
+});
+```
+
+原生模板 `counter.wxml`：
+
+```xml
+<button bindtap="increment">{{label}}</button>
+```
+
+组件 JSON 声明 `component: true`，页面登记组件后，点击按钮即可更新 label。完整安装、文件位置和接线见[快速上手](getting-started.md)。
+
+## 按你的任务继续
+
+- [响应式与组合逻辑](guide.md)：状态、监听、生命周期和组件通信。
+- [原生配置与动态声明](native-options.md)：保留原生配置，按需使用 Hook。
+- [共享状态](store.md)：跨页面共享与资源生命周期。
+- [API 参考](api.md)：公开接口与类型签名。
+- [运行原理](setup-runtime.md)：深入了解收集、实例和同步机制。
+
+维护源码、开发宿主或文档站，请进入[维护者入口](architecture.md)。

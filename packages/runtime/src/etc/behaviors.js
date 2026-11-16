@@ -1,4 +1,5 @@
 /** 原生 Behavior 适配：为每次定义持有独立闭包，并连接实例创建与销毁。 */
+import { assertDeclarationContract } from './declaration-contract.js';
 import { pageLifetimeMap } from './constants.js';
 import createInstanceLifetimeScope from '../InstanceLifetimeScope.js';
 
@@ -9,12 +10,27 @@ export function createSetupBehavior(
   nativeOptions,
   role,
   observers = {},
+  contract,
 ) {
   const pageRegistration = role === 'page';
   const pageRole = role !== 'component';
   const scopes = new WeakMap();
+  let finalDefinition;
   return Behavior({
-    observers,
+    definitionFilter(fields) {
+      finalDefinition = fields;
+    },
+    observers: pageRegistration
+      ? observers
+      : {
+          ...observers,
+          '**': function () {
+            const ctx = scopes.get(this)?.context;
+            if (ctx?.setupProps.defined) {
+              ctx.syncSetupPropValues(this.properties ?? {});
+            }
+          },
+        },
     lifetimes: {
       created() {
         const scope = createInstanceLifetimeScope(this, {
@@ -28,12 +44,15 @@ export function createSetupBehavior(
         if (!pageRegistration) {
           runtime.setComponentScope(this, scope);
         }
-        scope.context.nativeProperties = nativeOptions.properties;
-        scope.context.nativeOptions = nativeOptions.options;
+        scope.context.nativeProperties =
+          finalDefinition?.properties ?? nativeOptions.properties;
+        scope.context.nativeOptions =
+          finalDefinition?.options ?? nativeOptions.options;
         try {
           runtime.withInstanceScope(scope, () =>
             scope.run((ctx) => {
               runtime.runSetup(setup, ctx);
+              assertDeclarationContract(contract, ctx);
               runtime.withSetupContext(ctx, () => {
                 if (pageRegistration) {
                   ctx.mountPageLifetimeHandles(scope, nativeOptions);

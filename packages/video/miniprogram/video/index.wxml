@@ -1,0 +1,81 @@
+<view class="c-video-container {{customClass}}" bind:tap="onTapVideo">
+  <video
+    id="c-video"
+    src="{{src}}"
+    autoplay="{{false}}"
+    duration="{{duration}}"
+    controls="{{controls}}"
+    danmu-list="{{danmuList}}"
+    danmu-btn="{{danmuBtn}}"
+    enable-danmu="{{enableDanmu}}"
+    loop="{{loop}}"
+    muted="{{soundOff}}"
+    initial-time="{{initialTime}}"
+    page-gesture="{{pageGesture}}"
+    direction="{{direction}}"
+    show-progress="{{showProgress}}"
+    show-fullscreen-btn="{{showFullscreenBtn}}"
+    show-play-btn="{{showPlayBtn}}"
+    show-center-play-btn="{{showCenterPlayBtn}}"
+    enable-progress-gesture="{{enableProgressGesture}}"
+    object-fit="{{objectFit}}"
+    poster="{{poster}}"
+    show-mute-btn="{{showMuteBtn}}"
+    title="{{title}}"
+    play-btn-position="{{playBtnPosition}}"
+    enable-play-gesture="{{enablePlayGesture}}"
+    auto-pause-if-navigate="{{autoPauseIfNavigate}}"
+    auto-pause-if-open-native="{{autoPauseIfOpenNative}}"
+    vslide-gesture="{{vslideGesture}}"
+    vslide-gesture-in-fullscreen="{{vslideGestureInFullscreen}}"
+    bindplay="onPlay"
+    bindpause="onPause"
+    bindended="onEnded"
+    bindtimeupdate="onTimeUpdate"
+    bindfullscreenchange="onFullscreenChange"
+    bindwaiting="onWaiting"
+    binderror="onError"
+    bindprogress="onProgress"
+    bindloadedmetadata="onLoadedMetadata"
+    bindcontrolsToggle="onControlsToggle"
+    bindseekcomplete="onSeekComplete"
+    class="c-video custom-video"
+    style="{{customStyle}}"
+  ></video>
+  <view class="bootom-progress progress-container" wx:if="{{showCustomProgress}}">
+    <view class="bootom-progress-line" style="width: {{sliderValue}}%;"> </view>
+    <view
+      bindtouchstart="onProgressTouchStart"
+      bindtouchmove="onProgressTouchMove"
+      bindtouchend="onProgressTouchEnd"
+      bindtouchcancel="onProgressTouchCancel"
+      wx:if="{{enableProgressTouch}}"
+      class="custom-progress-inner-rect"
+    >
+    </view>
+  </view>
+  <view class="c-video-poster" wx:if="{{showStopFrame && stopFrame}}">
+    <image mode="{{imageModes[objectFit]||'aspectFill'}}" src="{{stopFrame}}" />
+  </view>
+  <view class="c-video-poster" wx:elif="{{showPoster && poster}}">
+    <image mode="{{imageModes[objectFit]||'aspectFill'}}" src="{{poster}}" />
+  </view>
+  <view style="{{soundStyle}}" class="c-sound" catch:tap="onSoundToggle" wx:if="{{!hideSound}}">
+    <view class="c-sound-image c-sound-off" style="opacity: {{soundOff ? 1 : 0}};">
+      <slot name="muted"><text>静音</text></slot>
+    </view>
+    <view class="c-sound-image c-sound-on" style="opacity: {{soundOff ? 0 : 1}};">
+      <slot name="sound"><text>声音</text></slot>
+    </view>
+  </view>
+  <view
+    style="{{playStyle}}"
+    class="c-play"
+    catch:tap="onVideoPlayToggle"
+    wx:if="{{showCustomPlayBtn||showCustomPlayBtnForReplay}}"
+  >
+    <view class="c-play-image c-sound-on" style="opacity: {{isPlaying ? 0 : 1}};">
+      <slot name="play"><text>播放</text></slot>
+    </view>
+  </view>
+</view>

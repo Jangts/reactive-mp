@@ -81,3 +81,22 @@ test('native feedback replaces readonly shallow carriers without granting busine
   binding.setData({state:{a:3}});assert.equal(state.a,3);assert.equal('removed' in state,false);
   assert.throws(()=>{state.a=4;},TypeError);binding.dispose();
 });
+
+test('raw fields keep the native setData callback path inside a reactive instance', () => {
+  const calls = [];
+  const instance = { data: { raw: 0, count: 0 }, setData(data, callback) { calls.push(callback); Object.assign(this.data, data); callback?.call(this); } };
+  const binder = createDataBinder(instance);
+  const [count] = useSignal(0);
+  binder.bind('count', count);
+  binder.activate({ count: 0 });
+  let receiver;
+  const callback = function () { receiver = this; };
+  binder.setData({ raw: 2 }, callback);
+  assert.equal(calls.at(-1), callback);
+  assert.equal(receiver, instance);
+  assert.equal(count(), 0);
+  binder.setData({ count: 3, raw: 4 });
+  assert.equal(count(), 3);
+  binder.dispose();
+  assert.throws(() => binder.setData({ raw: 5 }), /disposed/);
+});

@@ -15,6 +15,10 @@ import {
 
 export default class {
   runtimeContext = null;
+  declarations = [];
+  recordDeclaration(kind, value) {
+    this.declarations.push([kind, value]);
+  }
   #instance = null;
   isPage = false;
   isComponent = false;
@@ -53,6 +57,7 @@ export default class {
   addLifetimeListener(scope, lifetime, listener) {
     this.assertIsActive('add lifetime listeners');
     if (isFunction(listener)) {
+      this.recordDeclaration('lifetime', lifetime);
       if (this.setupLifetimes.includes(lifetime)) {
         return true;
       }
@@ -68,14 +73,19 @@ export default class {
   }
   addPageEventHandle(scope, eventname, handle) {
     this.assertIsActive('add page event handle');
+    if (isFunction(handle)) {
+      this.recordDeclaration('pageEvent', eventname);
+    }
     return false;
   }
 
   defineOptions(options) {
     this.assertIsActive('define options');
+    this.recordDeclaration('options', options);
   }
   defineRelation(id, description) {
     this.assertIsActive('define relations');
+    this.recordDeclaration('relation', [id, description]);
     const { type, linked, unlinked, linkChanged, ...options } = description;
     if (!relationTypes.includes(type)) {
       throw new TypeError(`unknown relation type: ${type}`);
@@ -89,6 +99,7 @@ export default class {
 
   mixInBehaviors(behaviors, ...more) {
     this.assertIsActive('mix in behaviors');
+    this.recordDeclaration('behaviors', [behaviors, ...more].flat());
   }
   setProvidedData(scope, key, data) {
     this.assertIsActive('provide data');
@@ -97,9 +108,11 @@ export default class {
 
   addExternalClasses(attrs, ...more) {
     this.assertIsActive('add external classes');
+    this.recordDeclaration('externalClasses', [attrs, ...more].flat());
   }
   defineProperties(definations = {}) {
     this.assertIsActive('define properties');
+    this.recordDeclaration('properties', definations);
     if (isNonNullObject(definations) === false) {
       throw new Error('properties must be a non-null object');
     }
@@ -147,6 +160,14 @@ export default class {
       option[name] = property;
       names.push(name);
     });
+    // 原生平台已经合并 Behavior 属性；以真实实例为准，不解析私有 Behavior 对象。
+    for (const [name, value] of Object.entries(
+      this.instance?.properties ?? {},
+    )) {
+      if (!Object.hasOwn(values, name)) {
+        values[name] = value;
+      }
+    }
     this.setupRecords.props = { names, option, values };
     return values;
   }
@@ -157,27 +178,35 @@ export default class {
   }
   defineExportObject(exports) {
     this.assertIsActive('define export object');
+    this.recordDeclaration('export', typeof exports);
     if (isFunction(exports) || isPlainObject(exports)) {
       this.setupRecords.exports = exports;
     }
   }
   addMixedObserver(scope, src, callback) {
     this.assertIsActive('observe data or signals');
+    const paths = (Array.isArray(src) ? src : [src]).filter(isNonEmptyString);
+    if (paths.length) {
+      this.recordDeclaration('observer', paths);
+    }
     return () => false;
   }
 
   addPageHook(scope, name, handle) {
     if (typeof handle === 'function') {
+      this.recordDeclaration('pageHook', name);
       this.setupPageHooks.set(name, handle);
     }
   }
   markPageComponent(setupReturns) {
     this.assertIsActive('mark page component');
+    this.recordDeclaration('page', true);
     this.isPage = true;
     return setupReturns;
   }
 
   reset(configs = {}) {
+    this.declarations = [];
     const { relations } = this.setupRecords;
     relations.clear();
     this.isPage = false;

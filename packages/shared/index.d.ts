@@ -87,3 +87,8 @@ export class EventBus {
   offNamespace(namespace: string): this;
   clear(): this;
 }
+
+export const CombinedError: new (
+  errors: Iterable<unknown>,
+  message?: string,
+) => Error & { errors: unknown[] };

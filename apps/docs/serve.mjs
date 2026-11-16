@@ -2,9 +2,26 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { watch } from 'node:fs';
-import { build, output } from './build.mjs';
+import { spawn } from 'node:child_process';
+import { output } from './build.mjs';
 import { readSource } from '../../scripts/lib/workspace.mjs';
-await build();
+await buildDocs();
+/** 独立进程读取最新构建和模板代码，避免 ESM 模块缓存导致源码修改不生效。 */
+function buildDocs() {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['apps/docs/build.mjs'], {
+      stdio: 'inherit',
+    });
+    child.once('error', reject);
+    child.once('exit', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(Error(`Documentation build exited with code ${code}`));
+      }
+    });
+  });
+}
 let building = false;
 let dirty = false;
 let timer;
@@ -17,7 +34,7 @@ async function rebuild() {
   try {
     do {
       dirty = false;
-      await build();
+      await buildDocs();
     } while (dirty);
   } catch (error) {
     console.error(error);
@@ -25,9 +42,14 @@ async function rebuild() {
     building = false;
   }
 }
-for (const folder of ['docs', 'examples']) {
+for (const folder of ['docs', 'examples', 'apps/docs']) {
   watch(folder, { recursive: true }, (_, file) => {
-    if (file?.includes('vendor/') || file?.includes('project.private')) {
+    if (
+      file === 'dist' ||
+      file?.startsWith('dist/') ||
+      file?.includes('vendor/') ||
+      file?.includes('project.private')
+    ) {
       return;
     }
     clearTimeout(timer);
@@ -37,13 +59,21 @@ for (const folder of ['docs', 'examples']) {
 const server = createServer(async (req, res) => {
   const file =
     new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
-  if (!/^[\w./-]+\.html$/.test(file) || file.includes('..')) {
+  const contentTypes = {
+    html: 'text/html',
+    css: 'text/css',
+    mjs: 'text/javascript',
+    svg: 'image/svg+xml',
+    json: 'application/json',
+  };
+  const type = contentTypes[file.split('.').at(-1)];
+  if (!type || !/^[\w./-]+$/.test(file) || file.includes('..')) {
     res.writeHead(404);
     res.end();
     return;
   }
   try {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Type', `${type}; charset=utf-8`);
     res.end(await readSource(`${output}/${file}`, [output]));
   } catch {
     res.writeHead(404);

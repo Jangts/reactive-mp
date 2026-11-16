@@ -1,0 +1,23 @@
+{
+  "name": "@reactive-mp/video",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Composable native WeChat video and scoped video coordination",
+  "main": "./miniprogram/controller.js",
+  "types": "./index.d.ts",
+  "miniprogram": "miniprogram",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./miniprogram/controller.js"
+    },
+    "./participant": "./miniprogram/participant.js",
+    "./*": "./miniprogram/*"
+  },
+  "files": [
+    "miniprogram",
+    "index.d.ts",
+    "README.md"
+  ],
+  "license": "ISC"
+}

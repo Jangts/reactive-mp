@@ -1,4 +1,5 @@
 /** 应用、页面和组件的运行时登记，集中维护活动上下文及恢复边界。 */
+import { CombinedError } from '@reactive-mp/shared';
 import { createEffectScope } from '@reactive-mp/reactivity';
 import { isFunction } from '@reactive-mp/shared';
 import { createSettingUpContext } from './etc/creators.js';
@@ -34,7 +35,7 @@ class AppLifetimeScope {
       try {
         this.#effectScope.stop();
       } catch (cleanupError) {
-        throw new AggregateError(
+        throw new CombinedError(
           [error, cleanupError],
           'App setup and cleanup failed',
         );

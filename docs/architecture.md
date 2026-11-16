@@ -59,3 +59,7 @@ npm run check 是统一检查入口。CI 使用锁文件安装，不需要个人
 开发宿主准备采用 staging 和工作区互斥目录，完成后切换 vendor，失败保留上一份产物。不要在准备或 watch 写入期间执行真实平台验收；中断遗留的 artifacts/examples-prepare.lock 只在确认没有准备进程时处理。
 
 三份规范的全量审阅、修复映射和未验证边界见 [规范检查记录](standards-review.md)。代码清单由 `npm run code:check` 生成到 artifacts/code-inventory.json；该检查验证语法、模块说明和控制流格式，不能替代语义审阅。
+
+## 文档站
+
+正文、导航、品牌素材、构建和静态部署见[文档站维护](../apps/docs/README.md)；使用与维护入口统一登记在[文档索引](README.md)。

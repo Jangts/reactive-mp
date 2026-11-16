@@ -1,4 +1,5 @@
 /** 单个原生实例的资源所有者：建立绑定、挂载依赖并完整清理。 */
+import { CombinedError } from '@reactive-mp/shared';
 import { createEffectScope } from '@reactive-mp/reactivity';
 import { EventBus } from '@reactive-mp/shared';
 import InstanceSetupContext from './setup-context/InstanceSetupContext.js';
@@ -124,7 +125,7 @@ class InstanceLifetimeScope extends EventBus {
     this.clear();
     this.#parentScope = null;
     if (errors.length) {
-      throw new AggregateError(errors, 'instance cleanup failed');
+      throw new CombinedError(errors, 'instance cleanup failed');
     }
   }
 }

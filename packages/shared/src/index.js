@@ -6,3 +6,4 @@ export * from './number.js';
 export * from './object.js';
 export * from './string.js';
 export * from './type.js';
+export { CombinedError } from './errors.js';

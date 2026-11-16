@@ -22,7 +22,7 @@ async function sourceFiles(directory) {
     }
     if (entry.isDirectory()) {
       files.push(...(await sourceFiles(file)));
-    } else if (entry.name.endsWith('.js')) {
+    } else if (/\.(?:js|json|wxml|wxss|wxs)$/.test(entry.name)) {
       files.push(file);
     }
   }
@@ -55,7 +55,7 @@ export function resolveNativeExport(manifest, suffix) {
   if (typeof entry === 'object') {
     entry = entry.default;
   }
-  if (typeof entry !== 'string' || !entry.startsWith('./src/')) {
+  if (typeof entry !== 'string' || !/^\.\/(?:src|miniprogram)\//.test(entry)) {
     throw Error(`unresolved native export: ${manifest.name}${suffix}`);
   }
   return entry;
@@ -111,12 +111,13 @@ export async function prepareNativeSources(output, packages) {
       recursive: true,
       force: true,
     });
-    const source = path.join(pkg.root, 'src');
+    const sourceFolder = pkg.manifest.miniprogram || 'src';
+    const source = path.join(pkg.root, sourceFolder);
     for (const file of await sourceFiles(source)) {
       const destination = path.join(
         directory,
         pkg.folder,
-        'src',
+        sourceFolder,
         path.relative(source, file),
       );
       let text = await readFile(file, 'utf8');

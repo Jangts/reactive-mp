@@ -1,0 +1,1 @@
+<view>{{prefix}}:{{count}}</view><button bindtap="incrementRaw">原生组件增加</button>

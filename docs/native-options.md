@@ -30,3 +30,19 @@ App 通过 defineApp 注册，setup 返回的 Signal 暴露到 globalData 时自
 onBeforeDetach 在节点移除前运行，此时库停止视图提交；detached 仍完成全部资源清理。依赖真实节点的操作不要放到 beforeDetach 或销毁阶段。
 
 setData 调用后逻辑数据和响应式状态已经同步；传入回调只表示原生渲染完成。纯数据字段由 pureDataPattern 指定，保留在逻辑层而不作为实例初值提交到视图。需要上屏的值必须可序列化，循环对象或函数在交付边界明确报错。
+
+
+Behavior 属性由平台合并，实例阶段的 `defineProps()` 同时读取真实 `instance.properties`。内部 Behavior 的通配数据观察器负责同步继承属性和过滤器新增属性；不读取或展开平台私有 Behavior 标识。注册阶段尚无实例，依赖继承属性的派生结果必须容忍收集时字段缺失。相关实例隔离和更新回归见 tests/runtime.test.mjs。
+
+integration 首页的“验证 Behavior 原生对照”打开 pages/behavior/index：两侧初值应为 count=4；同时增加后原生和组合式均为 count=5，第三个隔离实例仍为 count=4。该场景由 verify:wechat integration 执行，该场景已在基础库 3.8.10 开发者工具通过；不代表完整生命周期顺序或实机验收。
+
+
+## 页面、组件渐进混用
+
+integration 首页“原生与 reactive 混用示例”打开 `pages/mixed/index`。该页面保留原生 `data`、`incrementRaw` 和 `onLoad`，仅在 setup 中提供 `count`、`double`、`incrementReactive` 和 Hook。原生 `setData({ count })` 同步进入 Signal，派生值继续更新；独立原生字段 `vanilla` 继续用原生方式管理。同名返回项优先规则不变，建议字段和方法各自明确归属。
+
+`components/mixed-counter/index` 同时保留原生 properties/data/methods/ready 和 setup。两个增加按钮分别使用 setData/triggerEvent 与 Signal/$emit，父页仍通过属性和 bind 事件通信；调用原生 ready 一次，移除时清理 setup 资源。
+
+`pages/vanilla/index` 完全使用普通 Page，不依赖库；它与 definePage 页面都同时使用普通 Component、组合式组件和普通容器内的组合式子组件。点击“打开另一种页面”双向导航，隐藏页保留状态；“卸载/重建组件”用于检查新实例状态与旧订阅释放。特殊需求可继续使用原生组件，不要求迁移为 setup。
+
+没有 setup 的 define 注册入口直接提交原生配置。含 setup 时才建立增强作用域；原生字段的 setData 保留平台回调路径，涉及 Signal 的根字段才进入同步反馈。组合式入口不是平台能力使用的唯一途径。

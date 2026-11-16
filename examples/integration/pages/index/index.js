@@ -29,6 +29,8 @@ definePage(
       path: '/pages/index/index',
     }));
     return {
+      openMixedPage: () => wx.navigateTo({ url: '/pages/mixed/index' }),
+      openBehaviorPage: () => wx.navigateTo({ url: '/pages/behavior/index' }),
       openComponentPage: () => wx.navigateTo({ url: '/pages/component/index' }),
       count,
       double,

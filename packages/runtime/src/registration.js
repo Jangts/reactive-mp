@@ -1,11 +1,18 @@
 /** 注册定义的收集与装配：只执行一次无订阅收集，实例由 setup Behavior 建立。 */
+import { assertRuntimeEnvironment } from './etc/environment.js';
 import { runInEffectFreeScope } from '@reactive-mp/reactivity';
 import { createSetupBehavior } from './etc/behaviors.js';
 import { attachPlatformOptions } from './etc/platform-options.js';
+import { captureDeclarationContract } from './etc/declaration-contract.js';
 import OptionsSetupContext from './setup-context/OptionsSetupContext.js';
 
 /** 收集并注册原生定义；正常和失败路径均恢复调用者上下文。 */
 export function registerDefinition(runtime, setup, native, role) {
+  // 没有 setup 就是原生定义，不创建响应式作用域或改写平台回调。
+  if (typeof setup !== 'function') {
+    return (role === 'page' ? Page : Component)(native);
+  }
+  assertRuntimeEnvironment();
   const isComponent = role !== 'page';
   const ctx = new OptionsSetupContext({
     isPage: role !== 'component',
@@ -52,6 +59,7 @@ export function registerDefinition(runtime, setup, native, role) {
         callbacks,
         role,
         isComponent ? {} : observers,
+        captureDeclarationContract(ctx),
       );
       options.behaviors = [behavior, ...options.behaviors];
       const getScope = (instance) =>

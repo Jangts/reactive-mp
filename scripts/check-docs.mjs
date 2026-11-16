@@ -1,7 +1,7 @@
 /** 检查文档导航、链接、引用和 API 来源的一致性。 */
 import { readFile, access } from 'node:fs/promises';
 import path from 'node:path';
-import { navigation } from '../apps/docs/navigation.mjs';
+import { navigation, sourceForPage } from '../apps/docs/navigation.mjs';
 import { reference } from './api-reference.mjs';
 import {
   workspacePackages,
@@ -15,14 +15,20 @@ if ((await readFile('docs/api.md', 'utf8')) !== expected) {
 }
 const files = [
   'README.md',
-  ...navigation.map(([slug]) => `docs/${slug}.md`),
+  'docs/README.md',
+  'apps/docs/README.md',
+  ...navigation.map(([slug]) => sourceForPage(slug)),
   ...(await workspacePackages()).map(
     (pkg) => `packages/${pkg.folder}/README.md`,
   ),
 ];
 for (const file of files) {
   const text = await readFile(file, 'utf8');
-  for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
+  const links = [
+    ...text.matchAll(/\]\(([^)]+)\)/g),
+    ...text.matchAll(/<img[^>]+src="([^"]+)"/g),
+  ];
+  for (const match of links) {
     const link = match[1].split('#')[0];
     if (!link || /^[a-z]+:/.test(link)) {
       continue;

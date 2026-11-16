@@ -1,4 +1,5 @@
 /** 响应式刷新队列：同批去重并允许收敛的回写，拒绝持续自激的更新环。 */
+import { CombinedError } from '@reactive-mp/shared';
 import { scheduleMicrotask } from '@reactive-mp/shared';
 const jobs = new Set();
 let scheduled = false;
@@ -42,7 +43,7 @@ export function flushJobs() {
     throw errors[0];
   }
   if (errors.length) {
-    throw new AggregateError(errors, 'reactive jobs failed');
+    throw new CombinedError(errors, 'reactive jobs failed');
   }
 }
 
