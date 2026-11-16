@@ -4,7 +4,12 @@
     "pages/component/index",
     "pages/behavior/index",
     "pages/mixed/index",
-    "pages/vanilla/index"
+    "pages/vanilla/index",
+    "pages/video/index",
+    "pages/video-native/index",
+    "pages/video-reactive/index",
+    "pages/video-hooks/index",
+    "pages/video-group/index"
   ],
   "window": {
     "navigationBarTitleText": "平台集成验证"

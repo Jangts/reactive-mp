@@ -1,6 +1,6 @@
 # @reactive-mp/video
 
-微信小程序视频组件，提供播放控制、媒体展示、播放事件和基于组件树的多视频声音协调。可独立使用。
+微信小程序视频组件，提供播放控制、媒体展示、播放事件和基于组件树的多视频声音协调。内部使用 Reactive MP 管理响应式状态和生命周期，可直接在普通页面中使用。运行时依赖由 npm 安装：`@reactive-mp/runtime`、`@reactive-mp/reactivity`。
 
 ## 接入
 
@@ -9,8 +9,8 @@
 ```json
 {
   "usingComponents": {
-    "mp-video": "@reactive-mp/video/video/index",
-    "video-group": "@reactive-mp/video/group/index"
+    "mp-video": "@reactive-mp/video/components/video/index",
+    "video-group": "@reactive-mp/video/components/group/index"
   }
 }
 ```
@@ -28,7 +28,7 @@
 
 组件宽高填满容器，容器需提供高度。wrapper 只有 slot，没有额外布局。默认静音、循环、观察可见性；自动播放默认关闭。`intersection-ratio` 默认 0，可设 0.5；可见比例必须超过阈值才允许播放。
 
-仓库源码开发也可运行 `npm run examples:prepare`，原生宿主通过 `/vendor/video/miniprogram/video/index` 和 `/vendor/video/miniprogram/group/index` 注册，不需要构建 npm。npm 构建及真机行为仍需微信开发者工具验证。
+仓库源码开发也可运行 `npm run examples:prepare`，原生宿主通过 `/vendor/video/miniprogram/components/video/index` 和 `/vendor/video/miniprogram/components/group/index` 注册，不需要构建 npm。npm 构建及真机行为仍需微信开发者工具验证。
 
 ## 播放控制
 
@@ -40,7 +40,7 @@
 
 ## 展示与事件
 
-支持的原生视频属性和展示选项见 [properties.js](./miniprogram/video/properties.js)。
+支持的原生视频属性和展示选项见 [properties.js](./miniprogram/utils/properties.js)。
 
 - `poster` 为播放前封面，`stop-frame` 为非循环播放结束后的展示图。
 - `show-custom-play-btn`、`show-custom-progress`、`enable-progress-touch` 控制自定义控件。
@@ -60,12 +60,106 @@
 
 业务侧可以自行给事件结果附加上下文或用于统计。
 
-## 组合组件参与协议
+## Reactive 组件使用 Hooks
 
-单个视频已自动参与分组。自定义媒体组合若要作为一个整体参与，可复用 `getVideoParticipantBehavior()`（包的 `participant` 子路径），并声明指向 wrapper 的 ancestor relation，在 linked/unlinked 中设置和清理实例字段 `_videoGroup`。该协议依赖小程序 Behavior，必须在小程序环境调用，不能在 Node 初始化时调用。
+包入口提供 `useVideo`、`useVideoGroup` 和 `useVideoParticipant`。在响应式 setup 中调用，生命周期和清理由 Hook 管理。
 
-组合组件应实现 `mute()`，使内部媒体静音；开启声音时调用 `this._videoGroup?.muteAll(this)`。注册表以实例身份标识成员，卸载时删除，不把实例和上下文写入 setData。
+`useVideo(props, options)` 接受响应式属性对象或带 getter 的配置；普通对象适用于固定配置。返回 `state`、用于 WXML 的同名 Signal、控制方法和原生事件处理函数。`state` 用于组合计算，返回的 Signal 用于模板绑定。
+
+```js
+import { defineComponent } from '@reactive-mp/runtime';
+import { computed } from '@reactive-mp/reactivity';
+import { useVideo } from '@reactive-mp/video';
+
+defineComponent(({ defineProps }) => {
+  const props = defineProps({
+    src: String,
+    paused: Boolean,
+    autoplay: { type: Boolean, value: true },
+  });
+  const video = useVideo(props, { selector: '#player' });
+  return {
+    ...video,
+    status: computed(() => video.state.isPlaying ? '播放中' : '已暂停'),
+  };
+});
+```
+
+```xml
+<video id="player" src="{{src}}" muted="{{soundOff}}" autoplay="{{false}}"
+  controls
+  bindplay="onPlay" bindpause="onPause" bindended="onEnded"
+  bindwaiting="onWaiting" binderror="onError"
+  bindloadedmetadata="onLoadedMetadata" bindtimeupdate="onTimeUpdate" />
+<text>{{status}}</text>
+```
+
+在 `definePage` 中直接管理页面原生 video 时，设置 `group: false`，并通过 `emit` 监听事件。页面不参与组件祖先分组；普通组件和 Reactive 组件默认参与分组。`group` 是 setup 的固定配置，不能在实例运行时切换。
+
+```js
+const video = useVideo(props, {
+  selector: '#player',
+  group: false,
+  emit(name, detail) { /* 处理播放事件 */ },
+});
+```
+
+`selector` 指向当前页面或组件内的原生 video，默认 `#c-video`。Hook 使用该节点获取上下文并观察可见性。自定义进度条可通过 `progressSelector` 指定节点，默认 `.progress-container`。原生视频事件需要在模板中绑定到对应处理函数；`autoplay` 由 Hook 协调，原生节点设为 false。
+
+Hook 默认通过宿主组件发出事件；Page 通过 emit 回调接收通知。可用 `options.emit(name, detail)` 接管事件通知。`playbacksummary` 等事件结构与视频组件一致。每个组件实例创建自己的播放器状态及资源，不在 setup 中直接访问原生视图。
+
+`useVideoGroup()` 返回 `memberCount` Signal 和 `muteAll(except?)`。构建自定义 wrapper：
+
+```js
+import { defineComponent } from '@reactive-mp/runtime';
+import { useVideoGroup } from '@reactive-mp/video';
+
+defineComponent(() => useVideoGroup());
+```
+
+wrapper 模板使用 `<slot />`，JSON 声明 `"component": true`。普通视频组件与调用 `useVideo` 的组件均可加入这个范围。
+
+`useVideoParticipant(mute)` 供媒体组合组件参与声音互斥。将返回的 `mute` 暴露为组件方法，开启声音时调用 `activateSound()`：
+
+```js
+import { defineComponent } from '@reactive-mp/runtime';
+import { useSignal } from '@reactive-mp/reactivity';
+import { useVideoParticipant } from '@reactive-mp/video';
+
+defineComponent(() => {
+  const [muted, setMuted] = useSignal(true);
+  const participant = useVideoParticipant(() => setMuted(true));
+  return {
+    muted,
+    ...participant,
+    unmute() {
+      setMuted(false);
+      participant.activateSound();
+    },
+  };
+});
+```
+
+Hook 通过共享 Behavior 标记建立原生组件关系，并自动释放成员引用。普通组件与 Reactive 组件使用同一套分组协议。
 
 ## 验证边界
 
-Node 测试覆盖播放门控、暂停恢复、分组注册清理和组件绑定。实际视频解码、原生控件、组件关系及 npm 构建效果需要开发者工具与真机验证。
+Node 测试覆盖播放门控、暂停恢复、普通组件使用、响应式属性更新、多实例隔离、分组注册清理和播放事件。实际视频解码、原生控件、组件关系及 npm 构建效果需要开发者工具与真机验证。
+
+## 目录
+
+```text
+miniprogram/
+  components/
+    video/              视频组件入口、模板与样式
+    group/              分组容器入口与模板
+  hooks/
+    use-video.js        视频响应式状态与生命周期
+    use-video-group.js  分组与参与者 Hooks
+  utils/
+    controller.js       播放意图与条件协调
+    playback-session.js 播放区间汇总
+    participant.js      原生关系标记
+    properties.js       视频属性定义
+  index.js              包级导出
+```

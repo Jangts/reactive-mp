@@ -29,6 +29,7 @@ definePage(
       path: '/pages/index/index',
     }));
     return {
+      openVideoPage: () => wx.navigateTo({ url: '/pages/video/index' }),
       openMixedPage: () => wx.navigateTo({ url: '/pages/mixed/index' }),
       openBehaviorPage: () => wx.navigateTo({ url: '/pages/behavior/index' }),
       openComponentPage: () => wx.navigateTo({ url: '/pages/component/index' }),

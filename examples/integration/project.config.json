@@ -1,10 +1,34 @@
 {
-  "appid": "touristappid",
+  "appid": "wx99d6feee9cfa79db",
   "projectname": "reactive-mp-integration",
   "compileType": "miniprogram",
   "setting": {
     "es6": true,
-    "enhance": true
+    "enhance": true,
+    "postcss": false,
+    "compileWorklet": false,
+    "minified": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
-  "libVersion": "3.8.10"
+  "libVersion": "3.8.10",
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
 }

@@ -331,3 +331,14 @@
 | defineStore | `<T extends object>(id: string, setup: () => T) => StoreDefinition<T>` |
 | storeToRefs | `<T extends object>(store: T) => Pick<T, { [K in keyof T]: T[K] extends Signal<unknown> \| Ref<unknown> ? K : never; }[keyof T]>` |
 
+## @reactive-mp/video
+
+[类型及完整签名](../packages/video/index.d.ts) · [实现入口](../packages/video/miniprogram/index.js)
+
+| API | 类型签名 |
+| --- | --- |
+| createPlaybackController | `() => PlaybackController` |
+| useVideo | `(props?: Readonly<VideoProps>, options?: UseVideoOptions) => VideoHook` |
+| useVideoGroup | `() => VideoGroupInstance & { memberCount: Signal<number>; }` |
+| useVideoParticipant | `(mute: () => void) => { mute(): void; activateSound(): void; }` |
+

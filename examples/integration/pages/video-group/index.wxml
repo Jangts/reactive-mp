@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="title">4. rmp group + 多个 rmp video</view>
+  <view class="hint">三个视频都使用 rmp video，循环播放。分别开启声音时，组内其他视频应自动静音。</view>
+  <view class="actions">
+    <button size="mini" bindtap="muteAll">分组全部静音</button>
+    <button size="mini" bindtap="togglePaused">{{paused ? '解除全部暂停' : '外部暂停全部'}}</button>
+    <button size="mini" bindtap="toggleVisible">{{visible ? '卸载全部视频' : '重新挂载'}}</button>
+  </view>
+  <rmp-group id="group">
+    <block wx:if="{{visible}}">
+      <view class="section" wx:for="{{players}}" wx:key="id">
+        <view class="heading">{{item.name}}</view>
+        <view class="player">
+          <rmp-video id="{{item.id}}" data-name="{{item.name}}" src="{{src}}" poster="{{poster}}"
+            paused="{{paused}}" loop show-custom-play-btn show-custom-progress
+            bind:play="onVideoEvent" bind:pause="onVideoEvent" bind:soundon="onVideoEvent"
+            bind:error="onVideoEvent" bind:playbacksummary="onPlaybackSummary" />
+        </view>
+        <view class="actions">
+          <button size="mini" data-target="#{{item.id}}" data-action="play" bindtap="controlVideo">播放</button>
+          <button size="mini" data-target="#{{item.id}}" data-action="pause" bindtap="controlVideo">暂停</button>
+        </view>
+      </view>
+    </block>
+  </rmp-group>
+  <include src="../video/events.wxml" />
+</view>

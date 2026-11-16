@@ -1,0 +1,5 @@
+<view class="section">
+  <view class="heading">事件旁听</view>
+  <view class="hint">{{lastEvent}}</view>
+  <view class="summary" wx:for="{{summaries}}" wx:key="index">{{item}}</view>
+</view>

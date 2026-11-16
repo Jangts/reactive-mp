@@ -11,3 +11,5 @@
 <button bindtap="openBehaviorPage">验证 Behavior 原生对照</button>
 
 <button bindtap="openMixedPage">原生与 reactive 混用示例</button>
+
+<button bindtap="openVideoPage">Video 组件与 Hooks 示例</button>

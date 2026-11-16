@@ -1,0 +1,8 @@
+<view class="page">
+  <view class="title">Video 使用示例</view>
+  <view class="hint">四种接入方式分别运行。媒体是本地生成的测试画面和提示音。</view>
+  <view class="section" wx:for="{{scenarios}}" wx:key="path">
+    <button data-path="{{item.path}}" bindtap="openScenario">{{item.title}}</button>
+    <view class="hint">{{item.detail}}</view>
+  </view>
+</view>

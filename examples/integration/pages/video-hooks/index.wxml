@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="title">3. Reactive Page + useVideo</view>
+  <view class="hint">此页直接使用原生 video；播放状态、外部暂停和区间事件由 useVideo 管理。</view>
+  <video id="player" class="player" src="{{src}}" poster="{{poster}}" muted="{{soundOff}}"
+    autoplay="{{false}}" loop="{{false}}" controls object-fit="contain"
+    bindplay="onPlay" bindpause="onPause" bindended="onEnded" bindwaiting="onWaiting"
+    binderror="onError" bindloadedmetadata="onLoadedMetadata" bindtimeupdate="onTimeUpdate"
+    bindfullscreenchange="onFullscreenChange" bindprogress="onProgress"
+    bindcontrolstoggle="onControlsToggle" bindseekcomplete="onSeekComplete" />
+  <view class="hint">{{status}} · {{position}} · {{soundOff ? '静音' : '有声'}}</view>
+  <view class="actions">
+    <button size="mini" bindtap="play">播放</button>
+    <button size="mini" bindtap="pause">暂停</button>
+    <button size="mini" bindtap="stop">停止</button>
+    <button size="mini" bindtap="onSoundToggle">切换声音</button>
+    <button size="mini" bindtap="togglePaused">{{paused ? '解除外部暂停' : '外部暂停'}}</button>
+  </view>
+  <include src="../video/events.wxml" />
+</view>

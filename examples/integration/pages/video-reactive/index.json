@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "Reactive Page + rmp video",
+  "usingComponents": {
+    "rmp-video": "/vendor/video/miniprogram/components/video/index"
+  }
+}

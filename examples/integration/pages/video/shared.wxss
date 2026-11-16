@@ -1,0 +1,43 @@
+.page {
+  padding: 32rpx;
+}
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+.hint {
+  font-size: 25rpx;
+  line-height: 1.7;
+  color: #555;
+  margin-bottom: 20rpx;
+}
+.section {
+  margin-top: 36rpx;
+}
+.heading {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+.player {
+  display: block;
+  width: 100%;
+  height: 360rpx;
+  margin-bottom: 20rpx;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.actions button {
+  margin: 0;
+}
+.summary {
+  margin-top: 12rpx;
+  padding: 16rpx;
+  background: #f3f4f6;
+  font-size: 24rpx;
+  line-height: 1.6;
+}

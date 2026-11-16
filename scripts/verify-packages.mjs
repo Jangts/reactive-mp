@@ -95,14 +95,14 @@ try {
     ),
   );
   for (const file of [
-    'video/index.js',
-    'video/index.json',
-    'video/index.wxml',
-    'video/index.wxss',
-    'group/index.js',
-    'group/index.json',
-    'group/index.wxml',
-    'participant.js',
+    'components/video/index.js',
+    'components/video/index.json',
+    'components/video/index.wxml',
+    'components/video/index.wxss',
+    'components/group/index.js',
+    'components/group/index.json',
+    'components/group/index.wxml',
+    'utils/participant.js',
   ]) {
     await readFile(
       path.join(

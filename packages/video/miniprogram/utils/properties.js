@@ -56,17 +56,11 @@ export const properties = {
   paused: {
     type: Boolean,
     value: false,
-    observer(value) {
-      this._playback?.setBlocked('external', value);
-    },
   },
   // 是否静音播放
   muted: {
     type: Boolean,
     value: true,
-    observer(value) {
-      this.setMuted(value);
-    },
   },
   hideSound: {
     type: Boolean,

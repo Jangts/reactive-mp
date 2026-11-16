@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPlaybackSession } from '../packages/video/miniprogram/playback-session.js';
+import { createPlaybackSession } from '../packages/video/miniprogram/utils/playback-session.js';
 
 test('playback summaries exclude known buffering and do not equate seeking with viewing', () => {
   let time = 0;

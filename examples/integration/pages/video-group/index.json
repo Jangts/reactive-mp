@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "rmp group + 多视频",
+  "usingComponents": {
+    "rmp-video": "/vendor/video/miniprogram/components/video/index",
+    "rmp-group": "/vendor/video/miniprogram/components/group/index"
+  }
+}
