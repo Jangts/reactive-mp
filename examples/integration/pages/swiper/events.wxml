@@ -1,0 +1,1 @@
+<view class="section"><view class="hint">最近事件</view><view class="event" wx:for="{{events}}" wx:key="index">{{item}}</view></view>

@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "rmp-swiper": "../swiper/index",
+    "media-item": "../media-item/index"
+  }
+}

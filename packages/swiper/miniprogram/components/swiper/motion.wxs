@@ -1,0 +1,68 @@
+// 视图线程计算连续位移，变换统一作用于内容外层。
+function state(owner) {
+  var value = owner.getState();
+  if (!value.initialized) {
+    value.initialized = true;
+    value.current = 0;
+    value.offset = 0;
+    value.moving = false;
+    value.options = {scale:1, rotate:0, circular:false};
+  }
+  return value;
+}
+function paint(owner, value) {
+  var frames = owner.selectAllComponents('.item-frame');
+  var targets = frames;
+  if (!frames.length || frames.length !== targets.length) { return; }
+  var width = frames[0].getBoundingClientRect().width;
+  if (!(width > 0)) { return; }
+  var center = value.current + value.offset / width;
+  for (var i = 0; i < targets.length; i++) {
+    var offset = i - center;
+    if (value.options.circular && targets.length > 1) {
+      var count = targets.length;
+      offset = ((offset + count / 2) % count + count) % count - count / 2;
+    }
+    var distance = Math.min(1, Math.abs(offset));
+    var scale = 1 - (1 - value.options.scale) * distance;
+    var rotate = value.options.rotate * distance * (offset < 0 ? -1 : 1);
+    var shift = 50 * (1 - scale) * (offset < 0 ? 1 : -1);
+    targets[i].setStyle({
+      '--swiper-scale': scale,
+      '--swiper-rotate': rotate + 'deg',
+      '--swiper-shift': shift + '%',
+      '--swiper-origin': offset < 0 ? 'right center' : 'left center'
+    });
+  }
+}
+module.exports = {
+  configure: function(options, old, owner) {
+    var value = state(owner);
+    value.options = options;
+    value.current = options.current;
+    value.offset = 0;
+    value.moving = false;
+    paint(owner, value);
+  },
+  change: function(event, owner) { owner.callMethod('onChange', { detail: event.detail }); },
+  transition: function(event, owner) {
+    var value = state(owner);
+    if (!value.moving) { owner.callMethod('onTransitionStart', { detail: event.detail }); }
+    value.offset = event.detail.dx;
+    value.moving = true;
+    paint(owner, value);
+  },
+  finish: function(event, owner) {
+    var value = state(owner);
+    value.current = event.detail.current;
+    value.offset = 0;
+    value.moving = false;
+    paint(owner, value);
+    owner.callMethod('onAnimationFinish', { detail: event.detail });
+  },
+  tap: function(event, owner) {
+    if (!state(owner).moving) {
+      owner.callMethod('onItemClick', { detail: { index: event.currentTarget.dataset.index } });
+    }
+  }
+};

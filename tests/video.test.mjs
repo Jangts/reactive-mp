@@ -30,6 +30,12 @@ test('native controls preserve user pause while automatic pause preserves intent
 // Use the actual runtime lifecycle and binder, with only native platform surfaces mocked.
 globalThis.Behavior = options => options;
 let registered;
+const nativeContexts = new WeakMap();
+const createVideoContext = (id, owner) => {
+  assert.equal(typeof id, 'string');
+  return nativeContexts.get(owner);
+};
+globalThis.wx = { createVideoContext };
 globalThis.Component = options => { registered = options; };
 await import('../packages/video/miniprogram/components/group/index.js');
 const groupDefinition = registered;
@@ -52,10 +58,11 @@ function mount(definition, props = {}) {
     triggerEvent(name, detail) { events.push({name, detail}); },
     createSelectorQuery() {
       nativeQueries++;
-      return { select() { return this; }, context(fn) { contextReady = () => fn({context}); return this; }, exec() {} };
+      return { select() { return this; }, fields(options, fn) { assert.equal(options.id, true); contextReady = () => fn({id:'player'}); return this; }, exec() {} };
     },
     createIntersectionObserver() { return { relativeToViewport() { return this; }, observe(selector, fn) { visibility = fn; }, disconnect() { disconnected = true; } }; },
   };
+  nativeContexts.set(instance, context);
   Object.assign(instance, definition.methods || Object.fromEntries(
     Object.entries(definition).filter(([, value]) => typeof value === 'function'),
   ));
@@ -146,6 +153,20 @@ test('useVideo composes reactive props and derived state without a second player
   first.detach(); second.detach();
 });
 
+test('a video error clears playing state and permits an explicit retry', async () => {
+  const video = mount(videoDefinition);
+  video.ready(); video.visibility(1); video.contextReady();
+  video.instance.play(); video.instance.onPlay({detail:{}}); await tick();
+  video.instance.onError({detail:{errMsg:'decode failed'}}); await tick();
+  assert.equal(video.instance.data.isPlaying,false);
+  assert.equal(video.events.filter(event => event.name==='playbacksummary').length,1);
+  assert.equal(video.events.find(event => event.name==='playbacksummary').detail.reason,'error');
+  const before=video.calls.length;
+  video.instance.play();
+  assert.deepEqual(video.calls.slice(before),['play']);
+  video.detach();
+});
+
 test('custom reactive group and participant share the ordinary wrapper protocol', async () => {
   defineComponent(() => useVideoGroup());
   const customGroupDefinition = registered;
@@ -181,6 +202,7 @@ test('Reactive Page uses useVideo directly with native page APIs and no componen
   delete page.instance.createSelectorQuery;
   delete page.instance.createIntersectionObserver;
   globalThis.wx = {
+    createVideoContext,
     createSelectorQuery() {
       const query = originalQuery();
       return { ...query, in(owner) { assert.equal(owner, page.instance); return this; } };

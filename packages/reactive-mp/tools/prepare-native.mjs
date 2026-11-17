@@ -143,6 +143,40 @@ export async function prepareNativeSources(output, packages) {
           return prefix + relative + quote;
         },
       );
+      if (file.endsWith('.json')) {
+        const config = JSON.parse(text);
+        const resolveComponent = (specifier) => {
+          const match = /^(@reactive-mp\/[\w-]+)(\/.*)$/.exec(specifier);
+          if (!match) {
+            return specifier;
+          }
+          const dependency = packages.get(match[1]);
+          if (!dependency) {
+            throw Error(`missing native dependency: ${match[1]}`);
+          }
+          const target = path.join(
+            directory,
+            dependency.folder,
+            resolveNativeExport(dependency.manifest, match[2]),
+          );
+          const relative = path
+            .relative(path.dirname(destination), target)
+            .split(path.sep)
+            .join('/');
+          return relative.startsWith('.') ? relative : './' + relative;
+        };
+        for (const [name, specifier] of Object.entries(
+          config.usingComponents || {},
+        )) {
+          config.usingComponents[name] = resolveComponent(specifier);
+        }
+        for (const generic of Object.values(config.componentGenerics || {})) {
+          if (generic && typeof generic.default === 'string') {
+            generic.default = resolveComponent(generic.default);
+          }
+        }
+        text = JSON.stringify(config, null, 2) + '\n';
+      }
       await mkdir(path.dirname(destination), { recursive: true });
       await writeFile(destination, text);
     }

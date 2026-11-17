@@ -1,0 +1,21 @@
+<wxs module="motion" src="./motion.wxs" />
+<view class="swiper-shell" options="{{renderOptions}}" change:options="{{motion.configure}}" style="--swiper-gap:{{gap}}">
+  <swiper class="viewport" current="{{swiperCurrent}}" circular="{{circular && count > 1}}"
+    autoplay="{{autoplay && count > 1}}" interval="{{interval}}" duration="{{renderOptions.duration}}"
+    disable-touch="{{disableTouch}}" previous-margin="{{previousMargin}}" next-margin="{{nextMargin}}"
+    bindchange="{{motion.change}}" bindtransition="{{motion.transition}}" bindanimationfinish="{{motion.finish}}">
+    <swiper-item wx:for="{{entries}}" wx:for-item="entry" wx:key="key">
+      <view class="item-frame" data-index="{{entry.index}}" bindtap="{{motion.tap}}">
+        <view class="item-space"><view class="item-transform">
+          <item id="item-{{entry.index}}" item="{{entry.value}}" index="{{entry.index}}" active="{{entry.index === applied}}"
+            data-index="{{entry.index}}" bind:itemevent="onItemEvent" />
+        </view></view>
+      </view>
+    </swiper-item>
+  </swiper>
+  <view wx:if="{{indicator && count > 1}}" class="indicator">
+    <view wx:for="{{entries}}" wx:for-item="entry" wx:key="key" class="dot {{entry.index === swiperCurrent ? 'active' : ''}}" />
+  </view>
+  <slot name="overlay" />
+  <slot name="footer" />
+</view>

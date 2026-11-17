@@ -224,6 +224,25 @@ test('repeated props declarations merge and relations dispatch to the actual ins
   assert.equal(options.export.call(instance).first.first, 7);
   options.lifetimes.detached.call(instance);
 });
+
+test('pure property snapshots preserve callbacks and cycles while detecting in-place changes', async () => {
+  defineComponent(({defineProps,defineOptions}) => {
+    defineOptions({pureDataPattern:/^_/});
+    const props=defineProps({_config:Object});
+    return {label:computed(()=>props._config ? `${props._config.value}:${props._config.callback()}` : '')};
+  });
+  const options=definition;
+  const config={value:1,callback:()=> 'one'};config.self=config;
+  const instance=instantiate(options,{_config:config});
+  assert.equal(instance.data.label,'1:one');
+  config.value=2;config.callback=()=> 'two';
+  options.behaviors[0].observers['**'].call(instance);await tick();
+  assert.equal(instance.data.label,'2:two');
+  config.callback=()=> 'three';
+  options.behaviors[0].observers['**'].call(instance);await tick();
+  assert.equal(instance.data.label,'2:three');
+  options.lifetimes.detached.call(instance);
+});
 test('registration data is serializable and native Behavior objects survive merging', () => {
   const native = Behavior({}), dynamic = Behavior({});
   defineComponent(({ behaviors }) => { behaviors(dynamic); return { count: useSignal(1)[0] }; }, { behaviors: [native] });

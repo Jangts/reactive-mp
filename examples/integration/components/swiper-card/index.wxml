@@ -1,0 +1,4 @@
+<view class="card" style="background:{{item.color}}">
+  <view class="title">{{item.title}}</view>
+  <view>第 {{index + 1}} 项 · {{active ? '已激活' : '未激活'}}</view>
+</view>

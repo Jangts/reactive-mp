@@ -2,15 +2,39 @@
 import {
   useSignal,
   useCurrentInstance,
+  onLoad,
 } from '../vendor/reactive-mp/src/index.js';
-import { media, formatSummary } from '../utils/video-demo.js';
+import {
+  prepareDemoMedia,
+  demoPosters,
+  formatSummary,
+} from '../utils/video-demo.js';
 export function useVideoDemo() {
   const instance = useCurrentInstance();
+  const [src, setSrc] = useSignal('');
+  const [poster, setPoster] = useSignal(demoPosters[0]);
+  const [players, setPlayers] = useSignal([]);
   const [paused, setPaused] = useSignal(false);
   const [visible, setVisible] = useSignal(true);
   const [summaries, setSummaries] = useSignal([]);
   const [lastEvent, setLastEvent] = useSignal('等待操作');
-  function recordEvent(name, detail, label = '视频') {
+  onLoad(() => {
+    try {
+      const clips = prepareDemoMedia();
+      setSrc(clips[0].src);
+      setPoster(clips[0].poster);
+      setPlayers(
+        clips.map((clip, index) => ({
+          ...clip,
+          id: ['first', 'second', 'third'][index],
+          name: `视频 ${String.fromCharCode(65 + index)} · ${clip.title}`,
+        })),
+      );
+    } catch (error) {
+      setLastEvent(`素材准备失败：${error.message}`);
+    }
+  });
+  function recordEvent(name, detail = {}, label = '视频') {
     if (name === 'playbacksummary') {
       setSummaries([formatSummary(label, detail), ...summaries()].slice(0, 8));
     } else if (name === 'error') {
@@ -20,7 +44,9 @@ export function useVideoDemo() {
     }
   }
   return {
-    ...media,
+    src,
+    poster,
+    players,
     paused,
     visible,
     summaries,

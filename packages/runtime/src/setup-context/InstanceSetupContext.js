@@ -26,6 +26,7 @@ import {
   pageLifetimeMap,
 } from '../etc/constants.js';
 import { createDataBinder } from '../etc/data-binding.js';
+import { snapshotPropValue, matchesPropValue } from '../etc/prop-values.js';
 import { createMixedObserver } from '../etc/creators.js';
 import { formatObserveSource } from '../etc/formatters.js';
 import SetupContext from './SetupContext.js';
@@ -101,6 +102,12 @@ export default class extends SetupContext {
 
   defineProperties(definations = {}) {
     const values = super.defineProperties(definations);
+    this.setupProps.lastSnapshots = Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [
+        key,
+        snapshotPropValue(value),
+      ]),
+    );
     if (this.setupProps.signal) {
       this.setupProps.assign(values);
       return this.setupProps.signal;
@@ -276,7 +283,22 @@ export default class extends SetupContext {
   syncSetupPropValues(values) {
     const { defined, assign } = this.setupProps;
     if (defined && assign) {
-      assign(values);
+      // Native Component.properties aliases data, including generated view fields.
+      // Only inputs discovered by defineProps belong to the reactive props carrier.
+      const inputs = {};
+      for (const name of Object.keys(this.setupRecords.props.values)) {
+        if (!Object.hasOwn(values, name)) {
+          continue;
+        }
+        const value = values[name];
+        if (!matchesPropValue(value, this.setupProps.lastSnapshots[name])) {
+          inputs[name] = value;
+          this.setupProps.lastSnapshots[name] = snapshotPropValue(value);
+        }
+      }
+      if (Object.keys(inputs).length) {
+        assign(inputs);
+      }
     }
   }
   invokePageHook(name, fallback, ...args) {

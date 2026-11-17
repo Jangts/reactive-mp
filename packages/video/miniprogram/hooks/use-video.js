@@ -103,6 +103,8 @@ export function useVideo(input = {}, options = {}) {
     },
     onError(e) {
       methods.finishPlayback('error');
+      methods.pause();
+      update({ isPlaying: false });
       emit('error', e.detail);
     },
     onPlay(e) {
@@ -315,11 +317,16 @@ export function useVideo(input = {}, options = {}) {
     }
     query()
       .select(options.selector || '#c-video')
-      .context((result) => {
-        if (!disposed && result?.context) {
-          player = result.context;
-          playback.attach(player);
+      .fields({ id: true }, (result) => {
+        if (disposed) {
+          return;
         }
+        if (!result?.id) {
+          emit('error', { errMsg: 'Video node must exist and have an id' });
+          return;
+        }
+        player = wx.createVideoContext(result.id, instance);
+        playback.attach(player);
       })
       .exec();
   });

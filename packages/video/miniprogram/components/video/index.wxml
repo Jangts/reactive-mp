@@ -37,7 +37,7 @@
     binderror="onError"
     bindprogress="onProgress"
     bindloadedmetadata="onLoadedMetadata"
-    bindcontrolsToggle="onControlsToggle"
+    bindcontrolstoggle="onControlsToggle"
     bindseekcomplete="onSeekComplete"
     class="c-video custom-video"
     style="{{customStyle}}"

@@ -1,0 +1,8 @@
+<view class="page"><view class="title">useSwiper + 原生 swiper</view>
+<view class="hint">Hook 管理索引与事件，此自定义视图使用原生平铺布局。</view>
+<swiper class="gallery" current="{{current}}" circular bindchange="onChange" bindtransition="onTransition" bindanimationfinish="onAnimationFinish">
+<swiper-item wx:for="{{entries}}" wx:key="key"><view class="native-card" style="background:{{item.value.color}}">{{item.value.title}}</view></swiper-item>
+</swiper>
+<view class="hint">current={{current}} · applied={{applied}} · transitioning={{transitioning}}</view>
+<view class="actions"><button size="mini" bindtap="previous">上一项</button><button size="mini" bindtap="next">下一项</button></view>
+<include src="../swiper/events.wxml" /></view>

@@ -11,6 +11,7 @@ export function createSetupBehavior(
   role,
   observers = {},
   contract,
+  dataKeys = [],
 ) {
   const pageRegistration = role === 'page';
   const pageRole = role !== 'component';
@@ -44,6 +45,7 @@ export function createSetupBehavior(
         if (!pageRegistration) {
           runtime.setComponentScope(this, scope);
         }
+        scope.context.nativeDataKeys = new Set(dataKeys);
         scope.context.nativeProperties =
           finalDefinition?.properties ?? nativeOptions.properties;
         scope.context.nativeOptions =

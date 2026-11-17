@@ -1,0 +1,5 @@
+<rmp-video id="video" wx:if="{{item.type === 'video'}}" src="{{item.src}}" poster="{{item.poster || ''}}"
+  autoplay paused="{{!active}}" muted="{{item.muted !== false}}" loop="{{item.loop !== false}}"
+  show-custom-play-btn bind:soundon="onSoundOn" bind:mutedchange="onMutedChange"
+  bind:playbacksummary="onPlaybackSummary" bind:error="onError" />
+<image wx:else class="image" src="{{item.src}}" mode="{{item.mode || 'aspectFill'}}" />

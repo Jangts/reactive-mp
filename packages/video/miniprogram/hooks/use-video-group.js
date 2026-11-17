@@ -6,10 +6,7 @@ import {
   useCurrentInstance,
   onUnmounted,
 } from '@reactive-mp/runtime';
-import {
-  getVideoParticipantBehavior,
-  getVideoGroupBehavior,
-} from '../utils/participant.js';
+import { getVideoParticipantBehavior } from '../utils/participant.js';
 
 export function useVideoParticipant(mute) {
   const instance = useCurrentInstance();
@@ -17,7 +14,7 @@ export function useVideoParticipant(mute) {
   behaviors(getVideoParticipantBehavior());
   relation('video-group', {
     type: 'ancestor',
-    target: getVideoGroupBehavior(),
+    target: getVideoParticipantBehavior(),
     linked(target) {
       group = target;
       if (instance) {
@@ -46,7 +43,7 @@ export function useVideoGroup() {
   const instance = useCurrentInstance();
   const members = new Set();
   const [memberCount, setMemberCount] = useSignal(0);
-  behaviors(getVideoGroupBehavior());
+  behaviors(getVideoParticipantBehavior());
   relation('participant', {
     type: 'descendant',
     target: getVideoParticipantBehavior(),

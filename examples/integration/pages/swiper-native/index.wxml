@@ -1,0 +1,6 @@
+<view class="page"><view class="title">传统 Page + rmp swiper</view>
+<view class="hint">初始索引为 1。切换版式、程序翻页和修改列表，查看索引与事件。</view>
+<view class="gallery"><rmp-swiper id="gallery" items="{{items}}" current="{{current}}" layout="{{layout}}" disable-touch="{{disabled}}"  circular indicator gap="12rpx"
+  bind:change="onSwiperEvent" bind:animationfinish="onSwiperEvent" bind:itemclick="onSwiperEvent" /></view>
+<view class="hint">current={{current}} · layout={{layout}}</view>
+<include src="../swiper/controls.wxml" /><include src="../swiper/events.wxml" /></view>

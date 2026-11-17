@@ -54,6 +54,8 @@ defineComponent(() => {
 | [@reactive-mp/store](packages/store/README.md) | 惰性共享状态 |
 | [@reactive-mp/runtime](packages/runtime/README.md) | 原生注册、setup 与小程序 Hook |
 | [@reactive-mp/shared](packages/shared/README.md) | 通用工具 |
+| [@reactive-mp/video](packages/video/README.md) | 视频组件、播放 Hook 与声音分组 |
+| [@reactive-mp/swiper](packages/swiper/README.md) | 轮播组件、特征版式与内容组合 |
 
 ## 本地开发与文档站
 

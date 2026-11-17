@@ -164,7 +164,7 @@ export default class {
     for (const [name, value] of Object.entries(
       this.instance?.properties ?? {},
     )) {
-      if (!Object.hasOwn(values, name)) {
+      if (!Object.hasOwn(values, name) && !this.nativeDataKeys?.has(name)) {
         values[name] = value;
       }
     }

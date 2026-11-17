@@ -1,0 +1,27 @@
+{
+  "name": "@reactive-mp/swiper",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reactive WeChat swiper with composable content and characteristic layouts",
+  "main": "./miniprogram/index.js",
+  "types": "./index.d.ts",
+  "miniprogram": "miniprogram",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./miniprogram/index.js"
+    },
+    "./*": "./miniprogram/*"
+  },
+  "files": [
+    "miniprogram",
+    "index.d.ts",
+    "README.md"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@reactive-mp/runtime": "1.0.0",
+    "@reactive-mp/reactivity": "1.0.0",
+    "@reactive-mp/video": "0.1.0"
+  }
+}

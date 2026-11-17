@@ -331,6 +331,16 @@
 | defineStore | `<T extends object>(id: string, setup: () => T) => StoreDefinition<T>` |
 | storeToRefs | `<T extends object>(store: T) => Pick<T, { [K in keyof T]: T[K] extends Signal<unknown> \| Ref<unknown> ? K : never; }[keyof T]>` |
 
+## @reactive-mp/swiper
+
+[类型及完整签名](../packages/swiper/index.d.ts) · [实现入口](../packages/swiper/miniprogram/index.js)
+
+| API | 类型签名 |
+| --- | --- |
+| swiperLayouts | `Readonly<Record<SwiperLayout, LayoutRule>>` |
+| useMediaSwiper | `<T extends SwiperMediaItem>(props: Readonly<SwiperProps<T>>, options?: UseSwiperOptions & { selector?: string; }) => MediaSwiperHook<T>` |
+| useSwiper | `<T = unknown>(props?: Readonly<SwiperProps<T>>, options?: UseSwiperOptions) => SwiperHook<T>` |
+
 ## @reactive-mp/video
 
 [类型及完整签名](../packages/video/index.d.ts) · [实现入口](../packages/video/miniprogram/index.js)

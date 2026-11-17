@@ -122,6 +122,51 @@ try {
     ],
     { cwd: consumer, env },
   );
+  for (const file of [
+    'components/swiper/index.js',
+    'components/swiper/index.json',
+    'components/swiper/index.wxml',
+    'components/swiper/index.wxss',
+    'components/swiper/motion.wxs',
+    'components/image-item/index.wxml',
+    'components/media-item/index.json',
+    'components/media-swiper/index.js',
+    'components/media-swiper/index.json',
+    'components/media-swiper/index.wxml',
+  ]) {
+    await readFile(
+      path.join(consumer, 'node_modules/@reactive-mp/swiper/miniprogram', file),
+    );
+  }
+  const packageNames = (await workspacePackages()).map(
+    (pkg) => pkg.manifest.name,
+  );
+  await writeFile(
+    path.join(consumer, 'verify-swiper.mjs'),
+    `
+    import assert from 'node:assert/strict';
+    import {readFile} from 'node:fs/promises';
+    import path from 'node:path';
+    import {fileURLToPath} from 'node:url';
+    import {useSwiper, swiperLayouts} from '@reactive-mp/swiper';
+    import {prepareNativeSources} from 'reactive-mp/native-tools';
+    assert.equal(typeof useSwiper, 'function');
+    assert.equal(swiperLayouts.focus.scale, 0.9);
+    const packages = new Map();
+    for (const name of ${JSON.stringify(packageNames)}) {
+      const root = path.dirname(path.dirname(fileURLToPath(import.meta.resolve(name))));
+      const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+      packages.set(name, {root, manifest, folder:name.split('/').at(-1)});
+    }
+    await prepareNativeSources('./mini/all', packages);
+    const component = './mini/all/swiper/miniprogram/components/media-item/index.json';
+    const config = JSON.parse(await readFile(component, 'utf8'));
+    const target = path.resolve(path.dirname(component), config.usingComponents['rmp-video']);
+    assert.equal(JSON.parse(await readFile(target + '.json', 'utf8')).component, true);
+    await readFile('./mini/all/swiper/miniprogram/components/swiper/motion.wxs');
+  `,
+  );
+  await exec(process.execPath, ['verify-swiper.mjs'], { cwd: consumer, env });
   console.log(
     `${archives.length} packed packages installed and verified in an isolated offline consumer`,
   );

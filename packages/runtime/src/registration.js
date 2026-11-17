@@ -60,6 +60,7 @@ export function registerDefinition(runtime, setup, native, role) {
         role,
         isComponent ? {} : observers,
         captureDeclarationContract(ctx),
+        Object.keys(data),
       );
       options.behaviors = [behavior, ...options.behaviors];
       const getScope = (instance) =>

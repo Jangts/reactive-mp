@@ -1,0 +1,8 @@
+<view class="page"><view class="title">媒体轮播 + rmp group</view>
+<view class="hint">滑到视频后自动静音播放，切走暂停。两个轮播中分别开启声音时，另一个视频自动静音。</view>
+<button size="mini" bindtap="muteAll">分组全部静音</button>
+<rmp-group id="group">
+<view class="gallery"><rmp-media-swiper id="first-gallery" items="{{media}}" layout="focus" indicator bind:itemevent="onSwiperEvent" /></view>
+<view class="gallery"><rmp-media-swiper id="second-gallery" items="{{secondaryMedia}}" layout="coverflow" indicator bind:itemevent="onSwiperEvent" /></view>
+</rmp-group>
+<include src="../swiper/events.wxml" /></view>

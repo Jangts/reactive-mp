@@ -1,0 +1,8 @@
+<view class="actions">
+<button size="mini" data-layout="plain" bindtap="selectLayout">平铺</button>
+<button size="mini" data-layout="focus" bindtap="selectLayout">中心突出</button>
+<button size="mini" data-layout="coverflow" bindtap="selectLayout">侧翼旋转</button>
+<button size="mini" bindtap="previousItem">上一项</button><button size="mini" bindtap="nextItem">下一项</button>
+<button size="mini" bindtap="toggleTouch">{{disabled ? '开启触摸' : '禁用触摸'}}</button>
+<button size="mini" bindtap="toggleItems">切换单项/多项</button>
+</view>

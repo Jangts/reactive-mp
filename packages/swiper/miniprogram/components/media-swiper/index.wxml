@@ -1,0 +1,8 @@
+<rmp-swiper id="swiper" items="{{mediaItems}}" generic:item="media-item" item-key="{{itemKey}}"
+  current="{{current}}" circular="{{circular}}" autoplay="{{autoplay}}" interval="{{interval}}"
+  duration="{{duration}}" disable-touch="{{disableTouch}}" layout="{{layout}}" peek="{{peek}}"
+  gap="{{gap}}" indicator="{{indicator}}" bind:change="onChange" bind:animationfinish="onAnimationFinish"
+  bind:transitionstart="onTransitionStart" bind:itemclick="onItemClick" bind:itemevent="onMediaEvent">
+  <view slot="footer"><slot name="footer" /></view>
+  <view slot="overlay"><slot name="overlay" /></view>
+</rmp-swiper>

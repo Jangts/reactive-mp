@@ -11,7 +11,7 @@
       <view class="section" wx:for="{{players}}" wx:key="id">
         <view class="heading">{{item.name}}</view>
         <view class="player">
-          <rmp-video id="{{item.id}}" data-name="{{item.name}}" src="{{src}}" poster="{{poster}}"
+          <rmp-video id="{{item.id}}" data-name="{{item.name}}" src="{{item.src}}" poster="{{item.poster}}"
             paused="{{paused}}" loop show-custom-play-btn show-custom-progress
             bind:play="onVideoEvent" bind:pause="onVideoEvent" bind:soundon="onVideoEvent"
             bind:error="onVideoEvent" bind:playbacksummary="onPlaybackSummary" />

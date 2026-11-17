@@ -23,7 +23,10 @@
     "packages:check": "node scripts/verify-packages.mjs",
     "format": "prettier --write \"packages/**/*.{js,mjs,ts,json}\" \"scripts/**/*.mjs\" \"apps/docs/**/*.{mjs,css}\" \"examples/**/*.{js,json,wxss}\" package.json .prettierrc.json",
     "format:check": "prettier --check \"packages/**/*.{js,mjs,ts,json}\" \"scripts/**/*.mjs\" \"apps/docs/**/*.{mjs,css}\" \"examples/**/*.{js,json,wxss}\" package.json .prettierrc.json",
-    "code:check": "node scripts/check-code.mjs"
+    "code:check": "node scripts/check-code.mjs",
+    "verify:swiper": "node scripts/verify-swiper.mjs",
+    "examples:media": "python3 scripts/generate-demo-media.py",
+    "verify:media": "node scripts/verify-media.mjs"
   },
   "devDependencies": {
     "marked": "^18.2.0",

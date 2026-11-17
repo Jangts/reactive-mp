@@ -6,7 +6,9 @@ definePage(() => {
   const demo = useVideoDemo();
   const video = useVideo(
     {
-      src: demo.src,
+      get src() {
+        return demo.src();
+      },
       get paused() {
         return demo.paused();
       },

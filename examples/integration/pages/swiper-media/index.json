@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "媒体轮播与声音分组",
+  "usingComponents": {
+    "rmp-media-swiper": "/vendor/swiper/miniprogram/components/media-swiper/index",
+    "rmp-group": "/vendor/video/miniprogram/components/group/index"
+  }
+}
