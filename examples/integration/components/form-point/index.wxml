@@ -1,0 +1,1 @@
+<view class="point"><input type="digit" value="{{point.x}}" bindinput="changeX"/><text>×</text><input type="digit" value="{{point.y}}" bindinput="changeY"/></view><view>{{error}}</view>

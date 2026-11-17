@@ -1,0 +1,9 @@
+<rmp-form id="form" model="{{model}}" rules="{{rules}}" bind:change="onChange" bind:submit="onSubmit">
+ <rmp-form-item name="name" label="名称"><rmp-input id="name-field" placeholder="请输入名称" appearance="outline" /></rmp-form-item>
+ <rmp-form-item name="email" label="邮箱" help="自定义异步校验通过名称注册"><rmp-input appearance="underline" /></rmp-form-item>
+ <rmp-form-item name="topic" label="主题"><rmp-select options="{{options}}" presentation="popup" /></rmp-form-item>
+ <rmp-checkbox name="accepted">同意提交以上内容</rmp-checkbox>
+ <rmp-form-button action="submit">校验并提交</rmp-form-button>
+ <rmp-form-button action="reset">重置</rmp-form-button>
+</rmp-form>
+<view class="result">{{result}}</view>

@@ -1,0 +1,1 @@
+<button disabled="{{buttonDisabled}}" loading="{{buttonLoading}}" bindtap="onTap" class="form-button"><slot/></button>

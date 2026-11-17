@@ -57,4 +57,8 @@ counter.wxss 可以为空。在页面 JSON 的 usingComponents 中登记 `"count
 
 注册时 setup 收集声明，实例创建时再建立状态。请求、定时器和原生实例操作放入生命周期；收集阶段没有真实实例。静态原生配置可作为 defineComponent 的第二参数，或放在包含 setup 的配置对象中。onMounted/onUnmounted 管理实例工作，App 使用对应应用 Hook。
 
-[完整签名](./index.d.ts) · [源码入口](./src/index.js)。类型入口随包体交付。工作区开发与平台验证资料由源码仓库的维护入口管理。
+[完整签名](index.d.ts) · [源码入口](src/index.js)。类型入口随包体交付。工作区开发与平台验证资料由源码仓库的维护入口管理。
+
+## 文档
+
+[概览](./docs/index.md) · [快速上手](./docs/getting-started.md) · [使用指南](./docs/guide.md) · [API 参考](./docs/api.md)

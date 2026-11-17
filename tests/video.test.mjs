@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPlaybackController } from '../packages/video/miniprogram/utils/controller.js';
+import { createPlaybackController } from '../packages/components/miniprogram/video/utils/controller.js';
 
 test('video preserves intent across multiple blockers and asynchronous context readiness', () => {
   const calls = [];
@@ -37,12 +37,12 @@ const createVideoContext = (id, owner) => {
 };
 globalThis.wx = { createVideoContext };
 globalThis.Component = options => { registered = options; };
-await import('../packages/video/miniprogram/components/group/index.js');
+await import('../packages/components/miniprogram/video/components/group/index.js');
 const groupDefinition = registered;
-await import('../packages/video/miniprogram/components/video/index.js');
+await import('../packages/components/miniprogram/video/components/video/index.js');
 const videoDefinition = registered;
 const { defineComponent, definePage } = await import('@reactive-mp/runtime');
-const { useVideo, useVideoGroup, useVideoParticipant } = await import('@reactive-mp/video');
+const { useVideo, useVideoGroup, useVideoParticipant } = await import('@reactive-mp/components/video');
 const { computed } = await import('@reactive-mp/reactivity');
 const tick = async () => { await Promise.resolve(); await Promise.resolve(); };
 function mount(definition, props = {}) {

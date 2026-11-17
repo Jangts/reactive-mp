@@ -1,0 +1,1 @@
+<view class="form custom-class"><slot /></view>

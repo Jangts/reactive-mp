@@ -1,0 +1,68 @@
+{
+  "name": "@reactive-mp/components",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Headless component capabilities, composable hooks and native wrappers for WeChat Mini Programs",
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "headless",
+    "components",
+    "hooks",
+    "reactive-mp"
+  ],
+  "main": "./miniprogram/index.js",
+  "types": "./index.d.ts",
+  "miniprogram": "miniprogram",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./miniprogram/index.js"
+    },
+    "./form": {
+      "types": "./form.d.ts",
+      "default": "./miniprogram/form/index.js"
+    },
+    "./video": {
+      "types": "./video.d.ts",
+      "default": "./miniprogram/video/index.js"
+    },
+    "./swiper": {
+      "types": "./swiper.d.ts",
+      "default": "./miniprogram/swiper/index.js"
+    },
+    "./video/participant": "./miniprogram/video/utils/participant.js",
+    "./form/components/*": "./miniprogram/form/components/*",
+    "./video/components/*": "./miniprogram/video/components/*",
+    "./swiper/components/*": "./miniprogram/swiper/components/*"
+  },
+  "files": [
+    "miniprogram",
+    "*.d.ts",
+    "docs",
+    "README.md"
+  ],
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "reactiveMp": {
+    "previousNativeFolders": [
+      "form",
+      "video",
+      "swiper"
+    ],
+    "release": {
+      "type": "public"
+    },
+    "docs": "./docs/site.json"
+  },
+  "dependencies": {
+    "@reactive-mp/runtime": "1.0.0",
+    "@reactive-mp/reactivity": "1.0.0"
+  },
+  "scripts": {
+    "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/components",
+    "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/components"
+  }
+}

@@ -1,27 +1,30 @@
 /** 检查文档导航、链接、引用和 API 来源的一致性。 */
 import { readFile, access } from 'node:fs/promises';
 import path from 'node:path';
-import { navigation, sourceForPage } from '../apps/docs/navigation.mjs';
-import { reference } from './api-reference.mjs';
+import { documentationSites, sitePages } from '../apps/docs/navigation.mjs';
+import { references } from './api-reference.mjs';
 import {
   workspacePackages,
   root,
   isInside,
   readSource,
 } from './lib/workspace.mjs';
-const expected = await reference();
-if ((await readFile('docs/api.md', 'utf8')) !== expected) {
-  throw Error('API reference is stale; run npm run docs:api');
+for (const [file, expected] of await references()) {
+  if ((await readFile(file, 'utf8')) !== expected) {
+    throw Error(`${file}: API reference is stale; run npm run docs:api`);
+  }
 }
-const files = [
+const sites = await documentationSites();
+const files = new Set([
   'README.md',
   'docs/README.md',
   'apps/docs/README.md',
-  ...navigation.map(([slug]) => sourceForPage(slug)),
+  ...sites.flatMap((site) => sitePages(site).map(([, , source]) => source)),
+  ...sites.flatMap((site) => Object.values(site.branding)),
   ...(await workspacePackages()).map(
     (pkg) => `packages/${pkg.folder}/README.md`,
   ),
-];
+]);
 for (const file of files) {
   const text = await readFile(file, 'utf8');
   const links = [
@@ -40,7 +43,7 @@ for (const file of files) {
     await access(target);
     if (
       file.startsWith('packages/') &&
-      !isInside(path.resolve(root, path.dirname(file)), target)
+      !isInside(path.resolve(root, ...file.split('/').slice(0, 2)), target)
     ) {
       throw Error(`${file}: package link is outside delivered package`);
     }

@@ -29,6 +29,10 @@ definePage(
       path: '/pages/index/index',
     }));
     return {
+      openFormPage: () => wx.navigateTo({ url: '/pages/form/index' }),
+      openWechatPage: () => wx.navigateTo({ url: '/pages/wechat/index' }),
+      openImagesPreloaderPage: () =>
+        wx.navigateTo({ url: '/pages/images-preloader/index' }),
       openSwiperPage: () => wx.navigateTo({ url: '/pages/swiper/index' }),
       openVideoPage: () => wx.navigateTo({ url: '/pages/video/index' }),
       openMixedPage: () => wx.navigateTo({ url: '/pages/mixed/index' }),

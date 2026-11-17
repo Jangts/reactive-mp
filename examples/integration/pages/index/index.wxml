@@ -15,3 +15,9 @@
 <button bindtap="openVideoPage">Video 组件与 Hooks 示例</button>
 
 <button bindtap="openSwiperPage">Swiper 使用示例</button>
+
+<button bindtap="openImagesPreloaderPage">图片预加载示例</button>
+
+<button bindtap="openWechatPage">微信 API 封装示例</button>
+
+<button bindtap="openFormPage">Form 组件与 Hooks 示例</button>

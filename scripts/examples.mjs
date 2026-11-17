@@ -33,6 +33,14 @@ async function prepareHost(host, packages) {
         ...packages.map((pkg) => pkg.folder),
         '.reactive-mp-generated',
       ]);
+      if (entries.includes('.reactive-mp-generated')) {
+        for (const pkg of packages) {
+          for (const folder of pkg.manifest.reactiveMp?.previousNativeFolders ??
+            []) {
+            known.add(folder);
+          }
+        }
+      }
       if (entries.some((name) => !known.has(name))) {
         throw Error(`vendor contains unowned files: ${host}`);
       }

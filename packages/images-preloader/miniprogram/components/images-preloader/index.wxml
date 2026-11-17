@@ -1,0 +1,5 @@
+<view class="images-preloader" aria-hidden="{{true}}">
+  <image wx:for="{{images}}" wx:key="id"
+    src="{{item.src}}" data-id="{{item.id}}" lazy-load="{{false}}"
+    bindload="onImageLoad" binderror="onImageError" />
+</view>

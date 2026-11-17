@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, symlink, rm, mkdir, readFile, realpath } from 'node:fs/promises';
+import { mkdtemp, writeFile, symlink, rm, mkdir, readFile, realpath, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { renderMarkdown, expand } from '../apps/docs/render.mjs';
-import { readSource, assertOwnedPath, root } from '../scripts/lib/workspace.mjs';
+import { readSource, assertOwnedPath, root, workspacePackages } from '../scripts/lib/workspace.mjs';
 import { prepareNativeSources } from 'reactive-mp/native-tools';
 
 test('documentation treats HTML as text and rejects executable link protocols', () => {
@@ -32,4 +32,29 @@ test('native package preparation works outside a workspace and preserves unknown
     await assert.rejects(()=>prepareNativeSources(output),/unowned/);
     assert.equal(await readFile(path.join(output,'user.txt'),'utf8'),'keep');
   }finally{await rm(temp,{recursive:true,force:true});}
+});
+
+test('component consolidation migrates marked native folders while preserving unknown content', async () => {
+  const temp=await realpath(await mkdtemp(path.join(os.tmpdir(),'rmp-components-migration-')));
+  const packages=new Map((await workspacePackages()).map(pkg=>[pkg.manifest.name,{...pkg,root:path.join(root,'packages',pkg.folder)}]));
+  try {
+    const output=path.join(temp,'vendor');
+    await prepareNativeSources(output,packages);
+    for (const name of ['form','video','swiper']) {
+      await mkdir(path.join(output,name));
+      await writeFile(path.join(output,name,'old.js'),'// previously generated module\n');
+    }
+    await writeFile(path.join(output,'user.txt'),'keep');
+    await assert.rejects(()=>prepareNativeSources(output,packages),/unowned/);
+    assert.equal(await readFile(path.join(output,'user.txt'),'utf8'),'keep');
+    await rm(path.join(output,'user.txt'));
+    await prepareNativeSources(output,packages);
+    assert.deepEqual((await readdir(output)).sort(),['.reactive-mp-generated',...[...packages.values()].map(pkg=>pkg.folder)].sort());
+    const invalid=new Map(packages);
+    const component=packages.get('@reactive-mp/components');
+    invalid.set('@reactive-mp/components',{...component,manifest:{...component.manifest,reactiveMp:{previousNativeFolders:['../outside']}}});
+    await writeFile(path.join(temp,'outside'),'keep');
+    await assert.rejects(()=>prepareNativeSources(output,invalid),/invalid previous native folder/);
+    assert.equal(await readFile(path.join(temp,'outside'),'utf8'),'keep');
+  } finally {await rm(temp,{recursive:true,force:true});}
 });

@@ -1,0 +1,21 @@
+{
+  "title": "Images Preloader",
+  "description": "原生图片预加载、共享请求与尺寸查询",
+  "groups": [
+    {
+      "title": "开始使用",
+      "pages": [
+        ["index", "概览"],
+        ["getting-started", "快速上手"]
+      ]
+    },
+    {
+      "title": "使用指南",
+      "pages": [["guide", "批次、缓存与生命周期"]]
+    },
+    {
+      "title": "参考",
+      "pages": [["api", "API 参考"]]
+    }
+  ]
+}

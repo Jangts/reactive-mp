@@ -13,7 +13,8 @@
   "files": [
     "src/**/*.js",
     "index.d.ts",
-    "README.md"
+    "README.md",
+    "docs"
   ],
   "license": "ISC",
   "dependencies": {
@@ -26,5 +27,15 @@
     "store",
     "signals",
     "javascript"
-  ]
+  ],
+  "reactiveMp": {
+    "release": {
+      "type": "public"
+    },
+    "docs": "./docs/site.json"
+  },
+  "scripts": {
+    "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/store",
+    "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/store"
+  }
 }

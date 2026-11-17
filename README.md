@@ -6,11 +6,11 @@
 
 面向原生微信小程序的响应式与组合式开发工具。保留 JS、WXML、WXSS、JSON 和 Page/Component，用 Signal、computed、watch、组合 Hook 和共享状态组织业务逻辑。
 
-[快速上手](docs/getting-started.md) · [使用指南](docs/guide.md) · [原生配置混用](docs/native-options.md) · [API 参考](docs/api.md) · [文档索引](docs/README.md)
+[快速上手](packages/reactive-mp/docs/getting-started.md) · [使用指南](packages/reactive-mp/docs/guide.md) · [原生配置混用](packages/reactive-mp/docs/native-options.md) · [API 参考](packages/reactive-mp/docs/api.md) · [文档索引](docs/README.md)
 
 ## 开始使用
 
-需要微信原生小程序宿主；包准备工具需要 Node.js 22+。支持源码工作区接入或安装本地 tarball，完整接线见[快速上手](docs/getting-started.md)；不假定包已发布到公共 registry。
+需要微信原生小程序宿主；包准备工具需要 Node.js 22+。支持源码工作区接入或安装本地 tarball，完整接线见[快速上手](packages/reactive-mp/docs/getting-started.md)；不假定包已发布到公共 registry。
 
 依赖准备完成后，创建原生组件 `components/counter/counter.js`：
 
@@ -38,12 +38,12 @@ defineComponent(() => {
 
 | 任务 | 入口 |
 | --- | --- |
-| 接入原生工程或运行工作区示例 | [快速上手](docs/getting-started.md) |
-| 管理状态、派生值、监听与清理 | [响应式与组合逻辑](docs/guide.md) |
-| 混合原生配置、生命周期与组件声明 | [原生配置与动态声明](docs/native-options.md) |
-| 在多个页面共享状态 | [Store](docs/store.md) |
-| 查公开函数和类型签名 | [API 参考](docs/api.md) |
-| 理解注册收集、实例与视图同步 | [运行原理](docs/setup-runtime.md) |
+| 接入原生工程或运行工作区示例 | [快速上手](packages/reactive-mp/docs/getting-started.md) |
+| 管理状态、派生值、监听与清理 | [响应式与组合逻辑](packages/reactive-mp/docs/guide.md) |
+| 混合原生配置、生命周期与组件声明 | [原生配置与动态声明](packages/reactive-mp/docs/native-options.md) |
+| 在多个页面共享状态 | [Store](packages/store/docs/guide.md) |
+| 查公开函数和类型签名 | [API 参考](packages/reactive-mp/docs/api.md) |
+| 理解注册收集、实例与视图同步 | [运行原理](packages/reactive-mp/docs/setup-runtime.md) |
 
 ## 包与职责
 
@@ -54,8 +54,9 @@ defineComponent(() => {
 | [@reactive-mp/store](packages/store/README.md) | 惰性共享状态 |
 | [@reactive-mp/runtime](packages/runtime/README.md) | 原生注册、setup 与小程序 Hook |
 | [@reactive-mp/shared](packages/shared/README.md) | 通用工具 |
-| [@reactive-mp/video](packages/video/README.md) | 视频组件、播放 Hook 与声音分组 |
-| [@reactive-mp/swiper](packages/swiper/README.md) | 轮播组件、特征版式与内容组合 |
+| [@reactive-mp/components](packages/components/README.md) | 无头组件能力：表单、视频、轮播的 Hooks 与原生 wrappers |
+| [@reactive-mp/images-preloader](packages/images-preloader/README.md) | 图片预加载、共享请求与尺寸查询 |
+| [@reactive-mp/wechat](packages/wechat/README.md) | 微信原生 API 封装与请求增强，无运行时依赖 |
 
 ## 本地开发与文档站
 
@@ -72,8 +73,9 @@ npm run dev
 npm run docs:dev
 npm run docs:check
 npm run docs:build
+npm run docs:dev -- --package @reactive-mp/components
 ```
 
-文档站提供全文搜索、明暗主题和移动端导航。正文来源为 `docs`，API 从真实导出和类型声明生成。内容维护、素材和静态部署见 [apps/docs](apps/docs/README.md)；架构、计划与验证记录从[维护者入口](docs/architecture.md)进入。
+各公开包在自己的 `docs` 中提供独立概览、接入、指南与 API，文档站按包提供全文搜索、明暗主题、移动导航和版本标识。完整构建在 `apps/docs/dist/<包目录名>` 生成可独立部署的产物。内容维护、素材和静态部署见 [apps/docs](apps/docs/README.md)；架构、计划与验证记录从[维护者入口](docs/architecture.md)进入。
 
 License: ISC。

@@ -1,0 +1,1 @@
+<view class="intro">表单状态、规则与各类字段。三个接入示例共用当前工作区的组件实现。</view><button data-page="native" bindtap="open">普通 Page 使用组件</button><button data-page="reactive" bindtap="open">Reactive Page 使用组件</button><button data-page="hooks" bindtap="open">Hooks 加原生控件</button><button data-page="fields" bindtap="open">字段组合与多表单</button>

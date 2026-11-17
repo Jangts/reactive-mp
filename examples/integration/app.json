@@ -14,7 +14,14 @@
     "pages/swiper-native/index",
     "pages/swiper-reactive/index",
     "pages/swiper-hooks/index",
-    "pages/swiper-media/index"
+    "pages/swiper-media/index",
+    "pages/images-preloader/index",
+    "pages/wechat/index",
+    "pages/form/index",
+    "pages/form-native/index",
+    "pages/form-reactive/index",
+    "pages/form-hooks/index",
+    "pages/form-fields/index"
   ],
   "window": {
     "navigationBarTitleText": "平台集成验证"

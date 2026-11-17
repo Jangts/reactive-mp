@@ -23,5 +23,10 @@
     "events",
     "microtask",
     "utilities"
-  ]
+  ],
+  "reactiveMp": {
+    "release": {
+      "type": "shared-internal"
+    }
+  }
 }

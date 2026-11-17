@@ -1,0 +1,12 @@
+.page {
+  padding: 24rpx;
+}
+.probe,
+.result {
+  padding: 24rpx 0;
+  overflow-wrap: anywhere;
+}
+input {
+  padding: 24rpx;
+  border: 1rpx solid #aaa;
+}

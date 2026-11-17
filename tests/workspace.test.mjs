@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
-const packageNames = ['shared', 'reactivity', 'store', 'runtime', 'reactive-mp'];
+import { workspacePackages } from '../scripts/lib/workspace.mjs';
 async function walk(dir) {
   const files = [];
   for (const item of await readdir(dir, { withFileTypes: true })) {
@@ -11,10 +11,9 @@ async function walk(dir) {
   return files;
 }
 test('package imports follow declared dependencies and ESM sources load without a platform', async () => {
-  for (const name of packageNames) {
-    const manifest = JSON.parse(await readFile(`packages/${name}/package.json`, 'utf8'));
+  for (const {folder:name,manifest} of await workspacePackages()) {
     await import(manifest.name);
-    for (const file of await walk(`packages/${name}/src`)) {
+    for (const file of await walk(`packages/${name}/${manifest.miniprogram ?? 'src'}`)) {
       const source = await readFile(file, 'utf8');
       for (const [, specifier] of source.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
         if (specifier.startsWith('.')) {

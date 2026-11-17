@@ -105,6 +105,37 @@ input {
   font-size: 18px;
   font-weight: 650;
   text-decoration: none;
+  min-width: 0;
+}
+.brand span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.version {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.package-sites {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+  margin: 32px 0;
+}
+.package-sites a {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+}
+.package-sites span,
+.package-sites small {
+  color: var(--muted);
+  font-size: 13px;
 }
 .brand img {
   flex-shrink: 0;
@@ -113,6 +144,7 @@ input {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 kbd {
   color: var(--muted);

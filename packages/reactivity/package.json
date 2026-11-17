@@ -28,7 +28,8 @@
     "README.md",
     "signal.d.ts",
     "effect-scope.d.ts",
-    "carriers.d.ts"
+    "carriers.d.ts",
+    "docs"
   ],
   "license": "ISC",
   "dependencies": {
@@ -41,5 +42,15 @@
     "computed",
     "watch",
     "javascript"
-  ]
+  ],
+  "reactiveMp": {
+    "release": {
+      "type": "public"
+    },
+    "docs": "./docs/site.json"
+  },
+  "scripts": {
+    "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/reactivity",
+    "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/reactivity"
+  }
 }

@@ -1,6 +1,6 @@
 import { defineComponent, definePage } from '@reactive-mp/runtime';
 import { computed } from '@reactive-mp/reactivity';
-import { useVideo, useVideoGroup, useVideoParticipant, type PlaybackSummaryDetail } from '@reactive-mp/video';
+import { useVideo, useVideoGroup, useVideoParticipant, type PlaybackSummaryDetail } from '@reactive-mp/components/video';
 
 defineComponent(({defineProps}) => {
   const props = defineProps({src: String, paused: Boolean});

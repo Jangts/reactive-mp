@@ -4,7 +4,7 @@ import { execFile } from 'node:child_process';
 import { mkdirSync, writeFileSync, renameSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import automator from 'miniprogram-automator';
+import Connection from 'miniprogram-automator/out/Connection.js';
 import MP from 'miniprogram-automator/out/MiniProgram.js';
 import { sourceDigest } from './verification-evidence.mjs';
 
@@ -21,10 +21,28 @@ import { sourceDigest } from './verification-evidence.mjs';
   );
 };
 
+/** 分开创建与就绪检查，避免 automator.connect 在检查失败后遗留无法取得的连接。 */
+async function openWechatApp(endpoint) {
+  const connection = await (Connection.default || Connection).create(endpoint);
+  return new (MP.default || MP)(connection);
+}
+
+/** 就绪失败时释放本次连接；成功后将资源所有权交给验收会话。 */
+export async function connectReadyWechat(endpoint, open = openWechatApp) {
+  const app = await open(endpoint);
+  try {
+    await app.checkVersion();
+    return app;
+  } catch (error) {
+    await app.disconnect();
+    throw error;
+  }
+}
+
 async function connectWechat() {
   const endpoint = process.env.WECHAT_WS_ENDPOINT || 'ws://127.0.0.1:9420';
   if (!process.env.WECHAT_WS_ENDPOINT) {
-    await promisify(execFile)(
+    const { stdout, stderr } = await promisify(execFile)(
       process.env.WECHAT_CLI ||
         '/Applications/wechatwebdevtools.app/Contents/MacOS/cli',
       [
@@ -37,11 +55,16 @@ async function connectWechat() {
       ],
       { timeout: 30000 },
     );
+    // 部分版本在 preparing 失败（例如登录过期）时仍以 0 退出，不能继续等待端口。
+    const output = [stdout, stderr].filter(Boolean).join('\n');
+    if (/\[error\]|✖/.test(output)) {
+      throw Error(`WeChat CLI could not enable automation:\n${output.trim()}`);
+    }
   }
   const deadline = Date.now() + 15000;
   while (true) {
     try {
-      return await automator.connect({ wsEndpoint: endpoint });
+      return await connectReadyWechat(endpoint);
     } catch (error) {
       if (Date.now() >= deadline) {
         throw error;

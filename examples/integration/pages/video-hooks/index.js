@@ -1,6 +1,6 @@
 /** Reactive Page 直接通过 useVideo 管理当前页面的原生 video 节点。 */
 import { definePage, computed } from '../../vendor/reactive-mp/src/index.js';
-import { useVideo } from '../../vendor/video/miniprogram/index.js';
+import { useVideo } from '../../vendor/components/miniprogram/video/index.js';
 import { useVideoDemo } from '../../hooks/use-video-demo.js';
 definePage(() => {
   const demo = useVideoDemo();

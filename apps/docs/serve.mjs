@@ -3,13 +3,30 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import { spawn } from 'node:child_process';
-import { output } from './build.mjs';
-import { readSource } from '../../scripts/lib/workspace.mjs';
+import { outputFor, selectedPackage } from './build.mjs';
+import { documentationSites } from './navigation.mjs';
+import { readSource, root } from '../../scripts/lib/workspace.mjs';
+const packageName = selectedPackage();
+const sites = await documentationSites();
+const site = packageName
+  ? sites.find(
+      (item) => item.packageName === packageName || item.id === packageName,
+    )
+  : sites[0];
+if (!site || (packageName && !site.packageName)) {
+  throw Error(`Unknown public documentation package: ${packageName}`);
+}
+const output = outputFor(site);
 await buildDocs();
 /** 独立进程读取最新构建和模板代码，避免 ESM 模块缓存导致源码修改不生效。 */
 function buildDocs() {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['apps/docs/build.mjs'], {
+    const args = [
+      'apps/docs/build.mjs',
+      ...(packageName ? ['--package', packageName] : []),
+    ];
+    const child = spawn(process.execPath, args, {
+      cwd: root,
       stdio: 'inherit',
     });
     child.once('error', reject);
@@ -42,23 +59,30 @@ async function rebuild() {
     building = false;
   }
 }
-for (const folder of ['docs', 'examples', 'apps/docs']) {
-  watch(folder, { recursive: true }, (_, file) => {
-    if (
-      file === 'dist' ||
-      file?.startsWith('dist/') ||
-      file?.includes('vendor/') ||
-      file?.includes('project.private')
-    ) {
-      return;
-    }
-    clearTimeout(timer);
-    timer = setTimeout(rebuild, 100);
-  });
+for (const folder of ['docs', 'packages', 'examples', 'apps/docs']) {
+  watch(
+    new URL('../../' + folder + '/', import.meta.url),
+    { recursive: true },
+    (_, file) => {
+      if (
+        file === 'dist' ||
+        file?.startsWith('dist/') ||
+        file?.includes('vendor/') ||
+        file?.includes('project.private')
+      ) {
+        return;
+      }
+      clearTimeout(timer);
+      timer = setTimeout(rebuild, 100);
+    },
+  );
 }
 const server = createServer(async (req, res) => {
-  const file =
+  let file =
     new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
+  if (file.endsWith('/')) {
+    file += 'index.html';
+  }
   const contentTypes = {
     html: 'text/html',
     css: 'text/css',
@@ -81,5 +105,5 @@ const server = createServer(async (req, res) => {
   }
 });
 server.listen(Number(process.env.PORT || 4173), '127.0.0.1', () =>
-  console.log('Docs: http://127.0.0.1:' + server.address().port),
+  console.log(`${site.title} docs: http://127.0.0.1:` + server.address().port),
 );

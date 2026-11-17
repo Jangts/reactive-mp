@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import { normalizeIndex, resolveLayout, itemEntries } from '../packages/swiper/miniprogram/utils/layouts.js';
+import { normalizeIndex, resolveLayout, itemEntries } from '../packages/components/miniprogram/swiper/utils/layouts.js';
 
 test('swiper layouts, stable keys and indices handle empty, shrinking and circular lists', () => {
   assert.equal(normalizeIndex(5, 0), 0);
@@ -19,9 +19,9 @@ globalThis.Behavior = value => value;
 let definition;
 globalThis.Component = value => { definition = value; };
 globalThis.Page = value => { definition = value; };
-await import('../packages/swiper/miniprogram/components/swiper/index.js');
+await import('../packages/components/miniprogram/swiper/components/swiper/index.js');
 const component = definition;
-const { useSwiper, useMediaSwiper } = await import('@reactive-mp/swiper');
+const { useSwiper, useMediaSwiper } = await import('@reactive-mp/components/swiper');
 const { definePage, defineComponent } = await import('@reactive-mp/runtime');
 const tick = async () => { await Promise.resolve(); await Promise.resolve(); };
 function mount(options, values = {}, aliasProperties = false) {
@@ -115,7 +115,7 @@ test('useSwiper works directly inside Reactive Page without native component dep
   page.detach();
 });
 test('WXS interpolates transforms, circular seams and gates clicks without per-frame JS callbacks', async () => {
-  const source = await readFile('packages/swiper/miniprogram/components/swiper/motion.wxs', 'utf8');
+  const source = await readFile('packages/components/miniprogram/swiper/components/swiper/motion.wxs', 'utf8');
   const scope = {module:{exports:{}}, Math};
   vm.runInNewContext(source, scope);
   const motion = scope.module.exports;
@@ -138,7 +138,7 @@ test('WXS interpolates transforms, circular seams and gates clicks without per-f
 });
 test('prepared media item resolves its video component dependency within the native vendor graph', async () => {
   const path = await import('node:path');
-  const configPath = 'examples/integration/vendor/swiper/miniprogram/components/media-item/index.json';
+  const configPath = 'examples/integration/vendor/components/miniprogram/swiper/components/media-item/index.json';
   const config = JSON.parse(await readFile(configPath, 'utf8'));
   const target = path.resolve(path.dirname(configPath), config.usingComponents['rmp-video']);
   assert.equal(JSON.parse(await readFile(target + '.json', 'utf8')).component, true);
@@ -162,7 +162,7 @@ test('native properties/data alias does not feed generated swiper state back int
 });
 
 test('media swiper participates as a group member and coordinates sounds without exposing derived data', async () => {
-  const {useVideoGroup} = await import('@reactive-mp/video');
+  const {useVideoGroup} = await import('@reactive-mp/components/video');
   defineComponent(() => useVideoGroup()); const groupOptions = definition;
   const group = mount(groupOptions);
   defineComponent(({defineProps}) => useMediaSwiper(defineProps({items:{type:Array,value:[]}})));
@@ -191,7 +191,7 @@ test('media swiper participates as a group member and coordinates sounds without
 });
 
 test('media swiper coordinates configured sound requests, respects later muted changes and suppresses late events', async () => {
-  const {useVideoGroup} = await import('@reactive-mp/video');
+  const {useVideoGroup} = await import('@reactive-mp/components/video');
   defineComponent(() => useVideoGroup()); const groupOptions = definition;
   const group = mount(groupOptions);
   defineComponent(({defineProps}) => useMediaSwiper(defineProps({items:{type:Array,value:[]}})));

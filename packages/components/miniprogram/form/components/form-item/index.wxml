@@ -1,0 +1,8 @@
+<view class="form-item {{labelPlacement}} {{itemDisabled ? 'disabled' : ''}} custom-class">
+ <view class="item-label"><text wx:if="{{itemRequired}}" class="required">*</text>{{label}}<slot name="label"/><view class="label-extra"><slot name="label-extra"/></view></view>
+ <view class="item-content"><view wx:if="{{description}}" class="help">{{description}}</view><slot name="description"/>
+  <view class="item-field"><slot/><slot name="suffix"/></view>
+  <view wx:if="{{itemError}}" class="error">{{itemError}}</view><slot name="error"/>
+  <view wx:if="{{!itemError}}" class="help">{{help}}<slot name="help"/></view>
+ </view>
+</view>

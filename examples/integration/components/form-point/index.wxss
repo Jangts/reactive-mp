@@ -1,0 +1,11 @@
+.point {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+}
+.point input {
+  flex: 1;
+  min-width: 0;
+  padding: 16rpx;
+  border-bottom: 1px solid #aaa;
+}

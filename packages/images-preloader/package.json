@@ -1,0 +1,44 @@
+{
+  "name": "@reactive-mp/images-preloader",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Native WeChat image preloading with shared requests and batch results",
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "image",
+    "preload",
+    "reactive-mp"
+  ],
+  "main": "./miniprogram/index.js",
+  "types": "./index.d.ts",
+  "miniprogram": "miniprogram",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./miniprogram/index.js"
+    },
+    "./*": "./miniprogram/*"
+  },
+  "files": [
+    "miniprogram",
+    "index.d.ts",
+    "README.md",
+    "docs"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@reactive-mp/runtime": "1.0.0",
+    "@reactive-mp/reactivity": "1.0.0"
+  },
+  "reactiveMp": {
+    "release": {
+      "type": "public"
+    },
+    "docs": "./docs/site.json"
+  },
+  "scripts": {
+    "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/images-preloader",
+    "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/images-preloader"
+  }
+}

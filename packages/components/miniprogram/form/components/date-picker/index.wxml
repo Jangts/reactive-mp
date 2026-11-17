@@ -1,0 +1,1 @@
+<view class="control {{appearance}} custom-class"><picker mode="{{mode}}" range="{{pickerRange}}" value="{{pickerValue}}" start="{{min}}" end="{{max}}" fields="{{fields}}" level="{{level}}" disabled="{{fieldDisabled || fieldReadonly}}" bindchange="onPickerChange" bindcancel="onPickerCancel"><view>{{display || placeholder}}</view></picker></view>

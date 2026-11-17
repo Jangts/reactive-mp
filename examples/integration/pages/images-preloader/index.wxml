@@ -1,0 +1,11 @@
+<view class="page">
+  <view>普通 Page 调用通用组件；两张本地封面，第一张重复计数。再次加载应命中共享成功记录。</view>
+  <images-preloader wx:if="{{mounted}}" id="preloader" />
+  <images-preloader id="peer-preloader" />
+  <button bindtap="preload" disabled="{{!mounted}}">预加载图片</button>
+  <button bindtap="toggleError">缺失图片：{{includeError ? '加入' : '忽略'}}</button>
+  <button bindtap="clearCache">清除成功记录</button>
+  <button bindtap="toggleMount">{{mounted ? '卸载加载组件' : '挂载加载组件'}}</button>
+  <view>第一张图片尺寸：{{size}}</view>
+  <text selectable class="report">{{report}}</text>
+</view>

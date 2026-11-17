@@ -1,0 +1,9 @@
+.page {
+  padding: 24rpx;
+}
+
+.report {
+  display: block;
+  white-space: pre-wrap;
+  margin-top: 24rpx;
+}

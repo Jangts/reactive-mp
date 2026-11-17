@@ -1,0 +1,12 @@
+<view class="page">
+  <view id="probe" class="probe" data-id="0">原生 Page 直接使用，无需 reactive setup</view>
+  <button bindtap="checkStorage">验证 0 / false / 空串缓存</button>
+  <button bindtap="checkRect">查询当前页面节点</button>
+  <button bindtap="toast">展示提示</button>
+  <button bindtap="login">获取登录 code</button>
+  <button bindtap="chooseImage">选择图片</button>
+  <input placeholder="输入已配置合法域名的测试 URL" value="{{url}}" bindinput="changeUrl" />
+  <button bindtap="request" disabled="{{!url}}">请求与异步响应解析</button>
+  <button bindtap="requestAndAbort" disabled="{{!url}}">请求后立即取消</button>
+  <view class="result">{{result}}</view>
+</view>

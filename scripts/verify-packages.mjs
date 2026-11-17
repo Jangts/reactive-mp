@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { workspacePackages } from './lib/workspace.mjs';
+import { documentationSites, sitePages } from '../apps/docs/navigation.mjs';
 const exec = promisify(execFile);
 const root = process.cwd(),
   temp = await mkdtemp(path.join(os.tmpdir(), 'reactive-mp-pack-'));
@@ -13,8 +14,9 @@ const env = {
   npm_config_cache: path.join(os.tmpdir(), 'reactive-mp-package-cache'),
 };
 try {
+  const sites = await documentationSites();
   const archives = [];
-  for (const { folder: name } of await workspacePackages()) {
+  for (const { folder: name, manifest } of await workspacePackages()) {
     const { stdout } = await exec(
       'npm',
       [
@@ -30,6 +32,23 @@ try {
     const [result] = JSON.parse(stdout);
     if (!result.files.some((file) => file.path === 'index.d.ts')) {
       throw Error(`${name}: missing declarations`);
+    }
+    const site = sites.find((item) => item.packageName === manifest.name);
+    if (site) {
+      const required = [
+        'docs/site.json',
+        ...Object.values(site.branding)
+          .filter((source) => source.startsWith(site.packageRoot + '/'))
+          .map((source) => path.posix.relative(site.packageRoot, source)),
+        ...sitePages(site).map(([, , source]) =>
+          path.posix.relative(site.packageRoot, source),
+        ),
+      ];
+      for (const file of required) {
+        if (!result.files.some((entry) => entry.path === file)) {
+          throw Error(`${name}: missing package documentation ${file}`);
+        }
+      }
     }
     archives.push(path.join(temp, result.filename));
   }
@@ -67,6 +86,50 @@ try {
   await exec(
     process.execPath,
     [
+      '--input-type=module',
+      '-e',
+      `
+      import assert from 'node:assert/strict';
+      import {wxLogin, createRouter} from '@reactive-mp/wechat/wx';
+      import {createRequest} from '@reactive-mp/wechat/network';
+      const result = await wxLogin();
+      assert.equal(result[1].code, 'HOST_UNAVAILABLE');
+      assert.equal(typeof createRouter().navigateTo, 'function');
+      assert.equal(typeof createRequest().get, 'function');
+    `,
+    ],
+    { cwd: consumer, env },
+  );
+  await exec(
+    process.execPath,
+    [
+      'node_modules/reactive-mp/tools/prepare-native.mjs',
+      '--out',
+      './mini/wechat',
+      '--package',
+      '@reactive-mp/wechat',
+    ],
+    { cwd: consumer, env },
+  );
+  await exec(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `
+      import assert from 'node:assert/strict';
+      import {readdir} from 'node:fs/promises';
+      import {wxRequest} from './mini/wechat/wechat/src/index.js';
+      assert.deepEqual((await readdir('./mini/wechat')).sort(), ['.reactive-mp-generated', 'wechat']);
+      globalThis.wx = {request: ({success}) => success({statusCode: 200, data: 0})};
+      assert.equal((await wxRequest('https://example.test'))[1].data, 0);
+    `,
+    ],
+    { cwd: consumer, env },
+  );
+  await exec(
+    process.execPath,
+    [
       'node_modules/reactive-mp/tools/prepare-native.mjs',
       '--out',
       './mini/vendor',
@@ -88,9 +151,9 @@ try {
     ],
     { cwd: consumer, env },
   );
-  const videoManifest = JSON.parse(
+  const componentsManifest = JSON.parse(
     await readFile(
-      path.join(consumer, 'node_modules/@reactive-mp/video/package.json'),
+      path.join(consumer, 'node_modules/@reactive-mp/components/package.json'),
       'utf8',
     ),
   );
@@ -107,8 +170,9 @@ try {
     await readFile(
       path.join(
         consumer,
-        'node_modules/@reactive-mp/video',
-        videoManifest.miniprogram,
+        'node_modules/@reactive-mp/components',
+        componentsManifest.miniprogram,
+        'video',
         file,
       ),
     );
@@ -118,7 +182,7 @@ try {
     [
       '--input-type=module',
       '-e',
-      "import { createPlaybackController } from '@reactive-mp/video'; createPlaybackController().dispose();",
+      "import { createPlaybackController } from '@reactive-mp/components/video'; createPlaybackController().dispose();",
     ],
     { cwd: consumer, env },
   );
@@ -135,11 +199,41 @@ try {
     'components/media-swiper/index.wxml',
   ]) {
     await readFile(
-      path.join(consumer, 'node_modules/@reactive-mp/swiper/miniprogram', file),
+      path.join(
+        consumer,
+        'node_modules/@reactive-mp/components/miniprogram/swiper',
+        file,
+      ),
     );
   }
   const packageNames = (await workspacePackages()).map(
     (pkg) => pkg.manifest.name,
+  );
+  for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+    await readFile(
+      path.join(
+        consumer,
+        `node_modules/@reactive-mp/images-preloader/miniprogram/components/images-preloader/index.${extension}`,
+      ),
+    );
+  }
+  await exec(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `
+    import assert from 'node:assert/strict';
+    import {useImagesPreloader, getLoadedImageSizeByUrl, clearImageCache} from '@reactive-mp/images-preloader';
+    assert.equal(typeof useImagesPreloader, 'function');
+    clearImageCache();
+    assert.deepEqual(getLoadedImageSizeByUrl('/missing.png'), {});
+    globalThis.Behavior=options=>options;
+    globalThis.Component=options=>assert.equal(typeof options.methods.loadImages, 'function');
+    await import('@reactive-mp/images-preloader/components/images-preloader/index.js');
+  `,
+    ],
+    { cwd: consumer, env },
   );
   await writeFile(
     path.join(consumer, 'verify-swiper.mjs'),
@@ -148,7 +242,7 @@ try {
     import {readFile} from 'node:fs/promises';
     import path from 'node:path';
     import {fileURLToPath} from 'node:url';
-    import {useSwiper, swiperLayouts} from '@reactive-mp/swiper';
+    import {useSwiper, swiperLayouts} from '@reactive-mp/components/swiper';
     import {prepareNativeSources} from 'reactive-mp/native-tools';
     assert.equal(typeof useSwiper, 'function');
     assert.equal(swiperLayouts.focus.scale, 0.9);
@@ -159,14 +253,115 @@ try {
       packages.set(name, {root, manifest, folder:name.split('/').at(-1)});
     }
     await prepareNativeSources('./mini/all', packages);
-    const component = './mini/all/swiper/miniprogram/components/media-item/index.json';
+    const component = './mini/all/components/miniprogram/swiper/components/media-item/index.json';
     const config = JSON.parse(await readFile(component, 'utf8'));
     const target = path.resolve(path.dirname(component), config.usingComponents['rmp-video']);
     assert.equal(JSON.parse(await readFile(target + '.json', 'utf8')).component, true);
-    await readFile('./mini/all/swiper/miniprogram/components/swiper/motion.wxs');
+    await readFile('./mini/all/components/miniprogram/swiper/components/swiper/motion.wxs');
+    const preloader = await import('./mini/all/images-preloader/miniprogram/index.js');
+    assert.equal(typeof preloader.useImagesPreloader, 'function');
+    await readFile('./mini/all/images-preloader/miniprogram/components/images-preloader/index.wxml');
   `,
   );
   await exec(process.execPath, ['verify-swiper.mjs'], { cwd: consumer, env });
+  await exec(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `
+    import assert from 'node:assert/strict';
+    import {readFile} from 'node:fs/promises';
+    import {createFormController,validateValues,useField} from '@reactive-mp/components/form';
+    assert.equal(typeof useField,'function');
+    const form=createFormController({initialValues:{name:''}});
+    form.registerField('name',{rules:[{required:true}]});
+    assert.equal((await form.validate()).status,'invalid');
+    form.setFieldValue('name','ok');assert.equal((await form.submit()).status,'submitted');form.dispose();
+    assert.equal((await validateValues({n:0},{n:{required:true,type:'number'}})).status,'valid');
+    for(const name of ['form','form-item','form-button','input','textarea','checkbox','switch','radio-group','checkbox-group','select','column-picker','date-picker','region-picker','cascader','calendar','upload']){
+      for(const extension of ['js','json','wxml','wxss']){
+        await readFile('node_modules/@reactive-mp/components/miniprogram/form/components/'+name+'/index.'+extension);
+      }
+    }
+    const prepared=await import('./mini/all/components/miniprogram/form/index.js');
+    assert.equal(typeof prepared.useForm,'function');
+  `,
+    ],
+    { cwd: consumer, env },
+  );
+  await exec(
+    process.execPath,
+    [
+      'node_modules/reactive-mp/tools/prepare-native.mjs',
+      '--out',
+      './mini/components',
+      '--package',
+      '@reactive-mp/components',
+    ],
+    { cwd: consumer, env },
+  );
+  await exec(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `
+    import assert from 'node:assert/strict';
+    import {readdir} from 'node:fs/promises';
+    import * as components from '@reactive-mp/components';
+    import * as form from '@reactive-mp/components/form';
+    import * as video from '@reactive-mp/components/video';
+    import * as swiper from '@reactive-mp/components/swiper';
+    for (const domain of [form, video, swiper]) {
+      for (const [name, value] of Object.entries(domain)) assert.equal(components[name], value);
+    }
+    for (const name of ['form','video','swiper']) {
+      await assert.rejects(import('@reactive-mp/'+name), {code:'ERR_MODULE_NOT_FOUND'});
+    }
+    assert.deepEqual((await readdir('./mini/components')).sort(), ['.reactive-mp-generated','components','reactivity','runtime','shared']);
+    const prepared = await import('./mini/components/components/miniprogram/index.js');
+    const controller = prepared.createFormController({initialValues:{name:'ok'}});
+    controller.registerField('name',{rules:[{required:true}]});
+    assert.equal((await controller.validate()).status,'valid');
+    controller.dispose();
+    assert.equal(typeof prepared.useMediaSwiper,'function');
+  `,
+    ],
+    { cwd: consumer, env },
+  );
+  await writeFile(
+    path.join(consumer, 'components.ts'),
+    `
+    import {useForm,useVideo,useSwiper,type VideoProps} from '@reactive-mp/components';
+    import {createFormController,type FormValues} from '@reactive-mp/components/form';
+    import {createPlaybackController} from '@reactive-mp/components/video';
+    import {swiperLayouts} from '@reactive-mp/components/swiper';
+    const values:FormValues={name:'ok'};
+    const props:VideoProps={src:'/demo.mp4'};
+    createFormController({initialValues:values}).dispose();
+    createPlaybackController().dispose();
+    // @ts-expect-error source URLs are strings
+    const invalid:VideoProps={src:1};
+    void [useForm,useVideo,useSwiper,swiperLayouts,props,invalid];
+  `,
+  );
+  await exec(
+    process.execPath,
+    [
+      path.join(root, 'node_modules/typescript/bin/tsc'),
+      '--strict',
+      '--noEmit',
+      '--module',
+      'NodeNext',
+      '--moduleResolution',
+      'NodeNext',
+      '--target',
+      'ES2022',
+      'components.ts',
+    ],
+    { cwd: consumer, env },
+  );
   console.log(
     `${archives.length} packed packages installed and verified in an isolated offline consumer`,
   );

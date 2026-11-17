@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "rmp-video": "../../../video/components/video/index"
+  }
+}

@@ -1,0 +1,19 @@
+<view class="intro">主表单包含全部字段家族；下方独立表单不共享值或错误。文件选择模式只访问设备媒体，不请求上传接口。</view>
+<rmp-form id="main" rules="{{rules}}" bind:submit="onSubmit">
+<rmp-form-item name="point" label="自定义复合字段"><demo-point/></rmp-form-item>
+<rmp-form-item name="text" label="单行输入"><rmp-input appearance="outline" maxlength="30" show-count/></rmp-form-item>
+<rmp-form-item name="memo" label="多行输入"><rmp-textarea show-count maxlength="150" appearance="underline"/></rmp-form-item>
+<rmp-switch name="enabled">开关</rmp-switch>
+<rmp-form-item name="radio" label="单选按钮组"><rmp-radio-group options="{{options}}" variant="buttons"/></rmp-form-item>
+<rmp-form-item name="checks" label="可折叠多选按钮组"><rmp-checkbox-group options="{{options}}" variant="buttons" collapse-after="2"/></rmp-form-item>
+<rmp-form-item name="popup" label="弹窗多选"><rmp-select presentation="popup" multiple options="{{options}}"/></rmp-form-item>
+<rmp-form-item name="native" label="原生单选"><rmp-select options="{{options}}"/></rmp-form-item>
+<rmp-form-item name="columns" label="独立多列"><rmp-column-picker options="{{columns}}"/></rmp-form-item>
+<rmp-form-item name="tree" label="级联"><rmp-cascader options="{{tree}}"/></rmp-form-item>
+<rmp-form-item name="date" label="日期"><rmp-date-picker/></rmp-form-item>
+<rmp-form-item name="region" label="地区"><rmp-region-picker level="city"/></rmp-form-item>
+<rmp-form-item name="calendar" label="日历"><rmp-calendar/></rmp-form-item>
+<rmp-form-item name="single" label="单图卡片"><rmp-upload variant="single" max-count="1" bind:preview="onPreview"/></rmp-form-item>
+<rmp-form-item name="files" label="图片与视频列表"><rmp-upload accept="{{accept}}" max-count="4" bind:preview="onPreview"/></rmp-form-item>
+<rmp-form-button action="submit">提交主表单</rmp-form-button><rmp-form-button action="reset">重置主表单</rmp-form-button></rmp-form>
+<rmp-form id="secondary" bind:submit="onSubmit"><rmp-form-item name="other" label="独立表单"><rmp-input/></rmp-form-item><rmp-form-button action="submit">提交独立表单</rmp-form-button></rmp-form><view class="result">{{result}}</view>

@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  position: fixed;
+  top: -2px;
+  left: -2px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.images-preloader,
+.images-preloader image {
+  width: 1px;
+  height: 1px;
+}

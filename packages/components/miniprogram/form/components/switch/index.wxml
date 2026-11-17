@@ -1,0 +1,1 @@
+<view class="choice-row {{fieldDisabled ? 'disabled' : ''}} custom-class" bindtap="onToggle"><view class="switch-mark {{checked ? 'checked' : ''}}"><text wx:if="{{checked && 'switch' === 'checkbox'}}">✓</text></view><slot/></view>

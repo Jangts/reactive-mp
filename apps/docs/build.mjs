@@ -1,26 +1,80 @@
-/** 文档站构建：从正式源稿和导航生成页面，维护资料与使用入口分开。 */
-import { readFile, writeFile, mkdir, copyFile, access } from 'node:fs/promises';
+/** 从各公开包的唯一文档源稿构建独立站点与工作区入口。 */
+import {
+  readFile,
+  writeFile,
+  mkdir,
+  copyFile,
+  access,
+  rm,
+} from 'node:fs/promises';
 import { expand, escapeHtml as escape, renderMarkdown } from './render.mjs';
-import { assertOwnedPath, readSource } from '../../scripts/lib/workspace.mjs';
-import { navigation, navigationGroups, sourceForPage } from './navigation.mjs';
+import {
+  assertOwnedPath,
+  readSource,
+  root,
+  isInside,
+} from '../../scripts/lib/workspace.mjs';
+import { documentationSites, sitePages } from './navigation.mjs';
 import { renderPage } from './template.mjs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 export const output = 'apps/docs/dist';
 export { expand } from './render.mjs';
-export async function build() {
-  await assertOwnedPath(output);
-  await mkdir(output, { recursive: true });
-  await mkdir(`${output}/assets`, { recursive: true });
-  for (const name of ['reactive-mp-icon.svg', 'reactive-mp-logo.svg']) {
-    await copyFile(`docs/assets/branding/${name}`, `${output}/assets/${name}`);
+
+/** 公开包输出目录可以单独部署，工作区入口位于总输出根目录。 */
+export function outputFor(site, base = output) {
+  return site.id === 'workspace' ? base : path.join(base, site.id);
+}
+
+/** 从 CLI 选择公开包；不允许将内部支撑包误作独立文档产品。 */
+export function selectedPackage(args = process.argv.slice(2)) {
+  const index = args.indexOf('--package');
+  if (index < 0) {
+    return undefined;
+  }
+  const name = args[index + 1];
+  if (!name || name.startsWith('--')) {
+    throw Error('--package requires a public package name or folder');
+  }
+  return name;
+}
+
+/** 只接受当前站点登记的正文链接，包 README 作为其概览别名。 */
+function routesFor(site, sites) {
+  const routes = new Map(
+    sitePages(site).map(([slug, , source]) => [source, slug]),
+  );
+  for (const pkg of sites.filter((item) => item.packageName)) {
+    const slug = site.id === 'workspace' ? `${pkg.id}-index` : 'index';
+    if (site.id === 'workspace' || site.id === pkg.id) {
+      routes.set(`${pkg.packageRoot}/README.md`, slug);
+    }
+  }
+  return routes;
+}
+
+/** 构建一个上下文独立的站点，搜索索引仅包含该站点页面。 */
+async function buildSite(site, sites, base) {
+  const directory = await assertOwnedPath(outputFor(site, base));
+  await mkdir(path.join(directory, 'assets'), { recursive: true });
+  for (const source of new Set(Object.values(site.branding))) {
+    await copyFile(
+      path.join(root, source),
+      path.join(directory, 'assets', path.basename(source)),
+    );
   }
   for (const name of ['styles.css', 'client.mjs']) {
-    await copyFile(`apps/docs/${name}`, `${output}/assets/${name}`);
+    await copyFile(
+      path.join(root, 'apps/docs', name),
+      path.join(directory, 'assets', name),
+    );
   }
+  const routes = routesFor(site, sites);
   const searchIndex = [];
-  for (const [slug, title] of navigation) {
-    const sourceFile = sourceForPage(slug);
-    const source = await expand(await readFile(sourceFile, 'utf8'));
+  for (const [slug, title, sourceFile] of sitePages(site)) {
+    const source = await expand(
+      await readSource(sourceFile, ['docs', 'packages', 'apps/docs']),
+    );
     let body = renderMarkdown(source);
     body = body.replace(
       /href="([^"#]+)\.md(#[^"]*)?"/g,
@@ -31,27 +85,33 @@ export async function build() {
         const target = path.posix.normalize(
           path.posix.join(path.posix.dirname(sourceFile), `${href}.md`),
         );
-        const page = navigation.find(
-          ([name]) => sourceForPage(name) === target,
-        );
+        const page = routes.get(target);
         if (!page) {
           throw Error(
-            `Unregistered documentation link: ${sourceFile} -> ${href}.md`,
+            `Unregistered ${site.id} documentation link: ${sourceFile} -> ${href}.md`,
           );
         }
-        return `href="${page[0]}.html${hash}"`;
+        return `href="${page}.html${hash}"`;
       },
     );
-    // Package source links are self-contained in the generated documentation.
-    for (const match of body.matchAll(
-      /href="\.\.\/((?:packages|examples|tests|scripts)\/[^"#]+)"/g,
-    )) {
-      const file = match[1];
+    for (const match of body.matchAll(/href="([^"#]+)"/g)) {
+      const href = match[1];
+      if (/^[a-z]+:/i.test(href) || href.endsWith('.html')) {
+        continue;
+      }
+      const file = path.posix.normalize(
+        path.posix.join(path.posix.dirname(sourceFile), href),
+      );
+      if (!/^(?:packages|examples|tests|scripts)\//.test(file)) {
+        continue;
+      }
       const target = `source/${file}.html`;
       const code = await readSource(file);
-      await mkdir(path.dirname(`${output}/${target}`), { recursive: true });
+      await mkdir(path.dirname(path.join(directory, target)), {
+        recursive: true,
+      });
       await writeFile(
-        `${output}/${target}`,
+        path.join(directory, target),
         `<!doctype html><meta charset="utf-8"><title>${escape(file)}</title><pre>${escape(code)}</pre>`,
       );
       body = body.replace(match[0], `href="${target}"`);
@@ -60,15 +120,15 @@ export async function build() {
     const headingIds = new Map();
     body = body.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (_, level, content) => {
       const label = content.replace(/<[^>]+>/g, '');
-      const base =
+      const baseId =
         label
           .toLocaleLowerCase()
           .replace(/[^\p{L}\p{N}\s_-]/gu, '')
           .trim()
           .replace(/\s+/g, '-') || 'section';
-      const count = headingIds.get(base) ?? 0;
-      headingIds.set(base, count + 1);
-      const id = count ? `${base}-${count}` : base;
+      const count = headingIds.get(baseId) ?? 0;
+      headingIds.set(baseId, count + 1);
+      const id = count ? `${baseId}-${count}` : baseId;
       if (level === '2') {
         sections.push({ id, label });
       }
@@ -78,7 +138,7 @@ export async function build() {
           : '';
       return `<h${level} id="${id}">${content}${link}</h${level}>`;
     });
-    const group = navigationGroups.find((item) =>
+    const group = site.groups.find((item) =>
       item.pages.some(([name]) => name === slug),
     );
     searchIndex.push({
@@ -91,36 +151,87 @@ export async function build() {
         .replace(/\s+/g, ' ')
         .trim(),
     });
-    const html = renderPage({ slug, title, body, sections });
-    await writeFile(`${output}/${slug}.html`, html);
+    await writeFile(
+      path.join(directory, `${slug}.html`),
+      renderPage({ site, slug, title, body, sections }),
+    );
   }
   await writeFile(
-    `${output}/assets/search-index.json`,
+    path.join(directory, 'assets/search-index.json'),
     JSON.stringify(searchIndex),
   );
-  // 验证最终页面的资源与站内链接，防止源稿存在但站点路由缺失。
-  for (const [slug] of navigation) {
-    const html = await readFile(`${output}/${slug}.html`, 'utf8');
+}
+
+/** 校验真实交付中的资源与锚点；独立站点不允许依赖相邻包或工作区文件。 */
+async function verifySite(site, base) {
+  const directory = path.resolve(root, outputFor(site, base));
+  for (const [slug] of sitePages(site)) {
+    const html = await readFile(path.join(directory, `${slug}.html`), 'utf8');
     for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
       if (/^[a-z]+:/i.test(match[1])) {
         continue;
       }
       const [file, hash] = match[1].split('#');
-      const target = file || `${slug}.html`;
-      await access(`${output}/${target}`);
+      const target = path.resolve(directory, file || `${slug}.html`);
+      if (!isInside(directory, target)) {
+        throw Error(
+          `${site.id}: documentation link leaves standalone site: ${match[1]}`,
+        );
+      }
+      await access(target);
       if (hash && target.endsWith('.html')) {
-        const destination = file
-          ? await readFile(`${output}/${target}`, 'utf8')
-          : html;
+        const destination = file ? await readFile(target, 'utf8') : html;
         if (!destination.includes(`id="${decodeURIComponent(hash)}"`)) {
-          throw Error(`Missing section: ${slug}.html -> ${match[1]}`);
+          throw Error(
+            `Missing section: ${site.id}/${slug}.html -> ${match[1]}`,
+          );
         }
       }
     }
   }
-
-  console.log(`Built ${navigation.length} documentation pages in ${output}`);
 }
-if (process.argv[1]?.endsWith('build.mjs')) {
-  await build();
+
+/** 缺省构建全部站点，指定包时仅更新该包产物。 */
+export async function build({ packageName, outputRoot = output } = {}) {
+  const relativeOutput = path
+    .relative(root, path.resolve(root, outputRoot))
+    .split(path.sep)
+    .join('/');
+  if (
+    relativeOutput !== output &&
+    !/^artifacts\/docs-[\w-]+$/.test(relativeOutput)
+  ) {
+    throw Error(
+      'documentation output must be the generated docs directory or an artifacts/docs-* test directory',
+    );
+  }
+  const sites = await documentationSites();
+  const selected = packageName
+    ? sites.filter(
+        (site) => site.packageName === packageName || site.id === packageName,
+      )
+    : sites;
+  if (!selected.length || (packageName && selected[0].id === 'workspace')) {
+    throw Error(`Unknown public documentation package: ${packageName}`);
+  }
+  const clean = await assertOwnedPath(
+    packageName ? outputFor(selected[0], outputRoot) : outputRoot,
+  );
+  await rm(clean, { recursive: true, force: true });
+  for (const site of selected) {
+    await buildSite(site, sites, outputRoot);
+  }
+  for (const site of selected) {
+    await verifySite(site, outputRoot);
+    console.log(
+      `Built ${sitePages(site).length} ${site.id} documentation pages in ${outputFor(site, outputRoot)}`,
+    );
+  }
+  return selected;
+}
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
+) {
+  await build({ packageName: selectedPackage() });
 }

@@ -20,18 +20,26 @@
     "docs:api": "node scripts/api-reference.mjs --write",
     "pretest": "node scripts/examples.mjs",
     "verify:wechat": "node scripts/verify-wechat.mjs",
-    "packages:check": "node scripts/verify-packages.mjs",
+    "verify:wechat-api": "node scripts/verify-wechat-api.mjs",
+    "packages:check": "npm run versions:check && node scripts/verify-packages.mjs",
     "format": "prettier --write \"packages/**/*.{js,mjs,ts,json}\" \"scripts/**/*.mjs\" \"apps/docs/**/*.{mjs,css}\" \"examples/**/*.{js,json,wxss}\" package.json .prettierrc.json",
     "format:check": "prettier --check \"packages/**/*.{js,mjs,ts,json}\" \"scripts/**/*.mjs\" \"apps/docs/**/*.{mjs,css}\" \"examples/**/*.{js,json,wxss}\" package.json .prettierrc.json",
     "code:check": "node scripts/check-code.mjs",
     "verify:swiper": "node scripts/verify-swiper.mjs",
+    "verify:images-preloader": "node scripts/verify-images-preloader.mjs",
     "examples:media": "python3 scripts/generate-demo-media.py",
-    "verify:media": "node scripts/verify-media.mjs"
+    "verify:media": "node scripts/verify-media.mjs",
+    "verify:form": "node scripts/verify-form.mjs",
+    "versions:check": "node scripts/package-versions.mjs",
+    "versions:sync": "node scripts/package-versions.mjs --write"
   },
   "devDependencies": {
     "marked": "^18.2.0",
     "miniprogram-automator": "^0.13.0",
     "prettier": "^3.10.0",
     "typescript": "^6.0.3"
+  },
+  "reactiveMp": {
+    "mainPackage": "reactive-mp"
   }
 }

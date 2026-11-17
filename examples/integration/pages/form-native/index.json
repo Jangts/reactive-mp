@@ -1,0 +1,21 @@
+{
+  "navigationBarTitleText": "native + form",
+  "usingComponents": {
+    "rmp-form": "../../vendor/components/miniprogram/form/components/form/index",
+    "rmp-form-item": "../../vendor/components/miniprogram/form/components/form-item/index",
+    "rmp-form-button": "../../vendor/components/miniprogram/form/components/form-button/index",
+    "rmp-input": "../../vendor/components/miniprogram/form/components/input/index",
+    "rmp-textarea": "../../vendor/components/miniprogram/form/components/textarea/index",
+    "rmp-select": "../../vendor/components/miniprogram/form/components/select/index",
+    "rmp-checkbox": "../../vendor/components/miniprogram/form/components/checkbox/index",
+    "rmp-switch": "../../vendor/components/miniprogram/form/components/switch/index",
+    "rmp-radio-group": "../../vendor/components/miniprogram/form/components/radio-group/index",
+    "rmp-checkbox-group": "../../vendor/components/miniprogram/form/components/checkbox-group/index",
+    "rmp-date-picker": "../../vendor/components/miniprogram/form/components/date-picker/index",
+    "rmp-region-picker": "../../vendor/components/miniprogram/form/components/region-picker/index",
+    "rmp-column-picker": "../../vendor/components/miniprogram/form/components/column-picker/index",
+    "rmp-cascader": "../../vendor/components/miniprogram/form/components/cascader/index",
+    "rmp-calendar": "../../vendor/components/miniprogram/form/components/calendar/index",
+    "rmp-upload": "../../vendor/components/miniprogram/form/components/upload/index"
+  }
+}

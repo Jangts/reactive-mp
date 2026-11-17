@@ -1,46 +1,18 @@
-# 响应式与组合式，留在原生。
+# Reactive MP 文档
 
-面向原生微信小程序的开发工具。保留熟悉的 JS、WXML、WXSS 和平台注册方式，让状态驱动界面，让业务逻辑自然组合。
+各公开包独立提供使用文档、API 参考与文档站，版本随各包独立维护。按实际需要选择响应式内核、原生运行时入口、共享状态或可选扩展。
 
-[开始使用](getting-started.md) · [浏览 API](api.md)
+## 选择能力
 
-## 原生开发，更好组织
+| 包 | 用途 | 文档 |
+| --- | --- | --- |
+| reactive-mp | 微信原生注册与组合式开发入口 | [开始使用](../packages/reactive-mp/docs/index.md) |
+| @reactive-mp/reactivity | 平台无关的响应式状态与作用域 | [开始使用](../packages/reactivity/docs/index.md) |
+| @reactive-mp/store | 惰性共享状态与资源寿命 | [开始使用](../packages/store/docs/index.md) |
+| @reactive-mp/wechat | 微信原生 API 与请求客户端 | [开始使用](../packages/wechat/docs/index.md) |
+| @reactive-mp/images-preloader | 图片预加载与尺寸查询 | [开始使用](../packages/images-preloader/docs/index.md) |
+| @reactive-mp/components | 表单、视频和轮播的无头交互能力 | [开始使用](../packages/components/docs/index.md) |
 
-| 能力 | 使用方式 |
-| --- | --- |
-| 响应式状态 | Signal、computed 与 watch，自动追踪读取的依赖 |
-| 组合逻辑 | 在 setup 中组织状态、生命周期、通信与资源清理 |
-| 原生混用 | Page/Component 配置和动态声明按需组合 |
-| 共享状态 | 惰性 Store，在页面与组件间复用 |
+## 维护源码
 
-## 一个原生计数器
-
-依赖准备后，在 `components/counter/counter.js` 中导入统一入口：
-
-```js
-import { defineComponent, useSignal, computed } from '../../vendor/reactive-mp/src/index.js';
-
-defineComponent(() => {
-  const [count, setCount] = useSignal(0);
-  const label = computed(() => `count=${count()}`);
-  return { label, increment: () => setCount(count() + 1) };
-});
-```
-
-原生模板 `counter.wxml`：
-
-```xml
-<button bindtap="increment">{{label}}</button>
-```
-
-组件 JSON 声明 `component: true`，页面登记组件后，点击按钮即可更新 label。完整安装、文件位置和接线见[快速上手](getting-started.md)。
-
-## 按你的任务继续
-
-- [响应式与组合逻辑](guide.md)：状态、监听、生命周期和组件通信。
-- [原生配置与动态声明](native-options.md)：保留原生配置，按需使用 Hook。
-- [共享状态](store.md)：跨页面共享与资源生命周期。
-- [API 参考](api.md)：公开接口与类型签名。
-- [运行原理](setup-runtime.md)：深入了解收集、实例和同步机制。
-
-维护源码、开发宿主或文档站，请进入[维护者入口](architecture.md)。
+[架构与贡献](architecture.md) · [文档索引](README.md) · [工作区 API](api.md)。runtime、shared 是共用内部支撑包，其说明保留在维护入口。

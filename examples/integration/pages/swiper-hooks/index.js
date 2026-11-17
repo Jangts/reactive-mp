@@ -1,6 +1,6 @@
 /** 页面通过 useSwiper 控制原生 swiper，单独组合自己的视图。 */
 import { definePage } from '../../vendor/reactive-mp/src/index.js';
-import { useSwiper } from '../../vendor/swiper/miniprogram/index.js';
+import { useSwiper } from '../../vendor/components/miniprogram/swiper/index.js';
 import { useSwiperDemo } from '../../hooks/use-swiper-demo.js';
 definePage(() => {
   const demo = useSwiperDemo();

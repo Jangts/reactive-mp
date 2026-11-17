@@ -38,4 +38,8 @@ scope.stop(); // 解除 scope 中建立的监听
 
 watch 返回可调用 stop 句柄，并提供 pause/resume。reactive 支持嵌套对象与数组；ref 使用 value 属性。Signal.value 与 computed 只读，写入使用 useSignal 返回的更新函数。订阅应放入作用域，或由调用方停止。
 
-[完整签名](./index.d.ts) · [源码入口](./src/index.js)。类型入口随包体交付。工作区开发与平台验证资料由源码仓库的维护入口管理。
+[完整签名](index.d.ts) · [源码入口](src/index.js)。类型入口随包体交付。工作区开发与平台验证资料由源码仓库的维护入口管理。
+
+## 文档
+
+[概览](./docs/index.md) · [快速上手](./docs/getting-started.md) · [使用指南](./docs/guide.md) · [API 参考](./docs/api.md)

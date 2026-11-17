@@ -205,7 +205,7 @@ L0—L7 表示审查视角及依赖次序，不要求代码按相同层数拆分
 
 - [文档规范](documentation-standard.md)
 - [架构与贡献](architecture.md)
-- [运行模型](setup-runtime.md)
+- [运行模型](../packages/reactive-mp/docs/setup-runtime.md)
 - [开发宿主与验证](validation.md)
 - [平台能力清单与计划](platform-coverage.md)
 - [验证记录](verification.md)

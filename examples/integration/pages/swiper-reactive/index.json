@@ -1,7 +1,7 @@
 {
   "navigationBarTitleText": "Reactive Page + swiper",
   "usingComponents": {
-    "rmp-swiper": "/vendor/swiper/miniprogram/components/swiper/index",
+    "rmp-swiper": "/vendor/components/miniprogram/swiper/components/swiper/index",
     "demo-card": "/components/swiper-card/index"
   }
 }

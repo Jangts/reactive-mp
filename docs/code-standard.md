@@ -96,10 +96,13 @@ function emitAndSchedule(task, schedule) {
 | packages/store | 共享状态、惰性实例及其资源寿命 | 页面实例管理与原生平台初始化 |
 | packages/runtime | 配置收集、实例、平台适配、生命周期与 Hook | 工具端文件操作或业务应用规则 |
 | packages/reactive-mp | 用户统一导出；独立 Node 子入口提供原生源码准备工具 | 第二套状态、注册或执行机制；小程序主入口导入 Node 工具 |
+| packages/components | 按 form、video、swiper 组织交互能力、Hooks 与原生 wrappers；统一发布 | 项目品牌、业务布局与主题；依赖未发布的内部 npm 包 |
 | examples | 场景组合、复现和实际平台验证 | 核心包的复制实现或私有替代版本 |
 | scripts / apps/docs | 工作区工具与文档站 | 被小程序入口导入的生产依赖 |
 
 依赖由 package.json 和 exports 表达，按上述职责保持单向。不能通过相对路径、隐式 workspace 解析或工具 loader 绕过边界。公开 package 不能要求消费者具备仓库私有文件或上层包。
+
+版本角色由各包 reactiveMp.release 声明，遵循[版本归属](architecture.md#版本归属)：公开包独立维护，专属内部包跟随所属包，共用内部包跟随主包。修改公开版本后执行 versions:sync，同步内部版本、精确依赖与锁文件。
 
 示例中真正复用的业务组合放在该宿主内的组合模块；能证明属于库的能力才回归公共包。不要为把示例做短而把演示业务塞进核心。
 

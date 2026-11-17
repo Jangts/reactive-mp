@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "图片预加载",
+  "usingComponents": {
+    "images-preloader": "/vendor/images-preloader/miniprogram/components/images-preloader/index"
+  }
+}

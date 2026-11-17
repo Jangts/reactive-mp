@@ -40,4 +40,8 @@ useCounter.dispose();
 
 storeToRefs 选取响应式字段，不复制动作。Store setup 必须同步返回对象；实例副作用不能直接放在 setup 中，库管理的副作用用作用域清理。dispose 即使有清理错误也释放当前单例，再次调用 useStore 重新创建。
 
-[完整签名](./index.d.ts) · [源码入口](./src/index.js)。类型入口随包体交付。工作区开发与平台验证资料由源码仓库的维护入口管理。
+[完整签名](index.d.ts) · [源码入口](src/index.js)。类型入口随包体交付。工作区开发与平台验证资料由源码仓库的维护入口管理。
+
+## 文档
+
+[概览](./docs/index.md) · [快速上手](./docs/getting-started.md) · [使用指南](./docs/guide.md) · [API 参考](./docs/api.md)

@@ -48,12 +48,37 @@ async function installedPackages(name = 'reactive-mp', packages = new Map()) {
 
 /** 只解析包声明的默认 ESM 导出，不猜测未公开的源码路径。 */
 export function resolveNativeExport(manifest, suffix) {
-  let entry = manifest.exports[suffix ? `.${suffix}` : '.'];
-  if (!entry && suffix && manifest.exports['./*']) {
-    entry = manifest.exports['./*'].replace('*', suffix.slice(1));
+  const subpath = suffix ? `.${suffix}` : '.';
+  let entry = manifest.exports[subpath];
+  let replacement;
+  if (!entry) {
+    const patterns = Object.keys(manifest.exports)
+      .filter((key) => key.includes('*'))
+      .sort(
+        (left, right) =>
+          right.indexOf('*') - left.indexOf('*') || right.length - left.length,
+      );
+    for (const pattern of patterns) {
+      const [prefix, ending] = pattern.split('*');
+      if (
+        subpath.startsWith(prefix) &&
+        subpath.endsWith(ending) &&
+        subpath.length >= prefix.length + ending.length
+      ) {
+        entry = manifest.exports[pattern];
+        replacement = subpath.slice(
+          prefix.length,
+          subpath.length - ending.length,
+        );
+        break;
+      }
+    }
   }
   if (typeof entry === 'object') {
     entry = entry.default;
+  }
+  if (typeof entry === 'string' && replacement !== undefined) {
+    entry = entry.replaceAll('*', replacement);
   }
   if (typeof entry !== 'string' || !/^\.\/(?:src|miniprogram)\//.test(entry)) {
     throw Error(`unresolved native export: ${manifest.name}${suffix}`);
@@ -93,7 +118,18 @@ export async function prepareNativeSources(output, packages) {
       throw Error('output must not overwrite an installed package');
     }
   }
-  const known = new Set([...packages.values()].map((pkg) => pkg.folder));
+  const currentFolders = new Set(
+    [...packages.values()].map((pkg) => pkg.folder),
+  );
+  const previous = [...packages.values()].flatMap(
+    (pkg) => pkg.manifest.reactiveMp?.previousNativeFolders ?? [],
+  );
+  for (const folder of previous) {
+    if (typeof folder !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(folder)) {
+      throw Error('invalid previous native folder');
+    }
+  }
+  const known = new Set([...currentFolders, ...previous]);
   const existing = await readdir(directory);
   if (existing.length && !existing.includes('.reactive-mp-generated')) {
     throw Error('native output is not owned by this tool');
@@ -181,6 +217,11 @@ export async function prepareNativeSources(output, packages) {
       await writeFile(destination, text);
     }
   }
+  for (const folder of previous) {
+    if (!currentFolders.has(folder)) {
+      await rm(path.join(directory, folder), { recursive: true, force: true });
+    }
+  }
   await writeFile(
     path.join(directory, '.reactive-mp-generated'),
     'Generated Reactive MP native sources\n',
@@ -193,9 +234,20 @@ if (
 ) {
   const index = process.argv.indexOf('--out');
   if (index < 0 || !process.argv[index + 1]) {
-    throw Error('usage: reactive-mp-prepare --out <project/vendor>');
+    throw Error(
+      'usage: reactive-mp-prepare --out <project/vendor> [--package <name>]',
+    );
   }
-  await prepareNativeSources(process.argv[index + 1]);
+  const packageIndex = process.argv.indexOf('--package');
+  let packages;
+  if (packageIndex >= 0) {
+    const name = process.argv[packageIndex + 1];
+    if (!name || name.startsWith('--')) {
+      throw Error('--package requires a package name');
+    }
+    packages = await installedPackages(name);
+  }
+  await prepareNativeSources(process.argv[index + 1], packages);
   console.log(
     'Prepared native sources in ' + path.resolve(process.argv[index + 1]),
   );

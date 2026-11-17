@@ -27,5 +27,10 @@
     "composition-api",
     "signals",
     "runtime"
-  ]
+  ],
+  "reactiveMp": {
+    "release": {
+      "type": "shared-internal"
+    }
+  }
 }

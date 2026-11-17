@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "传统 Page + rmp video",
   "usingComponents": {
-    "rmp-video": "/vendor/video/miniprogram/components/video/index"
+    "rmp-video": "/vendor/components/miniprogram/video/components/video/index"
   }
 }

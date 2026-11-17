@@ -1,0 +1,21 @@
+{
+  "title": "Reactivity",
+  "description": "平台无关的 Signal、派生值、监听与资源作用域",
+  "groups": [
+    {
+      "title": "开始使用",
+      "pages": [
+        ["index", "概览"],
+        ["getting-started", "快速上手"]
+      ]
+    },
+    {
+      "title": "使用指南",
+      "pages": [["guide", "状态、监听与作用域"]]
+    },
+    {
+      "title": "参考",
+      "pages": [["api", "API 参考"]]
+    }
+  ]
+}

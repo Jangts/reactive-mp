@@ -9,14 +9,52 @@
 | @reactive-mp/store | 惰性共享状态与独立生命周期 | reactivity |
 | @reactive-mp/runtime | setup 收集、实例连接、平台适配和小程序 Hook | shared / reactivity |
 | reactive-mp | 用户统一入口 | 以上四包 |
+| @reactive-mp/wechat | 微信原生 API 封装与请求增强，可独立使用 | 无 |
+| @reactive-mp/images-preloader | 图片预加载、共享请求与尺寸查询 | runtime / reactivity |
+| @reactive-mp/components | 表单、视频、轮播的交互状态、Hooks 和原生 wrappers | runtime / reactivity |
+
+components 是组件领域的统一发布包。form、video、swiper 保留独立的领域目录和子入口，不再声明独立 package.json；源码与类型直接随统一包交付，不通过未发布的内部 npm 包连接。wechat、images-preloader 和 store 保持独立边界。
+
+组件库追求无头能力：behaviors、Hooks 与 wrappers 复用状态、交互和原生接线，业务布局与视觉由项目决定。逻辑入口不注册组件或加载样式；现有可选 wrappers 仍带默认结构和基础样式，不能把发布边界调整等同于已经完成全部无头化改造。
+
+包的 reactiveMp.previousNativeFolders 记录合并前的生成目录名，供准备工具迁移已标记的 vendor；未知目录和符号链接继续拒绝接管。
 
 reactivity 与 store 不认识 wx。runtime 只在注册 API 被调用时接触 Page/Component/Behavior，不在导入包时注册平台监听。lib/index.js 是兼容的统一入口，不包含另一份实现。
 
 生命周期和平台事件以 runtime 的 constants 声明表为基础，集中驱动转发。上下文进入和恢复由 RuntimeContext 的作用域方法维护；注册配置由闭包持有，不写入 data。实例作用域拥有订阅与清理任务。
 
+## 版本归属
+
+公开包各自维护版本；专属内部包跟随使用它的所属包；共用内部包跟随主包。版本归属与 npm 访问权限分开：当前源码分发需要 runtime、shared 作为可安装依赖随主包交付，不设置 private=true。
+
+| 包或内部领域 | 发布角色 | 版本来源 |
+| --- | --- | --- |
+| reactive-mp | 公开主包 | 独立维护 |
+| @reactive-mp/reactivity | 公开包 | 独立维护 |
+| @reactive-mp/store | 公开包 | 独立维护 |
+| @reactive-mp/wechat | 公开包 | 独立维护 |
+| @reactive-mp/images-preloader | 公开包 | 独立维护 |
+| @reactive-mp/components | 公开包 | 独立维护 |
+| @reactive-mp/runtime、@reactive-mp/shared | 共用内部包 | reactive-mp |
+| components 内的 form、video、swiper | 专属内部领域 | @reactive-mp/components；不单设包版本 |
+
+根 package.json 的 reactiveMp.mainPackage 声明主包名称。每个 workspace 包在 reactiveMp.release.type 中登记 public、internal 或 shared-internal；internal 用 owner 指向实际依赖它的所属包，shared-internal 从主包取得版本。包清单驱动版本同步和检查，不另维护一份包名列表。
+
+调整目标公开包的 package.json.version 后执行：
+
+```sh
+npm run versions:sync
+npm run versions:check
+npm run packages:check
+```
+
+同步命令只更新内部包版本、工作区精确依赖和锁文件，不递增其他公开包的版本，也不执行发布。依赖版本仍需与包自身版本区分：components 可以保持自己的 0.1.0，同时声明使用 1.0.0 的 runtime。工作区 dependencies、devDependencies 和 optionalDependencies 使用对应包的精确版本；外部依赖及 peerDependencies 的兼容范围由各包自行维护。
+
+依赖变动的公开包仍需按自己的发布节奏选择新版本，不能用已发布的版本号重复交付修改后的包体。packages:check 包含版本与锁文件检查，npm run check 通过该入口执行同一检查。
+
 ## 文档维护
 
-文档正文只保存在 docs。apps/docs 管理导航和渲染，支持桌面及窄屏布局。根 README 提供项目入口；包 README 提供独立定位与最小有效接入，不复制整份教程。
+各公开包的正文与导航保存在自己的 docs 目录，通过 reactiveMp.docs 声明站点。apps/docs 共用构建与渲染，按包生成独立的导航、搜索索引、API 和版本标识；工作区 docs 保留总入口与维护资料。根 README 提供项目入口，包 README 保留独立定位和最小有效接入。
 
 API 参考从包的实际导出与模块化 index.d.ts 生成，检查缺失的声明和虚假的类型导出；详细语义由指南说明。代码片段使用 <<< 路径从开发宿主引用。修改公开行为时同步更新类型、指南、宿主与对应回归。
 
@@ -25,9 +63,11 @@ npm run docs:api
 npm run docs:check
 npm run docs:build
 npm run docs:dev
+npm run docs:build -- --package @reactive-mp/components
+npm run docs:dev -- --package @reactive-mp/components
 ```
 
-文档本地地址默认 http://127.0.0.1:4173。源码链接指向构建随附的源码页面，公开托管和 npm 发布另行执行。
+文档本地地址默认 http://127.0.0.1:4173。完整构建输出在 apps/docs/dist，各公开包的独立产物位于其下同名目录；单包预览直接将对应目录作为站点根。源码链接指向构建随附的源码页面。
 
 ## 贡献检查
 

@@ -19,7 +19,8 @@
     "index.d.ts",
     "README.md",
     "tools/*.mjs",
-    "native-tools.d.ts"
+    "native-tools.d.ts",
+    "docs"
   ],
   "license": "ISC",
   "dependencies": {
@@ -41,5 +42,15 @@
   ],
   "engines": {
     "node": ">=22"
+  },
+  "reactiveMp": {
+    "release": {
+      "type": "public"
+    },
+    "docs": "./docs/site.json"
+  },
+  "scripts": {
+    "docs:build": "node ../../apps/docs/build.mjs --package reactive-mp",
+    "docs:dev": "node ../../apps/docs/serve.mjs --package reactive-mp"
   }
 }

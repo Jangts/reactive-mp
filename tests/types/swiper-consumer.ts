@@ -1,6 +1,6 @@
 import { defineComponent, definePage } from '@reactive-mp/runtime';
 import { computed } from '@reactive-mp/reactivity';
-import { useSwiper, useMediaSwiper, swiperLayouts, type SwiperMediaItem } from '@reactive-mp/swiper';
+import { useSwiper, useMediaSwiper, swiperLayouts, type SwiperMediaItem } from '@reactive-mp/components/swiper';
 defineComponent(() => {
   const swiper = useSwiper({items:[{id:'a', name:'A'}], layout:'focus'});
   const name: string = swiper.entries()[0].value.name;
