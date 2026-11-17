@@ -52,5 +52,6 @@
   "scripts": {
     "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/reactivity",
     "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/reactivity"
-  }
+  },
+  "homepage": "https://reactive-mp-docs.pages.jangts.cafe/reactivity-index.html"
 }

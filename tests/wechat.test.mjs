@@ -9,7 +9,7 @@ import {
   wxNavigateTo, wxSwitchTab, createRequest, reusableGetter,
   debouncedGetter, debouncedSetter, isNetReqErr, isNetResErr,
   showResponseErrMsg,
-} from '@reactive-mp/wechat';
+} from '@reactive-mp/kit/wechat';
 
 afterEach(() => { delete globalThis.wx; });
 const success = (data = 'payload') => ({statusCode: 200, data, header: {}, errMsg: 'request:ok'});
@@ -21,8 +21,8 @@ const deferred = () => {
 
 test('imports and subpaths need no wx and missing host returns a failure', async () => {
   delete globalThis.wx;
-  const native = await import('@reactive-mp/wechat/wx');
-  const network = await import('@reactive-mp/wechat/network');
+  const native = await import('@reactive-mp/kit/wechat/wx');
+  const network = await import('@reactive-mp/kit/wechat/network');
   assert.equal(native.wxRequest, wxRequest);
   assert.equal(network.createRequest, createRequest);
   const [ok, error] = await wxLogin();

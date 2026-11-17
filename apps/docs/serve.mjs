@@ -4,15 +4,11 @@ import { readFile } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { outputFor, selectedPackage } from './build.mjs';
-import { documentationSites } from './navigation.mjs';
+import { documentationSites, siteForPackage } from './navigation.mjs';
 import { readSource, root } from '../../scripts/lib/workspace.mjs';
 const packageName = selectedPackage();
 const sites = await documentationSites();
-const site = packageName
-  ? sites.find(
-      (item) => item.packageName === packageName || item.id === packageName,
-    )
-  : sites[0];
+const site = packageName ? siteForPackage(sites, packageName) : sites[0];
 if (!site || (packageName && !site.packageName)) {
   throw Error(`Unknown public documentation package: ${packageName}`);
 }
@@ -87,6 +83,7 @@ const server = createServer(async (req, res) => {
     html: 'text/html',
     css: 'text/css',
     mjs: 'text/javascript',
+    js: 'text/javascript',
     svg: 'image/svg+xml',
     json: 'application/json',
   };

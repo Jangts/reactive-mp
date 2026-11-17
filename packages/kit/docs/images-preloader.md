@@ -8,4 +8,4 @@
 
 需要微信原生宿主；运行依赖由 @reactive-mp/runtime 和 @reactive-mp/reactivity 提供。成功记录是本次运行的尺寸元数据，不是图片文件的持久缓存。
 
-[快速上手](getting-started.md)提供页面 JSON、WXML 和 JS 接线；[使用指南](guide.md)说明结果、缓存、取消和 Hook；[API 参考](api.md)提供完整签名。
+[快速上手](images-preloader-getting-started.md)提供页面 JSON、WXML 和 JS 接线；[使用指南](images-preloader-guide.md)说明结果、缓存、取消和 Hook；[API 参考](api.md)提供完整签名。

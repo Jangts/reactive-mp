@@ -1,0 +1,78 @@
+{
+  "name": "@reactive-mp/kit",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "WeChat API helpers, image preloading and shared store forwarding for native Mini Programs",
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "request",
+    "image",
+    "preload",
+    "store",
+    "reactive-mp"
+  ],
+  "main": "./miniprogram/index.js",
+  "types": "./index.d.ts",
+  "miniprogram": "miniprogram",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./miniprogram/index.js"
+    },
+    "./wechat": {
+      "types": "./wechat/index.d.ts",
+      "default": "./miniprogram/wechat/index.js"
+    },
+    "./wechat/wx": {
+      "types": "./wechat/wx.d.ts",
+      "default": "./miniprogram/wechat/wx/index.js"
+    },
+    "./wechat/network": {
+      "types": "./wechat/network.d.ts",
+      "default": "./miniprogram/wechat/network/index.js"
+    },
+    "./images-preloader": {
+      "types": "./images-preloader/index.d.ts",
+      "default": "./miniprogram/images-preloader/index.js"
+    },
+    "./images-preloader/components/*": "./miniprogram/images-preloader/components/*",
+    "./store": {
+      "types": "./store.d.ts",
+      "default": "./miniprogram/store.js"
+    }
+  },
+  "files": [
+    "miniprogram",
+    "index.d.ts",
+    "wechat/*.d.ts",
+    "images-preloader/*.d.ts",
+    "store.d.ts",
+    "docs",
+    "README.md"
+  ],
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@reactive-mp/runtime": "1.0.0",
+    "@reactive-mp/reactivity": "1.0.0",
+    "@reactive-mp/store": "1.0.0"
+  },
+  "reactiveMp": {
+    "previousNativeFolders": [
+      "wechat",
+      "images-preloader"
+    ],
+    "release": {
+      "type": "public"
+    },
+    "docs": "./docs/site.json"
+  },
+  "scripts": {
+    "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/kit",
+    "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/kit"
+  },
+  "homepage": "https://reactive-mp-kit-docs.pages.jangts.cafe/"
+}

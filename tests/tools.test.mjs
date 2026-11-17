@@ -34,13 +34,13 @@ test('native package preparation works outside a workspace and preserves unknown
   }finally{await rm(temp,{recursive:true,force:true});}
 });
 
-test('component consolidation migrates marked native folders while preserving unknown content', async () => {
+test('component and kit consolidation migrate marked native folders while preserving unknown content', async () => {
   const temp=await realpath(await mkdtemp(path.join(os.tmpdir(),'rmp-components-migration-')));
   const packages=new Map((await workspacePackages()).map(pkg=>[pkg.manifest.name,{...pkg,root:path.join(root,'packages',pkg.folder)}]));
   try {
     const output=path.join(temp,'vendor');
     await prepareNativeSources(output,packages);
-    for (const name of ['form','video','swiper']) {
+    for (const name of ['form','video','swiper','wechat','images-preloader']) {
       await mkdir(path.join(output,name));
       await writeFile(path.join(output,name,'old.js'),'// previously generated module\n');
     }

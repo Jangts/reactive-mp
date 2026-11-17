@@ -9,7 +9,7 @@
 wxRequest 与 wxUploadFile 返回的 Promise 上有只读 task，可访问原生取消、响应头或上传进度接口。任务和监听归调用方管理，取消后仍等待原生回调结算。
 
 ```js
-import { wxRequest } from '@reactive-mp/wechat/wx';
+import { wxRequest } from '@reactive-mp/kit/wechat/wx';
 
 const call = wxRequest('https://api.example.com/items');
 call.task?.abort();
@@ -30,7 +30,7 @@ const [ok, responseOrError] = await call;
 wxNavigateTo、wxRedirectTo、wxSwitchTab、wxReLaunch、wxNavigateBack 对应原生方法，保留原生响应及 eventChannel。不读取 __wxConfig。需要自动识别 tab 页时创建独立路由器：
 
 ```js
-import { createRouter } from '@reactive-mp/wechat/wx';
+import { createRouter } from '@reactive-mp/kit/wechat/wx';
 
 const router = createRouter({ tabRoutes: ['/pages/home/index'] });
 await router.navigateTo('/pages/home/index'); // 使用 switchTab
@@ -48,7 +48,7 @@ wxSelectEvt(event).detail(key?) 与 .data(key?) 读取 detail 与 currentTarget.
 wxChooseImage(options?) 返回原生 tempFiles；wxGetImageInfo(src) 返回原生图片信息。wxUploadFile 要求显式配置上传地址、文件路径与字段名：
 
 ```js
-import { wxUploadFile } from '@reactive-mp/wechat/wx';
+import { wxUploadFile } from '@reactive-mp/kit/wechat/wx';
 
 const [ok, uploaded] = await wxUploadFile({
   url: 'https://api.example.com/upload',

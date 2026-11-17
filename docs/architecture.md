@@ -9,11 +9,12 @@
 | @reactive-mp/store | 惰性共享状态与独立生命周期 | reactivity |
 | @reactive-mp/runtime | setup 收集、实例连接、平台适配和小程序 Hook | shared / reactivity |
 | reactive-mp | 用户统一入口 | 以上四包 |
-| @reactive-mp/wechat | 微信原生 API 封装与请求增强，可独立使用 | 无 |
-| @reactive-mp/images-preloader | 图片预加载、共享请求与尺寸查询 | runtime / reactivity |
+| @reactive-mp/kit | 微信 API、图片预加载及独立 Store 的转发入口 | runtime / reactivity / store |
 | @reactive-mp/components | 表单、视频、轮播的交互状态、Hooks 和原生 wrappers | runtime / reactivity |
 
-components 是组件领域的统一发布包。form、video、swiper 保留独立的领域目录和子入口，不再声明独立 package.json；源码与类型直接随统一包交付，不通过未发布的内部 npm 包连接。wechat、images-preloader 和 store 保持独立边界。
+components 是组件领域的统一发布包。form、video、swiper 保留独立的领域目录和子入口，不再声明独立 package.json；源码与类型直接随统一包交付，不通过未发布的内部 npm 包连接。
+
+kit 是工具能力的统一发布包。wechat、images-preloader 的实现和类型直接放在 kit 内，通过 /wechat、/images-preloader 及更细的公开子入口使用，不保留独立 npm 包。Store 继续作为 @reactive-mp/store 独立发布，kit 的根入口与 /store 直接转发其命名 API，/store 同时转发默认导出；不复制 Store 实现，原生准备后的转发也指向同一依赖包。
 
 组件库追求无头能力：behaviors、Hooks 与 wrappers 复用状态、交互和原生接线，业务布局与视觉由项目决定。逻辑入口不注册组件或加载样式；现有可选 wrappers 仍带默认结构和基础样式，不能把发布边界调整等同于已经完成全部无头化改造。
 
@@ -32,11 +33,11 @@ reactivity 与 store 不认识 wx。runtime 只在注册 API 被调用时接触 
 | reactive-mp | 公开主包 | 独立维护 |
 | @reactive-mp/reactivity | 公开包 | 独立维护 |
 | @reactive-mp/store | 公开包 | 独立维护 |
-| @reactive-mp/wechat | 公开包 | 独立维护 |
-| @reactive-mp/images-preloader | 公开包 | 独立维护 |
+| @reactive-mp/kit | 公开包 | 独立维护 |
 | @reactive-mp/components | 公开包 | 独立维护 |
 | @reactive-mp/runtime、@reactive-mp/shared | 共用内部包 | reactive-mp |
 | components 内的 form、video、swiper | 专属内部领域 | @reactive-mp/components；不单设包版本 |
+| kit 内的 wechat、images-preloader | 专属内部领域 | @reactive-mp/kit；不单设包版本 |
 
 根 package.json 的 reactiveMp.mainPackage 声明主包名称。每个 workspace 包在 reactiveMp.release.type 中登记 public、internal 或 shared-internal；internal 用 owner 指向实际依赖它的所属包，shared-internal 从主包取得版本。包清单驱动版本同步和检查，不另维护一份包名列表。
 
@@ -54,7 +55,7 @@ npm run packages:check
 
 ## 文档维护
 
-各公开包的正文与导航保存在自己的 docs 目录，通过 reactiveMp.docs 声明站点。apps/docs 共用构建与渲染，按包生成独立的导航、搜索索引、API 和版本标识；工作区 docs 保留总入口与维护资料。根 README 提供项目入口，包 README 保留独立定位和最小有效接入。
+各公开包的正文与导航保存在自己的 docs 目录，通过 reactiveMp.docs 声明随包文档。docs/site.json 的 site 可指定承载它的公开包站点；Reactivity 声明由 reactive-mp 承载。Kit 文档站统一提供 Wechat 和 Images Preloader 的指南与 API，Store 保留独立站点，kit 提供其转发用法。apps/docs 共用构建与渲染，按实际站点生成导航、搜索索引和静态产物；被承载包的文档仍从自己的包目录读取，API、npm 身份及版本独立维护。工作区 docs 保留总入口与维护资料。根 README 提供项目入口，包 README 保留独立定位和最小有效接入。
 
 API 参考从包的实际导出与模块化 index.d.ts 生成，检查缺失的声明和虚假的类型导出；详细语义由指南说明。代码片段使用 <<< 路径从开发宿主引用。修改公开行为时同步更新类型、指南、宿主与对应回归。
 
@@ -67,7 +68,7 @@ npm run docs:build -- --package @reactive-mp/components
 npm run docs:dev -- --package @reactive-mp/components
 ```
 
-文档本地地址默认 http://127.0.0.1:4173。完整构建输出在 apps/docs/dist，各公开包的独立产物位于其下同名目录；单包预览直接将对应目录作为站点根。源码链接指向构建随附的源码页面。
+文档本地地址默认 http://127.0.0.1:4173。完整构建输出在 apps/docs/dist，各实际站点的独立产物位于其所属包的同名目录；指定包预览会解析到承载它的站点，并将该目录作为站点根。源码链接指向构建随附的源码页面。
 
 ## 贡献检查
 

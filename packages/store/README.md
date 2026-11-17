@@ -44,4 +44,8 @@ storeToRefs 选取响应式字段，不复制动作。Store setup 必须同步�
 
 ## 文档
 
+Kit 的 @reactive-mp/kit/store 直接转发本包的命名和默认导出，kit 根入口转发命名 API。本包继续独立维护版本和文档。
+
+[在线文档](https://reactive-mp-store-docs.pages.jangts.cafe/)
+
 [概览](./docs/index.md) · [快速上手](./docs/getting-started.md) · [使用指南](./docs/guide.md) · [API 参考](./docs/api.md)

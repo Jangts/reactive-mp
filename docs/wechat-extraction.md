@@ -27,7 +27,7 @@
 
 ## 验证边界
 
-tests/wechat.test.mjs 验证回调、异常、缓存、节点、路由、上传、异步拦截器、显式重试和并发释放。类型消费者为 tests/types/wechat-consumer.ts。实际包体检查覆盖隔离离线安装、公开子入口、无 wx 环境导入及只准备 wechat 的原生依赖闭包。
+tests/wechat.test.mjs 验证回调、异常、缓存、节点、路由、上传、异步拦截器、显式重试和并发释放。类型消费者为 tests/types/wechat-consumer.ts。当前 Wechat 实现归入 @reactive-mp/kit/wechat；实际包体检查覆盖 Kit 隔离离线安装、公开子入口、无 wx 环境导入及其原生依赖闭包。
 
 integration 的 pages/wechat/index 以普通 Page 演示缓存、节点、登录、选图、提示、请求和取消。Node 模拟不证明平台权限、用户手势、真实节点测量、网络或微信 npm 构建效果。订阅模板和上传需消费工程提供真实配置。
 
@@ -35,4 +35,4 @@ integration 的 pages/wechat/index 以普通 Page 演示缓存、节点、登录
 
 该结果不覆盖登录、授权、选图、订阅、上传、真实网络请求、微信 npm 构建或实机。自动化测试覆盖相关适配逻辑，不等于这些能力已经平台验收。
 
-正式用法以[包 README](../packages/wechat/README.md)和生成 API 参考为准。
+正式用法以 [Kit README](../packages/kit/README.md)、[Wechat 指南](../packages/kit/docs/wechat.md)和生成 API 参考为准。

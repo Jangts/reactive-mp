@@ -1,21 +1,15 @@
 # 快速上手
 
-运行时依赖 `@reactive-mp/runtime`、`@reactive-mp/reactivity`，通过包依赖安装。工作区源码接入运行 `npm run examples:prepare`；组件路径为 `/vendor/images-preloader/miniprogram/components/images-preloader/index`。
+运行时依赖 `@reactive-mp/runtime`、`@reactive-mp/reactivity`，通过包依赖安装。工作区源码接入运行 `npm run examples:prepare`；组件路径为 `/vendor/kit/miniprogram/images-preloader/components/images-preloader/index`。
 
-取得匹配版本的四个本地 tarball，在消费工程执行，然后在微信开发者工具构建 npm：
-
-```sh
-npm install ./reactive-mp-shared-1.0.0.tgz ./reactive-mp-reactivity-1.0.0.tgz ./reactive-mp-runtime-1.0.0.tgz ./reactive-mp-images-preloader-0.1.0.tgz
-```
-
-不假定包已发布到公共 registry。
+先按 [Kit 快速上手](getting-started.md)安装包体并准备原生源码。Images Preloader 是 Kit 的内部领域。
 
 页面 JSON 注册：
 
 ```json
 {
   "usingComponents": {
-    "images-preloader": "@reactive-mp/images-preloader/components/images-preloader/index"
+    "images-preloader": "/vendor/kit/miniprogram/images-preloader/components/images-preloader/index"
   }
 }
 ```

@@ -25,7 +25,7 @@
 
 ## 接入与差异
 
-组件独立为 `@reactive-mp/images-preloader`，不加入核心统一入口的必装依赖。普通 Page 和 Reactive 页面均可使用原生组件，Reactive 页面也可直接使用 Hook。详细接线和合同见[包 README](../packages/images-preloader/README.md)。
+组件归入 `@reactive-mp/kit/images-preloader` 领域，不加入核心统一入口的必装依赖。普通 Page 和 Reactive 页面均可使用原生组件，Reactive 页面也可直接使用 Hook。详细接线和合同见[Kit README](../packages/kit/README.md)和[图片预加载指南](../packages/kit/docs/images-preloader.md)。
 
 业务迁移时，将 usingComponents 路径指向新包，原 `loadImages(images)` 调用和 `{ total, done, fail }` 读取方式可保留。尺寸查询改为从新包导入，不再调用 initImagePool。来源工程本身未在此次抽取中修改。
 

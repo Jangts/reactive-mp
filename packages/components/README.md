@@ -68,10 +68,12 @@ definePage(() => useSwiper({ items: ['第一项', '第二项'], circular: true }
 | `@reactive-mp/components/video` | [视频](docs/video.md)：播放状态、可见性与声音分组 |
 | `@reactive-mp/components/swiper` | [轮播](docs/swiper.md)：索引、滑动与内容组合 |
 
-行为、状态和平台接线按领域复用；业务请求、项目布局、品牌颜色与主题由应用管理。wechat、images-preloader 和 store 继续由各自的包提供。
+行为、状态和平台接线按领域复用；业务请求、项目布局、品牌颜色与主题由应用管理。Wechat 和 Images Preloader 由 @reactive-mp/kit 提供；Store 保留独立包，也可从 kit/store 使用同一实现。
 
 [统一类型](index.d.ts) · [逻辑入口](miniprogram/index.js)。
 
 ## 文档
+
+[在线文档](https://reactive-mp-components-docs.pages.jangts.cafe/)
 
 [概览](./docs/index.md) · [快速上手](./docs/getting-started.md) · [使用指南](./docs/guide.md) · [API 参考](./docs/api.md)

@@ -64,5 +64,6 @@
   "scripts": {
     "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/components",
     "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/components"
-  }
+  },
+  "homepage": "https://reactive-mp-components-docs.pages.jangts.cafe/"
 }

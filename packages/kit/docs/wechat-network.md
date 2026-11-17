@@ -5,7 +5,7 @@
 wxRequest(url, options?) 保留原生 response，默认接受 200–399，可通过 validateStatus 修改。createRequest(baseURL?, options?) 提供独立默认配置、查询参数和异步拦截器：
 
 ```js
-import { createRequest } from '@reactive-mp/wechat/network';
+import { createRequest } from '@reactive-mp/kit/wechat/network';
 
 const request = createRequest('https://api.example.com', {
   timeout: 10000,

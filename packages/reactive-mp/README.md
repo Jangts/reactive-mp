@@ -61,4 +61,6 @@ counter.wxss 可以为空。在页面 JSON 的 usingComponents 中登记 `"count
 
 ## 文档
 
+[在线文档](https://reactive-mp-docs.pages.jangts.cafe/)
+
 [概览](./docs/index.md) · [快速上手](./docs/getting-started.md) · [使用指南](./docs/guide.md) · [API 参考](./docs/api.md)

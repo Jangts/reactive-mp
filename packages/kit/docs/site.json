@@ -1,0 +1,33 @@
+{
+  "title": "Reactive MP Kit",
+  "description": "微信 API、图片预加载与共享 Store 的统一工具入口",
+  "groups": [
+    {
+      "title": "开始使用",
+      "pages": [
+        ["index", "概览"],
+        ["getting-started", "快速上手"],
+        ["guide", "按能力选择入口"]
+      ]
+    },
+    {
+      "title": "Wechat",
+      "pages": [
+        ["wechat", "微信 API 概览"],
+        ["wechat-getting-started", "微信 API 接入"],
+        ["wechat-guide", "结果、路由与原生任务"],
+        ["wechat-network", "请求与并发控制"]
+      ]
+    },
+    {
+      "title": "Images Preloader",
+      "pages": [
+        ["images-preloader", "图片预加载概览"],
+        ["images-preloader-getting-started", "图片预加载接入"],
+        ["images-preloader-guide", "批次、缓存与生命周期"]
+      ]
+    },
+    { "title": "Store", "pages": [["store", "独立 Store 转发"]] },
+    { "title": "参考", "pages": [["api", "API 参考"]] }
+  ]
+}

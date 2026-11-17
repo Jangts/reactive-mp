@@ -55,8 +55,7 @@ defineComponent(() => {
 | [@reactive-mp/runtime](packages/runtime/README.md) | 原生注册、setup 与小程序 Hook |
 | [@reactive-mp/shared](packages/shared/README.md) | 通用工具 |
 | [@reactive-mp/components](packages/components/README.md) | 无头组件能力：表单、视频、轮播的 Hooks 与原生 wrappers |
-| [@reactive-mp/images-preloader](packages/images-preloader/README.md) | 图片预加载、共享请求与尺寸查询 |
-| [@reactive-mp/wechat](packages/wechat/README.md) | 微信原生 API 封装与请求增强，无运行时依赖 |
+| [@reactive-mp/kit](packages/kit/README.md) | 微信 API、图片预加载及独立 Store 包的转发入口 |
 
 ## 本地开发与文档站
 
@@ -76,6 +75,8 @@ npm run docs:build
 npm run docs:dev -- --package @reactive-mp/components
 ```
 
-各公开包在自己的 `docs` 中提供独立概览、接入、指南与 API，文档站按包提供全文搜索、明暗主题、移动导航和版本标识。完整构建在 `apps/docs/dist/<包目录名>` 生成可独立部署的产物。内容维护、素材和静态部署见 [apps/docs](apps/docs/README.md)；架构、计划与验证记录从[维护者入口](docs/architecture.md)进入。
+各公开包在自己的 `docs` 中提供随 npm 包交付的概览、接入、指南与 API。Reactivity 的在线文档由主包站点承载，其 npm 包和版本独立维护；其余公开包拥有各自站点。文档站提供全文搜索、明暗主题、移动导航和版本标识。完整构建在 `apps/docs/dist/<站点所属包目录名>` 生成独立产物。内容维护、素材和部署见 [apps/docs](apps/docs/README.md)；架构、计划与验证记录从[维护者入口](docs/architecture.md)进入。
+
+线上文档：[Reactive MP](https://reactive-mp-docs.pages.jangts.cafe/) · [Reactivity（主站）](https://reactive-mp-docs.pages.jangts.cafe/reactivity-index.html) · [Store](https://reactive-mp-store-docs.pages.jangts.cafe/) · [Kit](https://reactive-mp-kit-docs.pages.jangts.cafe/) · [Components](https://reactive-mp-components-docs.pages.jangts.cafe/)。
 
 License: ISC。

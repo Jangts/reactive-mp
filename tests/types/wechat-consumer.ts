@@ -2,9 +2,9 @@ import {
   wxLogin, wxRequest, wxUploadFile, wxSelect, wxSelectAll, wxSelectEvt,
   createRouter, createRequest, reusableGetter, debouncedSetter,
   getStorageItem, type Result, WechatError, type RequestResponse,
-} from '@reactive-mp/wechat';
-import { wxNavigateTo } from '@reactive-mp/wechat/wx';
-import { isNetworkError, createRequest as createNetworkRequest } from '@reactive-mp/wechat/network';
+} from '@reactive-mp/kit/wechat';
+import { wxNavigateTo } from '@reactive-mp/kit/wechat/wx';
+import { isNetworkError, createRequest as createNetworkRequest } from '@reactive-mp/kit/wechat/network';
 
 async function consume() {
   const login = await wxLogin();

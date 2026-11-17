@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createImagePool } from '../packages/images-preloader/miniprogram/utils/image-pool.js';
-import { createImagesPreloader } from '../packages/images-preloader/miniprogram/utils/preloader.js';
+import { createImagePool } from '../packages/kit/miniprogram/images-preloader/utils/image-pool.js';
+import { createImagesPreloader } from '../packages/kit/miniprogram/images-preloader/utils/preloader.js';
 
 const tick = async () => { await Promise.resolve(); await Promise.resolve(); };
 function host(pool = createImagePool()) {
@@ -163,10 +163,10 @@ globalThis.Behavior = options => options;
 let definition;
 globalThis.Component = options => { definition = options; };
 globalThis.Page = options => { definition = options; };
-await import('../packages/images-preloader/miniprogram/components/images-preloader/index.js');
+await import('../packages/kit/miniprogram/images-preloader/components/images-preloader/index.js');
 const component = definition;
 const { definePage } = await import('@reactive-mp/runtime');
-const { useImagesPreloader, getLoadedImageSizeByUrl, clearImageCache } = await import('@reactive-mp/images-preloader');
+const { useImagesPreloader, getLoadedImageSizeByUrl, clearImageCache } = await import('@reactive-mp/kit/images-preloader');
 
 function mount(options) {
   const instance = {
@@ -217,11 +217,11 @@ test('useImagesPreloader works directly in a Reactive Page and disposes deferred
 });
 
 test('prepared native package includes a hidden image template with eager loading and stable job keys', async () => {
-  const base = 'examples/integration/vendor/images-preloader/miniprogram/components/images-preloader/index';
+  const base = 'examples/integration/vendor/kit/miniprogram/images-preloader/components/images-preloader/index';
   assert.equal(JSON.parse(await readFile(base + '.json', 'utf8')).component, true);
   const template = await readFile(base + '.wxml', 'utf8');
   assert.match(template, /lazy-load="\{\{false\}\}"/);
   assert.match(template, /wx:key="id"/);
-  const entry = await import('../examples/integration/vendor/images-preloader/miniprogram/index.js');
+  const entry = await import('../examples/integration/vendor/kit/miniprogram/images-preloader/index.js');
   assert.deepEqual(Object.keys(entry), ['clearImageCache', 'getLoadedImageSizeByUrl', 'useImagesPreloader']);
 });

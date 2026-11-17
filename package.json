@@ -15,6 +15,7 @@
     "dev": "node scripts/examples.mjs --watch",
     "docs:build": "node apps/docs/build.mjs",
     "docs:dev": "node apps/docs/serve.mjs",
+    "docs:deploy": "node apps/docs/deploy.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "check": "npm run format:check && npm run code:check && npm run test && npm run typecheck && npm run examples:prepare && npm run docs:check && npm run docs:build && npm run packages:check",
     "docs:api": "node scripts/api-reference.mjs --write",

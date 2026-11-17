@@ -1,5 +1,6 @@
 {
   "title": "Reactivity",
+  "site": "reactive-mp",
   "description": "平台无关的 Signal、派生值、监听与资源作用域",
   "groups": [
     {

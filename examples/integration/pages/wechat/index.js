@@ -8,7 +8,7 @@ import {
   wxShowToast,
   wxRequest,
   createRequest,
-} from '../../vendor/wechat/src/index.js';
+} from '../../vendor/kit/miniprogram/wechat/index.js';
 
 /** 只把可展示的结果放入 data，避免将原生任务与错误对象送往视图。 */
 function showResult(page, result) {

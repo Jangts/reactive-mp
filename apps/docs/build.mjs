@@ -14,7 +14,11 @@ import {
   root,
   isInside,
 } from '../../scripts/lib/workspace.mjs';
-import { documentationSites, sitePages } from './navigation.mjs';
+import {
+  documentationSites,
+  siteForPackage,
+  sitePages,
+} from './navigation.mjs';
 import { renderPage } from './template.mjs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -40,21 +44,19 @@ export function selectedPackage(args = process.argv.slice(2)) {
 }
 
 /** 只接受当前站点登记的正文链接，包 README 作为其概览别名。 */
-function routesFor(site, sites) {
+function routesFor(site) {
   const routes = new Map(
     sitePages(site).map(([slug, , source]) => [source, slug]),
   );
-  for (const pkg of sites.filter((item) => item.packageName)) {
-    const slug = site.id === 'workspace' ? `${pkg.id}-index` : 'index';
-    if (site.id === 'workspace' || site.id === pkg.id) {
-      routes.set(`${pkg.packageRoot}/README.md`, slug);
-    }
+  for (const pkg of site.documentation) {
+    const overview = sitePages(pkg).find(([slug]) => slug === 'index')[2];
+    routes.set(`${pkg.packageRoot}/README.md`, routes.get(overview));
   }
   return routes;
 }
 
 /** 构建一个上下文独立的站点，搜索索引仅包含该站点页面。 */
-async function buildSite(site, sites, base) {
+async function buildSite(site, base) {
   const directory = await assertOwnedPath(outputFor(site, base));
   await mkdir(path.join(directory, 'assets'), { recursive: true });
   for (const source of new Set(Object.values(site.branding))) {
@@ -66,10 +68,10 @@ async function buildSite(site, sites, base) {
   for (const name of ['styles.css', 'client.mjs']) {
     await copyFile(
       path.join(root, 'apps/docs', name),
-      path.join(directory, 'assets', name),
+      path.join(directory, 'assets', name.replace(/\.mjs$/, '.js')),
     );
   }
-  const routes = routesFor(site, sites);
+  const routes = routesFor(site);
   const searchIndex = [];
   for (const [slug, title, sourceFile] of sitePages(site)) {
     const source = await expand(
@@ -191,7 +193,7 @@ async function verifySite(site, base) {
   }
 }
 
-/** 缺省构建全部站点，指定包时仅更新该包产物。 */
+/** 缺省构建全部站点，指定包时仅更新承载该包文档的站点。 */
 export async function build({ packageName, outputRoot = output } = {}) {
   const relativeOutput = path
     .relative(root, path.resolve(root, outputRoot))
@@ -207,9 +209,7 @@ export async function build({ packageName, outputRoot = output } = {}) {
   }
   const sites = await documentationSites();
   const selected = packageName
-    ? sites.filter(
-        (site) => site.packageName === packageName || site.id === packageName,
-      )
+    ? [siteForPackage(sites, packageName)].filter(Boolean)
     : sites;
   if (!selected.length || (packageName && selected[0].id === 'workspace')) {
     throw Error(`Unknown public documentation package: ${packageName}`);
@@ -219,7 +219,7 @@ export async function build({ packageName, outputRoot = output } = {}) {
   );
   await rm(clean, { recursive: true, force: true });
   for (const site of selected) {
-    await buildSite(site, sites, outputRoot);
+    await buildSite(site, outputRoot);
   }
   for (const site of selected) {
     await verifySite(site, outputRoot);

@@ -37,5 +37,6 @@
   "scripts": {
     "docs:build": "node ../../apps/docs/build.mjs --package @reactive-mp/store",
     "docs:dev": "node ../../apps/docs/serve.mjs --package @reactive-mp/store"
-  }
+  },
+  "homepage": "https://reactive-mp-store-docs.pages.jangts.cafe/"
 }

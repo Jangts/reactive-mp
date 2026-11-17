@@ -2,7 +2,7 @@
 import {
   getLoadedImageSizeByUrl,
   clearImageCache,
-} from '../../vendor/images-preloader/miniprogram/index.js';
+} from '../../vendor/kit/miniprogram/images-preloader/index.js';
 
 const cover = '/assets/video/orbit.jpg';
 

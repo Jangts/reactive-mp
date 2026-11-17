@@ -2,7 +2,7 @@ import { definePage } from 'reactive-mp';
 import {
   useImagesPreloader, getLoadedImageSizeByUrl, clearImageCache,
   type ImagesPreloaderInstance, type ImagesPreloadReport,
-} from '@reactive-mp/images-preloader';
+} from '@reactive-mp/kit/images-preloader';
 
 async function preload(component: ImagesPreloaderInstance) {
   const urls: readonly (string | null | false)[] = ['/a.png', null, false];

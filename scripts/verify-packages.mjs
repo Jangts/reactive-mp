@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { workspacePackages } from './lib/workspace.mjs';
-import { documentationSites, sitePages } from '../apps/docs/navigation.mjs';
+import { documentationPackages, sitePages } from '../apps/docs/navigation.mjs';
 const exec = promisify(execFile);
 const root = process.cwd(),
   temp = await mkdtemp(path.join(os.tmpdir(), 'reactive-mp-pack-'));
@@ -14,7 +14,7 @@ const env = {
   npm_config_cache: path.join(os.tmpdir(), 'reactive-mp-package-cache'),
 };
 try {
-  const sites = await documentationSites();
+  const sites = await documentationPackages();
   const archives = [];
   for (const { folder: name, manifest } of await workspacePackages()) {
     const { stdout } = await exec(
@@ -90,8 +90,17 @@ try {
       '-e',
       `
       import assert from 'node:assert/strict';
-      import {wxLogin, createRouter} from '@reactive-mp/wechat/wx';
-      import {createRequest} from '@reactive-mp/wechat/network';
+      import * as kit from '@reactive-mp/kit';
+      import * as store from '@reactive-mp/store';
+      import storeDefault from '@reactive-mp/kit/store';
+      import {wxLogin, createRouter} from '@reactive-mp/kit/wechat/wx';
+      import {createRequest} from '@reactive-mp/kit/wechat/network';
+      assert.equal(kit.defineStore, store.defineStore);
+      assert.equal(storeDefault, store.default);
+      assert.equal(kit.wxLogin, wxLogin);
+      for (const name of ['wechat','images-preloader']) {
+        await assert.rejects(import('@reactive-mp/'+name), {code:'ERR_MODULE_NOT_FOUND'});
+      }
       const result = await wxLogin();
       assert.equal(result[1].code, 'HOST_UNAVAILABLE');
       assert.equal(typeof createRouter().navigateTo, 'function');
@@ -105,9 +114,9 @@ try {
     [
       'node_modules/reactive-mp/tools/prepare-native.mjs',
       '--out',
-      './mini/wechat',
+      './mini/kit',
       '--package',
-      '@reactive-mp/wechat',
+      '@reactive-mp/kit',
     ],
     { cwd: consumer, env },
   );
@@ -119,8 +128,12 @@ try {
       `
       import assert from 'node:assert/strict';
       import {readdir} from 'node:fs/promises';
-      import {wxRequest} from './mini/wechat/wechat/src/index.js';
-      assert.deepEqual((await readdir('./mini/wechat')).sort(), ['.reactive-mp-generated', 'wechat']);
+      import {wxRequest} from './mini/kit/kit/miniprogram/wechat/index.js';
+      assert.deepEqual((await readdir('./mini/kit')).sort(), ['.reactive-mp-generated', 'kit', 'reactivity', 'runtime', 'shared', 'store']);
+      const direct = await import('./mini/kit/store/src/index.js');
+      const forwarded = await import('./mini/kit/kit/miniprogram/store.js');
+      assert.equal(forwarded.defineStore, direct.defineStore);
+      assert.equal(forwarded.default, direct.default);
       globalThis.wx = {request: ({success}) => success({statusCode: 200, data: 0})};
       assert.equal((await wxRequest('https://example.test'))[1].data, 0);
     `,
@@ -213,7 +226,7 @@ try {
     await readFile(
       path.join(
         consumer,
-        `node_modules/@reactive-mp/images-preloader/miniprogram/components/images-preloader/index.${extension}`,
+        `node_modules/@reactive-mp/kit/miniprogram/images-preloader/components/images-preloader/index.${extension}`,
       ),
     );
   }
@@ -224,13 +237,13 @@ try {
       '-e',
       `
     import assert from 'node:assert/strict';
-    import {useImagesPreloader, getLoadedImageSizeByUrl, clearImageCache} from '@reactive-mp/images-preloader';
+    import {useImagesPreloader, getLoadedImageSizeByUrl, clearImageCache} from '@reactive-mp/kit/images-preloader';
     assert.equal(typeof useImagesPreloader, 'function');
     clearImageCache();
     assert.deepEqual(getLoadedImageSizeByUrl('/missing.png'), {});
     globalThis.Behavior=options=>options;
     globalThis.Component=options=>assert.equal(typeof options.methods.loadImages, 'function');
-    await import('@reactive-mp/images-preloader/components/images-preloader/index.js');
+    await import('@reactive-mp/kit/images-preloader/components/images-preloader/index.js');
   `,
     ],
     { cwd: consumer, env },
@@ -258,9 +271,9 @@ try {
     const target = path.resolve(path.dirname(component), config.usingComponents['rmp-video']);
     assert.equal(JSON.parse(await readFile(target + '.json', 'utf8')).component, true);
     await readFile('./mini/all/components/miniprogram/swiper/components/swiper/motion.wxs');
-    const preloader = await import('./mini/all/images-preloader/miniprogram/index.js');
+    const preloader = await import('./mini/all/kit/miniprogram/images-preloader/index.js');
     assert.equal(typeof preloader.useImagesPreloader, 'function');
-    await readFile('./mini/all/images-preloader/miniprogram/components/images-preloader/index.wxml');
+    await readFile('./mini/all/kit/miniprogram/images-preloader/components/images-preloader/index.wxml');
   `,
   );
   await exec(process.execPath, ['verify-swiper.mjs'], { cwd: consumer, env });
@@ -346,6 +359,24 @@ try {
     void [useForm,useVideo,useSwiper,swiperLayouts,props,invalid];
   `,
   );
+  await writeFile(
+    path.join(consumer, 'kit.ts'),
+    `
+    import {defineStore,wxLogin,useImagesPreloader,type ImagesPreloadReport,type Result} from '@reactive-mp/kit';
+    import storeDefault from '@reactive-mp/kit/store';
+    import directStore from '@reactive-mp/store';
+    import {createRequest} from '@reactive-mp/kit/wechat/network';
+    const forwarded:typeof directStore=storeDefault;
+    const login:Promise<Result<string>>=wxLogin();
+    const loader=useImagesPreloader;
+    const use=defineStore('consumer-kit',()=>({count:1}));
+    const count:number=use().count;
+    const report:ImagesPreloadReport={total:0,done:0,fail:0,results:[]};
+    // @ts-expect-error report counters are numbers
+    const invalid:ImagesPreloadReport={total:'0',done:0,fail:0,results:[]};
+    void [forwarded,login,loader,count,report,invalid,createRequest];
+  `,
+  );
   await exec(
     process.execPath,
     [
@@ -359,6 +390,7 @@ try {
       '--target',
       'ES2022',
       'components.ts',
+      'kit.ts',
     ],
     { cwd: consumer, env },
   );

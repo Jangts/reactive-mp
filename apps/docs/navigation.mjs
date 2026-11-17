@@ -1,4 +1,4 @@
-/** 从公开包的 docs 声明建立独立站点，同时保留工作区文档与维护入口。 */
+/** 从公开包的随包文档声明建立托管站点，同时保留工作区文档与维护入口。 */
 import path from 'node:path';
 import {
   workspacePackages,
@@ -45,8 +45,8 @@ const maintenanceGroups = [
   },
 ];
 
-/** 公开包必须提供自己的正文与导航；站点版本直接取该包版本。 */
-export async function documentationSites(packages) {
+/** 每个公开包保留自己的随包文档；可声明由另一个公开包的站点承载。 */
+export async function documentationPackages(packages) {
   packages ??= await workspacePackages();
   const sites = [];
   for (const pkg of packages) {
@@ -126,15 +126,56 @@ export async function documentationSites(packages) {
       title: config.title,
       description: config.description,
       version: pkg.manifest.version,
+      sitePackage: config.site ?? pkg.manifest.name,
       branding,
       groups,
     });
   }
+  for (const pkg of sites) {
+    const host = sites.find((site) => site.packageName === pkg.sitePackage);
+    if (!host || host.sitePackage !== host.packageName) {
+      throw Error(
+        `${pkg.packageName}: documentation host must own a public site`,
+      );
+    }
+  }
+  return sites;
+}
+
+/** 独立站点合并所承载包的导航与源稿，各包版本和随包路径保持独立。 */
+export async function documentationSites(packages) {
+  const documents = await documentationPackages(packages);
+  const sites = documents
+    .filter((pkg) => pkg.sitePackage === pkg.packageName)
+    .map((host) => {
+      const members = documents.filter(
+        (pkg) => pkg.sitePackage === host.packageName,
+      );
+      return {
+        ...host,
+        documentation: members,
+        groups: [
+          ...host.groups,
+          ...members
+            .filter((pkg) => pkg !== host)
+            .map((pkg) => ({
+              title: `${pkg.title} · v${pkg.version}`,
+              audience: 'reader',
+              pages: sitePages(pkg).map(([slug, title, source]) => [
+                `${pkg.id}-${slug}`,
+                title,
+                source,
+              ]),
+            })),
+        ],
+      };
+    });
   const workspace = {
     id: 'workspace',
     title: 'Reactive MP',
     description: '公开包独立文档与工作区维护入口',
     branding: sharedBranding,
+    documentation: documents,
     groups: [
       {
         title: '文档入口',
@@ -169,6 +210,17 @@ export async function documentationSites(packages) {
     })),
   };
   return [workspace, ...sites];
+}
+
+/** 包名或目录名始终解析到实际承载其文档的站点，供构建、预览与部署共用。 */
+export function siteForPackage(sites, name) {
+  return sites.find(
+    (site) =>
+      site.packageName &&
+      site.documentation.some((pkg) =>
+        [pkg.packageName, pkg.id].includes(name),
+      ),
+  );
 }
 
 /** 一个站点中的全部路由与正文来源；构建、检查和搜索共同消费。 */

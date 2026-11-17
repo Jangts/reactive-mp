@@ -13,6 +13,7 @@
     "swiper-consumer.ts",
     "images-preloader-consumer.ts",
     "wechat-consumer.ts",
+    "kit-consumer.ts",
     "form-consumer.ts"
   ]
 }

@@ -1,0 +1,12 @@
+{
+  "host": "root@8.148.72.163",
+  "identity": "/Users/ivan/Documents/Keys/Ali.Wuhan.IvanMac.pem",
+  "pagesRoot": "/opt/stacks/nginx-proxy-manager/data/pages",
+  "domain": "pages.jangts.cafe",
+  "sites": {
+    "reactive-mp": "reactive-mp-docs",
+    "store": "reactive-mp-store-docs",
+    "components": "reactive-mp-components-docs",
+    "kit": "reactive-mp-kit-docs"
+  }
+}

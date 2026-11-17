@@ -31,7 +31,7 @@
 import {
   getLoadedImageSizeByUrl,
   clearImageCache,
-} from '@reactive-mp/images-preloader';
+} from '@reactive-mp/kit/images-preloader';
 
 const { width, height } = getLoadedImageSizeByUrl('/assets/cover.jpg');
 clearImageCache('/assets/cover.jpg');
@@ -48,7 +48,7 @@ clearImageCache();
 
 ```js
 import { definePage } from 'reactive-mp';
-import { useImagesPreloader } from '@reactive-mp/images-preloader';
+import { useImagesPreloader } from '@reactive-mp/kit/images-preloader';
 
 definePage(() => {
   const loader = useImagesPreloader();
