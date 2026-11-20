@@ -1,0 +1,438 @@
+{
+  "name": {
+    "zh": "字段路径，支持点号与数组下标",
+    "en": "Field path; dot notation and array indices are supported"
+  },
+  "label": {
+    "zh": "校验上下文与字段标签",
+    "en": "Field label used by validation and presentation"
+  },
+  "value": {
+    "zh": "独立字段的外部同步值",
+    "en": "External synchronized value for a standalone field"
+  },
+  "defaultValue": {
+    "zh": "独立字段的初始值",
+    "en": "Initial value for a standalone field"
+  },
+  "rules": {
+    "zh": "字段规则；与 Form、FormItem 规则合并",
+    "en": "Field rules, merged with Form and FormItem rules"
+  },
+  "required": {
+    "zh": "标记必填并附加 required 规则；0、false 仍不是空值。",
+    "en": "Mark as required and append a required rule; 0 and false still count as nonempty."
+  },
+  "disabled": {
+    "zh": "禁用交互并退出字段校验",
+    "en": "Disable interaction and exclude the field from validation"
+  },
+  "readonly": {
+    "zh": "禁止交互，仍保留字段校验",
+    "en": "Prevent interaction while keeping validation active"
+  },
+  "active": {
+    "zh": "字段是否激活；媒体内容项表示当前是否为激活项",
+    "en": "Active validation field, or the active item for media renderers"
+  },
+  "preserve": {
+    "zh": "字段卸载后是否保留模型值",
+    "en": "Keep the model value after the field unmounts"
+  },
+  "validateOn": {
+    "zh": "覆盖交互校验时机；文本默认 blur，其他字段默认 change",
+    "en": "Override interaction validation; text defaults to blur, other fields to change"
+  },
+  "appearance": {
+    "zh": "plain、underline 或 outline 的基础外观",
+    "en": "Base appearance: plain, underline or outline"
+  },
+  "placeholder": {
+    "zh": "未输入或未选择时的提示",
+    "en": "Hint displayed before input or selection"
+  },
+  "model": {
+    "zh": "外部模型快照；相等回写不重复通知",
+    "en": "External model snapshot; equal write-backs do not emit again"
+  },
+  "initialValues": {
+    "zh": "初始化与 reset 的重置基线",
+    "en": "Initial values and the reset baseline"
+  },
+  "submitting": {
+    "zh": "业务请求是否进行中，由普通页面同步",
+    "en": "Application request state, synchronized by an ordinary Page"
+  },
+  "validateOnMount": {
+    "zh": "挂载时执行首次校验",
+    "en": "Run initial validation when mounted"
+  },
+  "description": {
+    "zh": "说明文字",
+    "en": "Supporting description"
+  },
+  "help": {
+    "zh": "没有可见错误时显示的帮助文字",
+    "en": "Help text displayed when no error is visible"
+  },
+  "labelPlacement": {
+    "zh": "标签位置 top 或 left",
+    "en": "Label placement: top or left"
+  },
+  "options": {
+    "zh": "选项；通常为 label、value、disabled，多列时为二维数组",
+    "en": "Options with label, value and optional disabled; nested arrays for columns"
+  },
+  "labelKey": {
+    "zh": "选项显示文字对应的键",
+    "en": "Key used for option labels"
+  },
+  "valueKey": {
+    "zh": "选项值对应的键",
+    "en": "Key used for option values"
+  },
+  "childrenKey": {
+    "zh": "树形子选项对应的键",
+    "en": "Key used for nested tree options"
+  },
+  "variant": {
+    "zh": "list 或 buttons；Upload 使用基础布局类",
+    "en": "list or buttons; Upload uses its base layout class"
+  },
+  "collapseAfter": {
+    "zh": "正数时折叠超出数量的选项，0 不折叠",
+    "en": "Collapse options beyond this positive count; 0 disables collapsing"
+  },
+  "columns": {
+    "zh": "选项布局列数",
+    "en": "Number of columns in the option layout"
+  },
+  "action": {
+    "zh": "submit 或 reset",
+    "en": "submit or reset"
+  },
+  "requireValid": {
+    "zh": "仅允许已知 valid 的 Form 触发提交",
+    "en": "Allow submission only when Form is already known to be valid"
+  },
+  "type": {
+    "zh": "原生输入类型，默认 text",
+    "en": "Native input type, text by default"
+  },
+  "maxlength": {
+    "zh": "最大字符数；-1 不附加上限",
+    "en": "Maximum character count; -1 adds no limit"
+  },
+  "autoHeight": {
+    "zh": "Textarea 是否随内容增高",
+    "en": "Let Textarea grow with its content"
+  },
+  "showCount": {
+    "zh": "Textarea 是否显示字数",
+    "en": "Show the Textarea character count"
+  },
+  "focus": {
+    "zh": "原生焦点状态，实际行为受平台限制",
+    "en": "Native focus state; actual behavior is platform-dependent"
+  },
+  "adjustPosition": {
+    "zh": "键盘弹起时是否自动上推",
+    "en": "Adjust the viewport when the keyboard opens"
+  },
+  "confirmType": {
+    "zh": "原生键盘确认按钮类型",
+    "en": "Native keyboard confirmation button type"
+  },
+  "password": {
+    "zh": "是否使用密码输入",
+    "en": "Use password input"
+  },
+  "presentation": {
+    "zh": "native 或 popup，多选使用 popup",
+    "en": "native or popup; multiple selection requires popup"
+  },
+  "multiple": {
+    "zh": "弹窗中是否允许多选",
+    "en": "Allow multiple selection in the popup"
+  },
+  "title": {
+    "zh": "标题文字",
+    "en": "Title text"
+  },
+  "min": {
+    "zh": "最早日期或时间，格式与 mode 一致",
+    "en": "Earliest date or time, formatted for the selected mode"
+  },
+  "max": {
+    "zh": "最晚日期或时间，格式与 mode 一致",
+    "en": "Latest date or time, formatted for the selected mode"
+  },
+  "mode": {
+    "zh": "date 或 time",
+    "en": "date or time"
+  },
+  "fields": {
+    "zh": "原生日期精度 year、month 或 day",
+    "en": "Native date precision: year, month or day"
+  },
+  "defaultPickerValue": {
+    "zh": "无模型值时滚轮的初始定位",
+    "en": "Initial picker position when the model has no value"
+  },
+  "level": {
+    "zh": "原生地区选择级别",
+    "en": "Native region picker level"
+  },
+  "month": {
+    "zh": "展示月份，格式 YYYY-MM",
+    "en": "Displayed month in YYYY-MM format"
+  },
+  "disabledDates": {
+    "zh": "不可选日期，格式 YYYY-MM-DD",
+    "en": "Disabled dates in YYYY-MM-DD format"
+  },
+  "weekdays": {
+    "zh": "从周日开始的七个表头文字",
+    "en": "Seven weekday labels starting with Sunday"
+  },
+  "accept": {
+    "zh": "允许选择 image、video",
+    "en": "Allowed media types: image and video"
+  },
+  "adapter": {
+    "zh": "从 Form 注册表解析的上传适配器名称",
+    "en": "Name of an upload adapter registered on Form"
+  },
+  "maxCount": {
+    "zh": "允许选择的文件总数",
+    "en": "Maximum total file count"
+  },
+  "maxSize": {
+    "zh": "文件大小上限，字节；0 不额外限制",
+    "en": "File size limit in bytes; 0 adds no limit"
+  },
+  "typeLimits": {
+    "zh": "按 image、video 分别设置数量和大小限制",
+    "en": "Per-type image/video count and size limits"
+  },
+  "autoUpload": {
+    "zh": "选择后是否立即调用适配器上传",
+    "en": "Start the adapter immediately after selection"
+  },
+  "retryCount": {
+    "zh": "失败后的自动重试次数",
+    "en": "Number of automatic retries after a failure"
+  },
+  "item": {
+    "zh": "内容数据；图片含 src、mode，视频另含 type、poster 等",
+    "en": "Item data; images use src/mode, videos also use type, poster and related fields"
+  },
+  "index": {
+    "zh": "当前内容项的零基索引",
+    "en": "Zero-based index of this item"
+  },
+  "items": {
+    "zh": "内容项数组",
+    "en": "Array of content items"
+  },
+  "itemKey": {
+    "zh": "稳定身份字段；重复身份退化为索引",
+    "en": "Stable identity key; duplicate identities fall back to indices"
+  },
+  "current": {
+    "zh": "受控的零基索引",
+    "en": "Controlled zero-based index"
+  },
+  "circular": {
+    "zh": "是否循环；少于两项时自动关闭",
+    "en": "Looping; automatically disabled with fewer than two items"
+  },
+  "autoplay": {
+    "zh": "是否自动切换或播放，仍受可见性和平台策略限制",
+    "en": "Automatic switching or playback, subject to visibility and platform policies"
+  },
+  "interval": {
+    "zh": "自动切换间隔，毫秒",
+    "en": "Automatic switching interval in milliseconds"
+  },
+  "duration": {
+    "zh": "轮播动画毫秒数；Video 为指定视频时长（秒）",
+    "en": "Carousel animation milliseconds; on Video, the specified media duration in seconds"
+  },
+  "disableTouch": {
+    "zh": "是否禁用触摸切换",
+    "en": "Disable touch-driven slide changes"
+  },
+  "layout": {
+    "zh": "plain、focus 或 coverflow",
+    "en": "plain, focus or coverflow"
+  },
+  "peek": {
+    "zh": "相邻项露出宽度，显式值覆盖版式默认值",
+    "en": "Visible neighbor margin; an explicit value overrides the layout default"
+  },
+  "gap": {
+    "zh": "内容项间距，带 CSS 单位",
+    "en": "Gap between items, including a CSS unit"
+  },
+  "indicator": {
+    "zh": "多项时是否展示内置指示点",
+    "en": "Show built-in indicators when there are multiple items"
+  },
+  "autoObserve": {
+    "zh": "是否按交叉可见性自动管理播放阻塞",
+    "en": "Use intersection visibility to manage playback blocking"
+  },
+  "intersectionRatio": {
+    "zh": "判断视频可见的交叉比例阈值",
+    "en": "Intersection ratio threshold for visibility"
+  },
+  "enableProgressTouch": {
+    "zh": "启用自定义进度条触摸",
+    "en": "Enable touch interaction on the custom progress bar"
+  },
+  "src": {
+    "zh": "视频资源地址",
+    "en": "Video resource URL"
+  },
+  "controls": {
+    "zh": "显示原生控制栏",
+    "en": "Show native controls"
+  },
+  "danmuList": {
+    "zh": "原生弹幕列表",
+    "en": "Native danmu list"
+  },
+  "danmuBtn": {
+    "zh": "显示原生弹幕按钮",
+    "en": "Show the native danmu button"
+  },
+  "enableDanmu": {
+    "zh": "启用原生弹幕",
+    "en": "Enable native danmu"
+  },
+  "loop": {
+    "zh": "播放结束后是否循环",
+    "en": "Loop after playback ends"
+  },
+  "paused": {
+    "zh": "外部暂停阻塞，优先于可见性自动播放",
+    "en": "External pause blocker, taking priority over visibility-driven playback"
+  },
+  "muted": {
+    "zh": "外部同步静音状态",
+    "en": "Externally synchronized muted state"
+  },
+  "hideSound": {
+    "zh": "隐藏自定义声音按钮",
+    "en": "Hide the custom sound control"
+  },
+  "showCustomPlayBtn": {
+    "zh": "显示自定义播放按钮",
+    "en": "Show the custom play control"
+  },
+  "showCustomProgress": {
+    "zh": "显示自定义进度条",
+    "en": "Show the custom progress control"
+  },
+  "initialTime": {
+    "zh": "初始播放位置，秒",
+    "en": "Initial playback position in seconds"
+  },
+  "pageGesture": {
+    "zh": "启用原生页面手势",
+    "en": "Enable native page gestures"
+  },
+  "direction": {
+    "zh": "原生全屏方向",
+    "en": "Native fullscreen orientation"
+  },
+  "showProgress": {
+    "zh": "显示原生进度条",
+    "en": "Show native progress"
+  },
+  "showFullscreenBtn": {
+    "zh": "显示原生全屏按钮",
+    "en": "Show the native fullscreen button"
+  },
+  "showPlayBtn": {
+    "zh": "显示原生底部播放按钮",
+    "en": "Show the native bottom play button"
+  },
+  "showCenterPlayBtn": {
+    "zh": "显示原生居中播放按钮",
+    "en": "Show the native center play button"
+  },
+  "enableProgressGesture": {
+    "zh": "启用原生进度手势",
+    "en": "Enable native progress gestures"
+  },
+  "objectFit": {
+    "zh": "视频画面填充方式",
+    "en": "Video content fitting mode"
+  },
+  "poster": {
+    "zh": "视频封面地址",
+    "en": "Video poster URL"
+  },
+  "stopFrame": {
+    "zh": "停止状态覆盖图地址",
+    "en": "Image displayed over a stopped video"
+  },
+  "showMuteBtn": {
+    "zh": "显示原生静音按钮",
+    "en": "Show the native mute button"
+  },
+  "playBtnPosition": {
+    "zh": "原生播放按钮位置",
+    "en": "Native play button position"
+  },
+  "enablePlayGesture": {
+    "zh": "启用原生播放手势",
+    "en": "Enable native playback gestures"
+  },
+  "autoPauseIfNavigate": {
+    "zh": "跳转页面时自动暂停",
+    "en": "Pause automatically when navigating away"
+  },
+  "autoPauseIfOpenNative": {
+    "zh": "打开原生页面时自动暂停",
+    "en": "Pause automatically when opening a native page"
+  },
+  "vslideGesture": {
+    "zh": "启用非全屏亮度和音量手势",
+    "en": "Enable brightness/volume gestures outside fullscreen"
+  },
+  "vslideGestureInFullscreen": {
+    "zh": "启用全屏亮度和音量手势",
+    "en": "Enable brightness/volume gestures in fullscreen"
+  },
+  "customClass": {
+    "zh": "原生视频节点的附加类名",
+    "en": "Additional class name for the native video node"
+  },
+  "customStyle": {
+    "zh": "原生视频节点的内联样式",
+    "en": "Inline style for the native video node"
+  },
+  "soundStyle": {
+    "zh": "自定义声音控件样式",
+    "en": "Style for the custom sound control"
+  },
+  "playStyle": {
+    "zh": "自定义播放控件样式",
+    "en": "Style for the custom play control"
+  },
+  "fixedVisible": {
+    "zh": "外部固定可见状态",
+    "en": "Externally fixed visibility state"
+  },
+  "canBePaused": {
+    "zh": "允许点击视频暂停",
+    "en": "Allow tap-to-pause"
+  },
+  "replayCanBePaused": {
+    "zh": "允许重播阶段点击暂停",
+    "en": "Allow tap-to-pause during replay"
+  }
+}

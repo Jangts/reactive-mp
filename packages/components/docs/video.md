@@ -1,167 +1,178 @@
-# @reactive-mp/components/video
+# Video 视频
 
-微信小程序视频组件，提供播放控制、媒体展示、播放事件和基于组件树的多视频声音协调。内部使用 Reactive MP 管理响应式状态和生命周期，可直接在普通页面中使用。运行时依赖由 npm 安装：`@reactive-mp/runtime`、`@reactive-mp/reactivity`。
+围绕原生 video 协调播放意图、可见性、进度和声音。
 
-## 接入
+## 何时使用
 
-按[统一组件包接入](../README.md)安装 `@reactive-mp/components` 后，在微信开发者工具构建 npm，在页面 JSON 注册：
+播放需要配合页面生命周期和可见性时使用。
+
+## 基础用法
+
+以下为原生小程序页面的完整文件。先按[快速上手](getting-started.md)准备 vendor，在 app.json 注册页面，并提供示例引用的媒体资源。
+
+### index.json
 
 ```json
 {
   "usingComponents": {
-    "mp-video": "@reactive-mp/components/video/components/video/index",
-    "video-group": "@reactive-mp/components/video/components/group/index"
+    "rmp-video": "/vendor/components/miniprogram/video/components/video/index"
   }
 }
 ```
 
-```xml
-<video-group>
-  <view style="height: 400rpx">
-    <mp-video src="{{firstUrl}}" poster="{{firstCover}}" autoplay show-custom-play-btn />
-  </view>
-  <view style="height: 400rpx">
-    <mp-video src="{{secondUrl}}" show-custom-play-btn show-custom-progress enable-progress-touch />
-  </view>
-</video-group>
-```
-
-组件宽高填满容器，容器需提供高度。wrapper 只有 slot，没有额外布局。默认静音、循环、观察可见性；自动播放默认关闭。`intersection-ratio` 默认 0，可设 0.5；可见比例必须超过阈值才允许播放。
-
-仓库源码开发也可运行 `npm run examples:prepare`，原生宿主通过 `/vendor/components/miniprogram/video/components/video/index` 和 `/vendor/components/miniprogram/video/components/group/index` 注册，不需要构建 npm。npm 构建及真机行为仍需微信开发者工具验证。
-
-## 播放控制
-
-`selectComponent()` 后可调用 `play()`、`pause()`、`stop()`、`seek(seconds)`、`playbackRate(rate)`、全屏与弹幕方法。
-
-播放意图与播放条件独立：`autoplay` 初始化意图；显式 play/pause 或原生播放控件修改意图。`paused`、离屏和页面隐藏只暂时阻止播放；条件恢复后仅恢复仍有播放意图的视频。用户主动暂停不会因滚动恢复而播放。`auto-observe="{{false}}"` 或 `fixed-visible` 跳过可见性限制，仍遵守外部暂停和页面隐藏。`paused` 从 true 改为 false 本身不创建播放意图。
-
-收到原生 error 后会清除播放状态和意图，调用 play() 可显式重试。
-
-组内视频可以同时静音播放；开启一个成员的声音会将其他成员静音。wrapper 控制范围由组件树限定，可以包住整个页面内容，不维护跨页面应用级注册表。外部调用 wrapper 的 `muteAll()` 可静音全部成员。嵌套 wrapper 各管自己的成员。
-
-## 展示与事件
-
-支持的原生视频属性和展示选项见 [properties.js](../miniprogram/video/utils/properties.js)。
-
-- `poster` 为播放前封面，`stop-frame` 为非循环播放结束后的展示图。
-- `show-custom-play-btn`、`show-custom-progress`、`enable-progress-touch` 控制自定义控件。
-- `hide-sound` 隐藏声音按钮；`play-style`、`sound-style` 调整位置；`play`、`sound`、`muted` 命名插槽替换按钮内容。`--video-control-inset`、`--video-control-padding`、`--video-control-color`、`--video-control-font-size`、`--video-progress-height` 提供通用样式默认值的覆盖入口。
-- 原生事件转发：play、pause、ended、timeupdate、loadedmetadata、fullscreenchange、waiting、error、progress、controlstoggle、seekcomplete。
-- 用户点击声音按钮触发 `mutedchange`，detail 为 `{ muted }`，开启声音另外触发 `soundon`。程序通过 `muted` 或 `setMuted()` 控制；wrapper 使用 `mute()` 静音。
-
-组件额外发出 `playbacksummary`，用于旁听一次播放区间的结果，不调用统计 SDK，也不附加业务信息：
+### index.wxml
 
 ```xml
-<mp-video src="{{url}}" bind:playbacksummary="onPlaybackSummary" />
+<view style="height: 400rpx"><rmp-video id="video" src="{{src}}" controls="{{true}}" autoplay="{{false}}" /></view>
+<button bindtap="play">Play</button>
 ```
 
-事件 detail：`startTime`、`currentTime` 是媒体位置；`duration` 是区间内经过的播放时间；`mediaDuration` 是视频总时长，单位均为秒。`reason` 为 pause、ended、stop、sourcechange、detach 或 error；`finished` 仅在收到原生 ended 时为 true，不表示用户完整看过所有内容。
+### index.js
 
-区间从原生 play 开始，在上述结束条件首次发生时只发出一次汇总；恢复播放开启新区间。收到 waiting 时暂停计时，后续 play/timeupdate 恢复计时。该时长依赖原生事件到达时间，属于近似值，不代表解码帧时长或去重观看覆盖率；跳转进度与倍速不会直接增加计时。未播放不发汇总。卸载时会尝试发出汇总，页面销毁阶段的外部监听交付需在平台验收。
+任选一种脚本保存为 index.js，两种写法共用上面的 JSON 和 WXML。
 
-业务侧可以自行给事件结果附加上下文或用于统计。
+::: code-group
 
-## Reactive 组件使用 Hooks
+```js [原生配置式]
+/** Video documentation demo: native Page event wiring. */
+Page({
+  data: {
+    src: '/assets/demo.mp4',
+  },
+  play() {
+    this.selectComponent('#video').play();
+  },
+});
+```
 
-包入口提供 `useVideo`、`useVideoGroup` 和 `useVideoParticipant`。在响应式 setup 中调用，生命周期和清理由 Hook 管理。
+```js [组合响应式]
+/** Video documentation demo: reactive composition page. */
+import {
+  definePage,
+  useCurrentInstance,
+} from '../../vendor/runtime/src/index.js';
 
-`useVideo(props, options)` 接受响应式属性对象或带 getter 的配置；普通对象适用于固定配置。返回 `state`、用于 WXML 的同名 Signal、控制方法和原生事件处理函数。`state` 用于组合计算，返回的 Signal 用于模板绑定。
+definePage(() => {
+  const page = useCurrentInstance();
 
-```js
-import { defineComponent } from '@reactive-mp/runtime';
-import { computed } from '@reactive-mp/reactivity';
-import { useVideo } from '@reactive-mp/components/video';
-
-defineComponent(({ defineProps }) => {
-  const props = defineProps({
-    src: String,
-    paused: Boolean,
-    autoplay: { type: Boolean, value: true },
-  });
-  const video = useVideo(props, { selector: '#player' });
   return {
-    ...video,
-    status: computed(() => video.state.isPlaying ? '播放中' : '已暂停'),
+    src: '/assets/demo.mp4',
+    play: () => page.selectComponent('#video').play(),
   };
 });
 ```
 
+:::
+
+运行后可直接操作此 Video 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。
+
+## 常用场景
+
+muted 默认 true，loop 默认 true。autoObserve 根据可见性阻塞播放，paused 是优先级更高的外部阻塞。play() 表达播放意图，不会绕过这些阻塞。
+
+### 自定义播放按钮
+
+替换基础 Video；controls="{{false}}" 关闭原生栏，自定义按钮仍走同一播放意图控制。
+
 ```xml
-<video id="player" src="{{src}}" muted="{{soundOff}}" autoplay="{{false}}"
-  controls
-  bindplay="onPlay" bindpause="onPause" bindended="onEnded"
-  bindwaiting="onWaiting" binderror="onError"
-  bindloadedmetadata="onLoadedMetadata" bindtimeupdate="onTimeUpdate" />
-<text>{{status}}</text>
+<rmp-video id="video" src="{{src}}" controls="{{false}}" show-custom-play-btn="{{true}}">
+  <text slot="play">Play this video</text>
+</rmp-video>
 ```
 
-在 `definePage` 中直接管理页面原生 video 时，设置 `group: false`，并通过 `emit` 监听事件。页面不参与组件祖先分组；普通组件和 Reactive 组件默认参与分组。`group` 是 setup 的固定配置，不能在实例运行时切换。
+## 属性
 
-```js
-const video = useVideo(props, {
-  selector: '#player',
-  group: false,
-  emit(name, detail) { /* 处理播放事件 */ },
-});
-```
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| autoObserve | `boolean` | `true` | 是否按交叉可见性自动管理播放阻塞 |
+| intersectionRatio | `number` | `0` | 判断视频可见的交叉比例阈值 |
+| enableProgressTouch | `boolean` | `false` | 启用自定义进度条触摸 |
+| src | `string` | `""` | 视频资源地址 |
+| duration | `number` | `0` | 指定素材时长，单位秒；0 时等待原生元数据。 |
+| controls | `boolean` | `false` | 显示原生控制栏 |
+| danmuList | `array` | `[]` | 原生弹幕列表 |
+| danmuBtn | `boolean` | `false` | 显示原生弹幕按钮 |
+| enableDanmu | `boolean` | `false` | 启用原生弹幕 |
+| autoplay | `boolean` | `false` | 是否自动切换或播放，仍受可见性和平台策略限制 |
+| loop | `boolean` | `true` | 播放结束后是否循环 |
+| paused | `boolean` | `false` | 外部暂停阻塞，优先于可见性自动播放 |
+| muted | `boolean` | `true` | 外部同步静音状态 |
+| hideSound | `boolean` | `false` | 隐藏自定义声音按钮 |
+| showCustomPlayBtn | `boolean` | `false` | 显示自定义播放按钮 |
+| showCustomProgress | `boolean` | `false` | 显示自定义进度条 |
+| initialTime | `number` | `0` | 初始播放位置，秒 |
+| pageGesture | `boolean` | `false` | 启用原生页面手势 |
+| direction | `number` | `0` | 原生全屏方向 |
+| showProgress | `boolean` | `false` | 显示原生进度条 |
+| showFullscreenBtn | `boolean` | `false` | 显示原生全屏按钮 |
+| showPlayBtn | `boolean` | `false` | 显示原生底部播放按钮 |
+| showCenterPlayBtn | `boolean` | `false` | 显示原生居中播放按钮 |
+| enableProgressGesture | `boolean` | `false` | 启用原生进度手势 |
+| objectFit | `string` | `"cover"` | 视频画面填充方式 |
+| poster | `string` | `""` | 视频封面地址 |
+| stopFrame | `string` | `""` | 停止状态覆盖图地址 |
+| showMuteBtn | `boolean` | `false` | 显示原生静音按钮 |
+| title | `string` | `""` | 标题文字 |
+| playBtnPosition | `string` | `"bottom"` | 原生播放按钮位置 |
+| enablePlayGesture | `boolean` | `false` | 启用原生播放手势 |
+| autoPauseIfNavigate | `boolean` | `true` | 跳转页面时自动暂停 |
+| autoPauseIfOpenNative | `boolean` | `true` | 打开原生页面时自动暂停 |
+| vslideGesture | `boolean` | `false` | 启用非全屏亮度和音量手势 |
+| vslideGestureInFullscreen | `boolean` | `true` | 启用全屏亮度和音量手势 |
+| customClass | `string` | `""` | 原生视频节点的附加类名 |
+| customStyle | `string` | `""` | 原生视频节点的内联样式 |
+| soundStyle | `string` | `""` | 自定义声音控件样式 |
+| playStyle | `string` | `""` | 自定义播放控件样式 |
+| fixedVisible | `boolean` | `false` | 外部固定可见状态 |
+| canBePaused | `boolean` | `true` | 允许点击视频暂停 |
+| replayCanBePaused | `boolean` | `true` | 允许重播阶段点击暂停 |
 
-`selector` 指向当前页面或组件内的原生 video，默认 `#c-video`。Hook 使用该节点获取上下文并观察可见性。自定义进度条可通过 `progressSelector` 指定节点，默认 `.progress-container`。原生视频事件需要在模板中绑定到对应处理函数；`autoplay` 由 Hook 协调，原生节点设为 false。
 
-Hook 默认通过宿主组件发出事件；Page 通过 emit 回调接收通知。可用 `options.emit(name, detail)` 接管事件通知。`playbacksummary` 等事件结构与视频组件一致。每个组件实例创建自己的播放器状态及资源，不在 setup 中直接访问原生视图。
+## 事件
 
-`useVideoGroup()` 返回 `memberCount` Signal 和 `muteAll(except?)`。构建自定义 wrapper：
+| 事件 | event.detail |
+| --- | --- |
+| play | 对应原生 video 的 event.detail。 |
+| pause | 对应原生 video 的 event.detail。 |
+| ended | 对应原生 video 的 event.detail。 |
+| waiting | 对应原生 video 的 event.detail。 |
+| error | 对应原生 video 的 event.detail。 |
+| loadedmetadata | 对应原生 video 的 event.detail。 |
+| timeupdate | 对应原生 video 的 event.detail。 |
+| fullscreenchange | 对应原生 video 的 event.detail。 |
+| progress | 对应原生 video 的 event.detail。 |
+| controlstoggle | 对应原生 video 的 event.detail。 |
+| seekcomplete | 对应原生 video 的 event.detail。 |
+| mutedchange | {muted:boolean}。 |
+| soundon | 参与者开启声音。 |
+| playbacksummary | {startTime,currentTime,duration,mediaDuration,reason,finished}。 |
 
-```js
-import { defineComponent } from '@reactive-mp/runtime';
-import { useVideoGroup } from '@reactive-mp/components/video';
+## 插槽与样式
 
-defineComponent(() => useVideoGroup());
-```
+可用插槽：`muted`, `sound`, `play`。 实际 CSS 变量、外部样式类和布局职责见[样式与插槽](styling.md)。
 
-wrapper 模板使用 `<slot />`，JSON 声明 `"component": true`。普通视频组件与调用 `useVideo` 的组件均可加入这个范围。
+## 实例方法
 
-`useVideoParticipant(mute)` 供媒体组合组件参与声音互斥。将返回的 `mute` 暴露为组件方法，开启声音时调用 `activateSound()`：
+在 onReady 后通过 this.selectComponent(selector) 取得原生实例。
 
-```js
-import { defineComponent } from '@reactive-mp/runtime';
-import { useSignal } from '@reactive-mp/reactivity';
-import { useVideoParticipant } from '@reactive-mp/components/video';
+| 方法 | 合同 |
+| --- | --- |
+| `play()` | 请求播放；可见性、外部 paused 等阻塞仍生效。 |
+| `pause()` | 请求暂停，保留可恢复的播放状态。 |
+| `stop()` | 停止播放并结束当前播放区间。 |
+| `seek(seconds)` | 跳转到指定秒数，交给原生 video 上下文。 |
+| `seekToPercent(percent)` | percent 为 0–1，按素材时长换算；不是 0–100。 |
+| `mute()` | 静音当前视频；MediaSwiper 则静音全部媒体项。 |
+| `setMuted(muted)` | 设置本视频静音状态，并触发相应声音协调。 |
+| `playbackRate(rate)` | 设置原生播放倍速，平台支持范围由微信决定。 |
+| `requestFullScreen(options?)` | 请求原生全屏；可传 direction。 |
+| `exitFullScreen()` | 退出原生全屏。 |
+| `sendDanmu(options)` | 发送弹幕，options 含 text、color。 |
+| `showStatusBar()` | 调用原生上下文显示状态栏。 |
+| `hideStatusBar()` | 调用原生上下文隐藏状态栏。 |
 
-defineComponent(() => {
-  const [muted, setMuted] = useSignal(true);
-  const participant = useVideoParticipant(() => setMuted(true));
-  return {
-    muted,
-    ...participant,
-    unmute() {
-      setMuted(false);
-      participant.activateSound();
-    },
-  };
-});
-```
+## 常见问题与边界
 
-Hook 通过共享 Behavior 标记建立原生组件关系，并自动释放成员引用。普通组件与 Reactive 组件使用同一套分组协议。
+必须给外层容器确定高度，并提供可访问的视频资源。自动播放、全屏和声音受平台策略影响；playbacksummary.duration 是区间观看时长，mediaDuration 是素材时长。
 
-## 验证边界
-
-Node 测试覆盖播放门控、暂停恢复、普通组件使用、响应式属性更新、多实例隔离、分组注册清理和播放事件。实际视频解码、原生控件、组件关系及 npm 构建效果需要开发者工具与真机验证。
-
-## 目录
-
-```text
-miniprogram/video/
-  components/
-    video/              视频组件入口、模板与样式
-    group/              分组容器入口与模板
-  hooks/
-    use-video.js        视频响应式状态与生命周期
-    use-video-group.js  分组与参与者 Hooks
-  utils/
-    controller.js       播放意图与条件协调
-    playback-session.js 播放区间汇总
-    participant.js      原生关系标记
-    properties.js       视频属性定义
-  index.js              包级导出
-```
+[无头 Hooks 与控制器](hooks.md) · [完整类型签名](api.md)

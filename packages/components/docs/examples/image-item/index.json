@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "rmp-item": "/vendor/components/miniprogram/swiper/components/image-item/index"
+  }
+}

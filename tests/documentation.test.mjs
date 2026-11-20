@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, cp, readdir, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -9,6 +9,7 @@ import {
   siteForPackage,
   sitePages,
 } from '../apps/docs/navigation.mjs';
+import { verifyPublicSite } from '../apps/docs/public-site.mjs';
 import { build } from '../apps/docs/build.mjs';
 import { root, workspacePackages } from '../scripts/lib/workspace.mjs';
 
@@ -71,31 +72,36 @@ test('sites remain portable and selecting reactivity builds only its main host',
       await build({ packageName: site.packageName, outputRoot: output });
       const destination = path.join(detached, site.id);
       await cp(path.join(output, site.id), destination, { recursive: true });
-      const index = JSON.parse(await readFile(path.join(destination, 'assets/search-index.json'), 'utf8'));
-      assert.deepEqual(index.map(page => page.href), sitePages(site).map(([slug]) => slug + '.html'));
-      const html = await readFile(path.join(destination, 'index.html'), 'utf8');
-      assert.ok(html.includes(`v${site.version}`));
-      assert.ok(!html.includes('href="architecture.html"'));
+      await verifyPublicSite(destination);
+      const manifest = JSON.parse(await readFile(path.join(destination, 'site-manifest.json'), 'utf8'));
+      assert.deepEqual(manifest.locales, ['zh', 'en']);
+      assert.deepEqual(manifest.pages, sitePages(site).map(([slug]) => slug));
       for (const [slug] of sitePages(site)) {
-        const body = await readFile(path.join(destination, slug + '.html'), 'utf8');
-        for (const [, href] of body.matchAll(/(?:href|src)="([^"]+)"/g)) {
-          if (/^[a-z]+:/i.test(href)) continue;
-          assert.ok(!href.startsWith('/'), 'resources must remain relative after relocation');
-          const file = href.split('#')[0] || slug + '.html';
-          const target = path.resolve(destination, file);
-          assert.ok(!path.relative(destination, target).startsWith('..'));
-          await access(target);
+        for (const locale of ['zh', 'en']) {
+          const body = await readFile(path.join(destination, locale, slug + '.html'), 'utf8');
+          assert.ok(body.includes('lang="' + (locale === 'zh' ? 'zh-CN' : 'en') + '"'));
+          assert.ok(body.includes(`/${locale === 'zh' ? 'en' : 'zh'}/${slug === 'index' ? '' : slug + '.html'}`));
+          assert.ok(body.includes('rel="canonical"'));
+          assert.ok(body.includes(`v${site.version}`));
+          assert.ok(!body.includes('href="/architecture.html"'));
+          if (site.id === 'components' && ['getting-started', 'form', 'input', 'video', 'swiper'].includes(slug)) {
+            assert.match(body, /class="vp-code-group(?:\s[^"\r\n]*)?"/);
+            assert.ok(body.includes(locale === 'zh' ? '原生配置式' : 'Native configuration'));
+            assert.ok(body.includes(locale === 'zh' ? '组合响应式' : 'Reactive composition'));
+          }
         }
       }
+      const chunks = await readdir(path.join(destination, 'assets/chunks'));
+      for (const locale of ['zh', 'en']) assert.ok(chunks.some(name => name.startsWith('@localSearchIndex' + locale + '.')));
       if (site.id === sites[0].id) await writeFile(marker, 'keep');
     }
     const selected = await build({ packageName: '@reactive-mp/reactivity', outputRoot: output });
     assert.deepEqual(selected.map(site => site.id), ['reactive-mp']);
     await assert.rejects(() => access(path.join(output, 'reactivity')), { code: 'ENOENT' });
-    const guide = await readFile(path.join(output, 'reactive-mp/reactivity-guide.html'), 'utf8');
-    assert.ok(guide.includes('href="reactivity-api.html"'));
+    const guide = await readFile(path.join(output, 'reactive-mp/zh/reactivity-guide.html'), 'utf8');
+    assert.ok(guide.includes('href="/zh/reactivity-api.html"'));
     assert.ok(guide.includes('Reactivity · v1.0.0'));
-    const api = await readFile(path.join(output, 'reactive-mp/reactivity-api.html'), 'utf8');
+    const api = await readFile(path.join(output, 'reactive-mp/en/reactivity-api.html'), 'utf8');
     assert.ok(api.includes('@reactive-mp/reactivity/signal'));
     assert.ok(api.includes('source/packages/reactivity/index.d.ts.html'));
     assert.equal(await readFile(marker, 'utf8'), 'keep', 'targeted builds must preserve adjacent sites');

@@ -1,0 +1,8 @@
+<rmp-form id="form" model="{{model}}" bind:change="onChange" bind:submit="onSubmit">
+  <rmp-form-item name="value" label="Textarea">
+    <rmp-field placeholder="Notes" maxlength="200" show-count="{{true}}" />
+  </rmp-form-item>
+  <rmp-form-button>Submit</rmp-form-button>
+  <rmp-form-button action="reset">Reset</rmp-form-button>
+</rmp-form>
+<text>{{result}}</text>

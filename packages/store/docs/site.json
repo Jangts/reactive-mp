@@ -5,17 +5,23 @@
     {
       "title": "开始使用",
       "pages": [
-        ["index", "概览"],
-        ["getting-started", "快速上手"]
-      ]
+        ["index", "概览", "Overview"],
+        ["getting-started", "快速上手", "Quick start"]
+      ],
+      "titleEn": "Get started"
     },
     {
       "title": "使用指南",
-      "pages": [["guide", "共享范围与资源寿命"]]
+      "pages": [
+        ["guide", "共享范围与资源寿命", "Shared scope and resource lifetime"]
+      ],
+      "titleEn": "Guides"
     },
     {
       "title": "参考",
-      "pages": [["api", "API 参考"]]
+      "pages": [["api", "API 参考", "API reference"]],
+      "titleEn": "Reference"
     }
-  ]
+  ],
+  "descriptionEn": "Lazy shared state with independent resource scopes"
 }

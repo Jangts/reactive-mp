@@ -5,29 +5,53 @@
     {
       "title": "开始使用",
       "pages": [
-        ["index", "概览"],
-        ["getting-started", "快速上手"],
-        ["guide", "按能力选择入口"]
-      ]
+        ["index", "概览", "Overview"],
+        ["getting-started", "快速上手", "Quick start"],
+        ["guide", "按能力选择入口", "Choose an entry"]
+      ],
+      "titleEn": "Get started"
     },
     {
       "title": "Wechat",
       "pages": [
-        ["wechat", "微信 API 概览"],
-        ["wechat-getting-started", "微信 API 接入"],
-        ["wechat-guide", "结果、路由与原生任务"],
-        ["wechat-network", "请求与并发控制"]
-      ]
+        ["wechat", "微信 API 概览", "WeChat APIs"],
+        ["wechat-getting-started", "微信 API 接入", "WeChat integration"],
+        [
+          "wechat-guide",
+          "结果、路由与原生任务",
+          "Results, routing and native tasks"
+        ],
+        ["wechat-network", "请求与并发控制", "Requests and concurrency"]
+      ],
+      "titleEn": "Wechat"
     },
     {
       "title": "Images Preloader",
       "pages": [
-        ["images-preloader", "图片预加载概览"],
-        ["images-preloader-getting-started", "图片预加载接入"],
-        ["images-preloader-guide", "批次、缓存与生命周期"]
-      ]
+        ["images-preloader", "图片预加载概览", "Image preloading"],
+        [
+          "images-preloader-getting-started",
+          "图片预加载接入",
+          "Preloader integration"
+        ],
+        [
+          "images-preloader-guide",
+          "批次、缓存与生命周期",
+          "Batches, cache and lifecycle"
+        ]
+      ],
+      "titleEn": "Images Preloader"
     },
-    { "title": "Store", "pages": [["store", "独立 Store 转发"]] },
-    { "title": "参考", "pages": [["api", "API 参考"]] }
-  ]
+    {
+      "title": "Store",
+      "pages": [["store", "独立 Store 转发", "Independent Store forwarding"]],
+      "titleEn": "Store"
+    },
+    {
+      "title": "参考",
+      "pages": [["api", "API 参考", "API reference"]],
+      "titleEn": "Reference"
+    }
+  ],
+  "descriptionEn": "WeChat APIs, image preloading and shared Store forwarding"
 }

@@ -42,6 +42,8 @@ watch 返回可调用 stop 句柄，并提供 pause/resume。reactive 支持嵌�
 
 ## 文档
 
+[English documentation](docs/en/index.md)
+
 [在线文档](https://reactive-mp-docs.pages.jangts.cafe/reactivity-index.html) · [使用指南](https://reactive-mp-docs.pages.jangts.cafe/reactivity-guide.html) · [API 参考](https://reactive-mp-docs.pages.jangts.cafe/reactivity-api.html)
 
 在线指南和 API 由 Reactive MP 文档站提供。本包独立发布、独立维护版本；以下文档随 npm 包交付，可在包内直接阅读。

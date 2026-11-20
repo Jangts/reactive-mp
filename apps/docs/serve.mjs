@@ -1,12 +1,13 @@
 /** 仅监听回环地址的文档预览，合并重建请求并限制文件读取边界。 */
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, realpath } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { outputFor, selectedPackage } from './build.mjs';
 import { documentationSites, siteForPackage } from './navigation.mjs';
-import { readSource, root } from '../../scripts/lib/workspace.mjs';
-const packageName = selectedPackage();
+import { root, isInside } from '../../scripts/lib/workspace.mjs';
+import path from 'node:path';
+const packageName = selectedPackage() ?? 'reactive-mp';
 const sites = await documentationSites();
 const site = packageName ? siteForPackage(sites, packageName) : sites[0];
 if (!site || (packageName && !site.packageName)) {
@@ -86,16 +87,27 @@ const server = createServer(async (req, res) => {
     js: 'text/javascript',
     svg: 'image/svg+xml',
     json: 'application/json',
+    png: 'image/png',
+    ico: 'image/x-icon',
+    woff: 'font/woff',
+    woff2: 'font/woff2',
+    xml: 'application/xml',
+    txt: 'text/plain',
   };
   const type = contentTypes[file.split('.').at(-1)];
-  if (!type || !/^[\w./-]+$/.test(file) || file.includes('..')) {
+  if (!type || !/^[\w./@-]+$/.test(file) || file.includes('..')) {
     res.writeHead(404);
     res.end();
     return;
   }
   try {
-    res.setHeader('Content-Type', `${type}; charset=utf-8`);
-    res.end(await readSource(`${output}/${file}`, [output]));
+    const directory = await realpath(path.resolve(root, output));
+    const target = await realpath(path.join(directory, file));
+    if (!isInside(directory, target)) {
+      throw Error('preview resource escapes site');
+    }
+    res.setHeader('Content-Type', type);
+    res.end(await readFile(target));
   } catch {
     res.writeHead(404);
     res.end('Not found');

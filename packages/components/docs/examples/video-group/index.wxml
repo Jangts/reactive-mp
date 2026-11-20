@@ -1,0 +1,5 @@
+<rmp-video-group id="group">
+  <view style="height: 320rpx"><rmp-video src="{{first}}" controls="{{true}}" /></view>
+  <view style="height: 320rpx"><rmp-video src="{{second}}" controls="{{true}}" /></view>
+</rmp-video-group>
+<button bindtap="muteAll">Mute all</button>

@@ -54,6 +54,8 @@ Wechat 和 Images Preloader 是 kit 内部领域，版本随 kit 维护。Store 
 
 ## 文档
 
+[English documentation](docs/en/index.md)
+
 [在线文档](https://reactive-mp-kit-docs.pages.jangts.cafe/) · [概览](docs/index.md) · [快速上手](docs/getting-started.md) · [指南](docs/guide.md) · [API 参考](docs/api.md)
 
 [完整类型](index.d.ts) · [逻辑入口](miniprogram/index.js)。

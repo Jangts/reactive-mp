@@ -55,7 +55,7 @@ npm run packages:check
 
 ## 文档维护
 
-各公开包的正文与导航保存在自己的 docs 目录，通过 reactiveMp.docs 声明随包文档。docs/site.json 的 site 可指定承载它的公开包站点；Reactivity 声明由 reactive-mp 承载。Kit 文档站统一提供 Wechat 和 Images Preloader 的指南与 API，Store 保留独立站点，kit 提供其转发用法。apps/docs 共用构建与渲染，按实际站点生成导航、搜索索引和静态产物；被承载包的文档仍从自己的包目录读取，API、npm 身份及版本独立维护。工作区 docs 保留总入口与维护资料。根 README 提供项目入口，包 README 保留独立定位和最小有效接入。
+各公开包的正文与导航保存在自己的 docs 目录，通过 reactiveMp.docs 声明随包文档。docs/site.json 的 site 可指定承载它的公开包站点；Reactivity 声明由 reactive-mp 承载。Kit 文档站统一提供 Wechat 和 Images Preloader 的指南与 API，Store 保留独立站点，kit 提供其转发用法。apps/docs 为公开站点共用既有 VitePress 主题，以 /zh/ 与 /en/ 提供完整双语导航、搜索和静态产物；被承载包的文档仍从自己的包目录读取，API、npm 身份及版本独立维护。工作区 docs 保留总入口与维护资料。根 README 提供项目入口，包 README 保留独立定位和最小有效接入。
 
 API 参考从包的实际导出与模块化 index.d.ts 生成，检查缺失的声明和虚假的类型导出；详细语义由指南说明。代码片段使用 <<< 路径从开发宿主引用。修改公开行为时同步更新类型、指南、宿主与对应回归。
 

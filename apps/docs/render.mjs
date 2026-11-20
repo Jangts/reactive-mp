@@ -47,7 +47,9 @@ export async function expand(source) {
         if (!line.startsWith('<<< ')) {
           return line;
         }
-        const file = line.slice(4).trim();
+        const [, file, label] = /^(.*?)(?: \[([^\]]+)\])?$/.exec(
+          line.slice(4).trim(),
+        );
         const code = await readSource(file);
         const runs = [...code.matchAll(/`+/g)].map((match) => match[0].length);
         const fence = '`'.repeat(
@@ -55,10 +57,14 @@ export async function expand(source) {
         );
         const language = file.endsWith('.wxml')
           ? 'xml'
-          : file.endsWith('.ts')
-            ? 'ts'
-            : 'js';
-        return `${fence}${language}\n${code.trim()}\n${fence}`;
+          : file.endsWith('.json')
+            ? 'json'
+            : file.endsWith('.wxss')
+              ? 'css'
+              : file.endsWith('.ts')
+                ? 'ts'
+                : 'js';
+        return `${fence}${language}${label ? ` [${label}]` : ''}\n${code.trim()}\n${fence}`;
       }),
     )
   ).join('\n');
@@ -66,5 +72,10 @@ export async function expand(source) {
 
 /** 渲染可信正文的 Markdown 结构，同时禁用正文中的原始 HTML 执行。 */
 export function renderMarkdown(source) {
-  return parser.parse(source);
+  const markdown = source.replace(
+    /^::: code-group\n([\s\S]*?)^:::[ \t]*$/gm,
+    (_, blocks) =>
+      blocks.replace(/^(`{3,}js) \[([^\]\n]+)\]/gm, '**$2**\n\n$1'),
+  );
+  return parser.parse(markdown);
 }

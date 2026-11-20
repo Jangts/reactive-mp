@@ -20,6 +20,7 @@ const maintenanceGroups = [
       ['architecture', '架构与贡献'],
       ['documentation-index', '文档索引', 'docs/README.md'],
       ['documentation-site', '文档站维护', 'apps/docs/README.md'],
+      ['documentation-deployment', '文档站部署记录', 'apps/docs/deployment.md'],
       ['documentation-standard', '文档规范'],
       ['code-standard', '代码规范'],
       ['code-review-standard', '代码检查与验收标准'],
@@ -102,14 +103,15 @@ export async function documentationPackages(packages) {
     const groups = config.groups.map((group) => ({
       title: group.title,
       audience: 'reader',
-      pages: group.pages.map(([slug, title]) => {
+      titleEn: group.titleEn,
+      pages: group.pages.map(([slug, title, titleEn]) => {
         if (!/^[a-z][a-z0-9-]*$/.test(slug) || slugs.has(slug) || !title) {
           throw Error(
             `${pkg.manifest.name}: invalid or duplicate documentation page ${slug}`,
           );
         }
         slugs.add(slug);
-        return [slug, title, `${directory}/docs/${slug}.md`];
+        return [slug, title, `${directory}/docs/${slug}.md`, titleEn];
       }),
     }));
     for (const required of ['index', 'getting-started', 'guide', 'api']) {
@@ -125,6 +127,7 @@ export async function documentationPackages(packages) {
       packageRoot: directory,
       title: config.title,
       description: config.description,
+      descriptionEn: config.descriptionEn,
       version: pkg.manifest.version,
       sitePackage: config.site ?? pkg.manifest.name,
       branding,
@@ -160,11 +163,13 @@ export async function documentationSites(packages) {
             .filter((pkg) => pkg !== host)
             .map((pkg) => ({
               title: `${pkg.title} · v${pkg.version}`,
+              titleEn: `${pkg.title} · v${pkg.version}`,
               audience: 'reader',
-              pages: sitePages(pkg).map(([slug, title, source]) => [
+              pages: sitePages(pkg).map(([slug, title, source, titleEn]) => [
                 `${pkg.id}-${slug}`,
                 title,
                 source,
+                titleEn,
               ]),
             })),
         ],

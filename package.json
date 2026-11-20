@@ -32,13 +32,15 @@
     "verify:media": "node scripts/verify-media.mjs",
     "verify:form": "node scripts/verify-form.mjs",
     "versions:check": "node scripts/package-versions.mjs",
-    "versions:sync": "node scripts/package-versions.mjs --write"
+    "versions:sync": "node scripts/package-versions.mjs --write",
+    "docs:components": "node scripts/component-docs.mjs --write"
   },
   "devDependencies": {
     "marked": "^18.2.0",
     "miniprogram-automator": "^0.13.0",
     "prettier": "^3.10.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitepress": "1.6.4"
   },
   "reactiveMp": {
     "mainPackage": "reactive-mp"

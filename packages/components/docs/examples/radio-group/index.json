@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "rmp-form": "/vendor/components/miniprogram/form/components/form/index",
+    "rmp-form-item": "/vendor/components/miniprogram/form/components/form-item/index",
+    "rmp-form-button": "/vendor/components/miniprogram/form/components/form-button/index",
+    "rmp-field": "/vendor/components/miniprogram/form/components/radio-group/index"
+  }
+}

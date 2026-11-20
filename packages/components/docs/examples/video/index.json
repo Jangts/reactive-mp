@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "rmp-video": "/vendor/components/miniprogram/video/components/video/index"
+  }
+}

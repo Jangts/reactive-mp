@@ -1,0 +1,1 @@
+<view style="height: 400rpx"><rmp-item item="{{item}}" index="{{0}}" active="{{true}}" /></view>

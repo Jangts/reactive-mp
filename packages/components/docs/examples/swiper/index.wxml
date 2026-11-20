@@ -1,0 +1,2 @@
+<view style="height: 400rpx"><rmp-gallery id="gallery" items="{{items}}" item-key="id" indicator="{{true}}" bind:change="onChange" /></view>
+<button bindtap="next">Next</button><text>{{current}}</text>

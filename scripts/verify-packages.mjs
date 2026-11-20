@@ -43,6 +43,12 @@ try {
         ...sitePages(site).map(([, , source]) =>
           path.posix.relative(site.packageRoot, source),
         ),
+        ...sitePages(site).map(([, , source]) =>
+          path.posix.relative(
+            site.packageRoot,
+            source.replace('/docs/', '/docs/en/'),
+          ),
+        ),
       ];
       for (const file of required) {
         if (!result.files.some((entry) => entry.path === file)) {

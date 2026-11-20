@@ -1,17 +1,18 @@
 # Reactive MP Components
 
-包名为 `@reactive-mp/components`。
+面向原生微信小程序的无头交互能力库。复用行为、Hooks 与原生接线，项目决定结构、布局与视觉。普通 Page 可以直接使用 wrappers，响应式页面也可以只组合 Hooks。
 
-面向原生小程序的无头交互能力库。按 form、video、swiper 组织状态、控制器、组合 Hooks 和原生 wrappers，业务布局与视觉由项目管理。
+## 按任务开始
 
-## 按领域选择
+| 任务 | 入口 |
+| --- | --- |
+| 收集和校验数据 | [Form](form.md)、[FormItem](form-item.md)、[FormButton](form-button.md) |
+| 输入文字与选择状态 | [Input](input.md)、[Textarea](textarea.md)、[Checkbox](checkbox.md)、[Switch](switch.md) |
+| 列表、滚轮与日期选择 | [Select](select.md)、[Cascader](cascader.md)、[Calendar](calendar.md) |
+| 管理文件任务 | [Upload](upload.md) |
+| 视频播放和声音协调 | [Video](video.md)、[VideoGroup](video-group.md) |
+| 图片、卡片与混合媒体轮播 | [Swiper](swiper.md)、[MediaSwiper](media-swiper.md) |
 
-| 领域 | 主要能力 | 文档 |
-| --- | --- | --- |
-| form | 模型、字段、校验与上传适配 | [表单](form.md) |
-| video | 播放意图、可见性与声音分组 | [视频](video.md) |
-| swiper | 索引、滑动与内容组合 | [轮播](swiper.md) |
+[组件总览](catalog.md)列出全部组件；[快速上手](getting-started.md)从完整原生页面开始；[Hooks 与控制器](hooks.md)提供自定义结构的用法。
 
-可以从统一入口导入，也可以只使用领域子入口。逻辑导入不注册组件、不加载样式；原生 wrappers 是可选的接线实现，包含默认结构和基础样式。需要完全自定义视觉时，直接用 Hooks 驱动原生控件。
-
-[快速上手](getting-started.md)说明安装与首个自定义页面；[组合指南](guide.md)说明状态、资源和视图的归属；[API 参考](api.md)覆盖统一入口及各领域。
+逻辑入口不注册组件、不启动平台操作或加载样式。可选 wrappers 带有默认结构和基础样式；需要完全自定义外观时，使用 Hooks 与原生节点。

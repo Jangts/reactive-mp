@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "rmp-gallery": "/vendor/components/miniprogram/swiper/components/media-swiper/index"
+  }
+}

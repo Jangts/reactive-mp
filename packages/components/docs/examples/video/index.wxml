@@ -1,0 +1,2 @@
+<view style="height: 400rpx"><rmp-video id="video" src="{{src}}" controls="{{true}}" autoplay="{{false}}" /></view>
+<button bindtap="play">Play</button>

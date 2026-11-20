@@ -1,0 +1,1324 @@
+[
+  {
+    "slug": "form",
+    "domain": "form",
+    "folder": "form",
+    "name": "Form",
+    "title": "Form 表单",
+    "description": {
+      "en": "Manage a model, field registration, validation and submit snapshots.",
+      "zh": "管理模型、字段注册、校验与提交快照。"
+    },
+    "when": {
+      "en": "Use when several inputs must share validation and one submit result.",
+      "zh": "多个输入需要统一校验并产生一个提交结果时使用。"
+    },
+    "content": {
+      "zh": "通过 model 接收外部快照，在 change 中回写 event.detail.values。用 initialValues 定义重置基线，reset(values) 可加载记录并建立新基线。\n\n### 注册异步规则\n\n在页面 onReady 注册函数，并在 data 中的规则通过名称引用；在基础示例的 Form 上增加 rules=\"{{rules}}\"。\n\n```js\nonReady() {\n  this.selectComponent('#form').setValidators({\n    unique: async value => value === 'reserved' ? 'This name is reserved' : true,\n  });\n  this.setData({ rules: { value: [{ validator: 'unique' }] } });\n}\n```",
+      "en": "Synchronize model from event.detail.values in change. initialValues establishes the reset baseline; reset(values) loads a record and establishes a new baseline.\n\n### Register an asynchronous rule\n\nRegister the function in Page onReady, reference its name from rules in data, and add rules=\"{{rules}}\" to the basic Form.\n\n```js\nonReady() {\n  this.selectComponent('#form').setValidators({\n    unique: async value => value === 'reserved' ? 'This name is reserved' : true,\n  });\n  this.setData({ rules: { value: [{ validator: 'unique' }] } });\n}\n```"
+    },
+    "faq": {
+      "zh": "同一路径只能有一个字段所有者。异步校验返回 superseded 表示快照已变化；不要把它当作 valid。业务提交请求由应用管理，普通 Page 需要同步 submitting。",
+      "en": "Only one field may own a path. A superseded asynchronous validation belongs to an outdated snapshot and is not a valid result. Application requests remain external; ordinary Pages must synchronize submitting."
+    },
+    "events": [
+      [
+        "change",
+        "{values,path?,value?,previousValue?,source}。",
+        "{values,path?,value?,previousValue?,source}."
+      ],
+      ["statechange", "FormState 状态快照。", "FormState snapshot."],
+      ["validate", "{status,values,errors}。", "{status,values,errors}."],
+      [
+        "submit",
+        "{values}，仅通过校验后触发。",
+        "{values}, only after successful validation."
+      ],
+      [
+        "invalid",
+        "{status,values,errors,firstErrorPath}。",
+        "{status,values,errors,firstErrorPath}."
+      ],
+      ["reset", "{values}，恢复后的模型。", "{values}, the restored model."],
+      [
+        "error",
+        "{type,message,...}，异常诊断。",
+        "{type,message,...}, an operation failure."
+      ]
+    ],
+    "methods": [
+      [
+        "getValues()",
+        "读取纯数据模型快照。",
+        "Read a plain-data model snapshot."
+      ],
+      [
+        "getFieldState(path)",
+        "读取指定字段的值、错误、校验和交互状态。",
+        "Read a field value, errors, validation and interaction state."
+      ],
+      [
+        "setFieldValue(path,value)",
+        "更新一个嵌套字段并驱动依赖与校验。",
+        "Update a nested field and its dependencies/validation."
+      ],
+      [
+        "setValues(values)",
+        "合并顶层键，不建立新的 reset 基线。",
+        "Merge top-level keys without replacing the reset baseline."
+      ],
+      [
+        "setFieldError(path,message)",
+        "设置外部错误；message=null 清除。",
+        "Set an external error; message=null clears it."
+      ],
+      [
+        "hideErrors()",
+        "隐藏反馈，不修改字段是否有效。",
+        "Hide feedback without changing validity."
+      ],
+      [
+        "validate(options?)",
+        "返回 Promise<{status,values,errors}>；options 含 paths、silent。",
+        "Return Promise<{status,values,errors}>; options include paths and silent."
+      ],
+      [
+        "submit()",
+        "立即校验并提交；失败触发 invalid，返回提交结果 Promise。",
+        "Validate immediately and submit; invalid emits on failure. Returns a result Promise."
+      ],
+      [
+        "reset(values?)",
+        "无参数恢复基线；传 values 加载新记录并重设基线。",
+        "Restore the baseline, or load values and establish a new baseline."
+      ],
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ],
+      [
+        "setUploadAdapters(registry)",
+        "注册具名上传适配器，供 Upload 的 adapter 属性引用。",
+        "Register named adapters referenced by the Upload adapter property."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Form 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Form example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {
+      "rules": {
+        "zh": "字段路径到校验规则的映射，与 FormItem 和字段规则合并。",
+        "en": "Map field paths to validation rules, merged with FormItem and field rules."
+      }
+    }
+  },
+  {
+    "slug": "form-item",
+    "domain": "form",
+    "folder": "form-item",
+    "name": "FormItem",
+    "title": "FormItem 表单项",
+    "description": {
+      "en": "Connect a named field to Form and render its label, help and validation feedback.",
+      "zh": "连接命名字段与 Form，承载标签、帮助和校验反馈。"
+    },
+    "when": {
+      "en": "Use around one logical field; an object-valued custom control still owns one path.",
+      "zh": "包裹一个逻辑字段；复合控件可用一个对象值占用一个路径。"
+    },
+    "content": {
+      "zh": "用 name 将内部控件连接至模型。labelPlacement=\"left\" 将标签放在侧边；label、description、suffix、help、error 等插槽可组合自己的结构。\n\n### 自定义标签与后缀\n\n替换基础示例中的 FormItem；不要再同时设置非空 label 文字。\n\n```xml\n<rmp-form-item name=\"value\" label=\"\" label-placement=\"left\">\n  <text slot=\"label\">Display name</text>\n  <rmp-field placeholder=\"Name\" />\n  <text slot=\"suffix\">Optional</text>\n</rmp-form-item>\n```",
+      "en": "Use name to connect the inner field to the model. labelPlacement=\"left\" places the label beside the field. Compose label, description, suffix, help and error slots as needed.\n\n### Custom label and suffix\n\nReplace the basic FormItem and keep its text label empty.\n\n```xml\n<rmp-form-item name=\"value\" label=\"\" label-placement=\"left\">\n  <text slot=\"label\">Display name</text>\n  <rmp-field placeholder=\"Name\" />\n  <text slot=\"suffix\">Optional</text>\n</rmp-form-item>\n```"
+    },
+    "faq": {
+      "zh": "自定义 label、description 或 help 插槽时清空对应文字属性，避免两份内容。一个复合字段应只注册一个对象值，不要让多个字段重复占用同一路径。",
+      "en": "Clear the matching text property when supplying label, description or help slots. A composite field should register one object value rather than let several fields own the same path."
+    },
+    "events": [],
+    "methods": [],
+    "expected": {
+      "zh": "运行后可直接操作此 FormItem 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this FormItem example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "form-button",
+    "domain": "form",
+    "folder": "form-button",
+    "name": "FormButton",
+    "title": "FormButton 表单按钮",
+    "description": {
+      "en": "Submit or reset the nearest Form using its current pending and disabled state.",
+      "zh": "根据最近 Form 的待处理与禁用状态提交或重置。"
+    },
+    "when": {
+      "en": "Use inside Form instead of manually coordinating submit locks.",
+      "zh": "在 Form 内触发提交或重置，并跟随表单锁定状态。"
+    },
+    "content": {
+      "zh": "action=\"reset\" 恢复重置基线。requireValid=\"{{true}}\" 只允许已知 valid 的状态，需配合 Form 的 validateOnMount 或显式静默校验。\n\n### 已知有效才允许提交\n\n下面片段放在已有 Form 内；同时在 Form 上设置 validate-on-mount=\"{{true}}\"。\n\n```xml\n<rmp-form-button require-valid=\"{{true}}\">Submit when valid</rmp-form-button>\n<rmp-form-button action=\"reset\">Restore initial values</rmp-form-button>\n```",
+      "en": "action=\"reset\" restores the reset baseline. requireValid=\"{{true}}\" requires an already valid state; combine it with Form validateOnMount or explicit silent validation.\n\n### Require known validity\n\nPlace this inside the existing Form and set validate-on-mount=\"{{true}}\" on Form.\n\n```xml\n<rmp-form-button require-valid=\"{{true}}\">Submit when valid</rmp-form-button>\n<rmp-form-button action=\"reset\">Restore initial values</rmp-form-button>\n```"
+    },
+    "faq": {
+      "zh": "默认提交按钮允许尚未校验的表单触发校验以显示错误。按钮只在 Form 内工作；组件不会等待 submit 事件监听器的 Promise。",
+      "en": "By default, an unvalidated form may be submitted to reveal errors. The button needs a Form ancestor. It does not await a Promise returned by a submit event listener."
+    },
+    "events": [],
+    "methods": [],
+    "expected": {
+      "zh": "运行后可直接操作此 FormButton 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this FormButton example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {
+      "disabled": {
+        "zh": "禁用此按钮，不改变表单其他字段的校验状态。",
+        "en": "Disable this button without changing other fields or their validation state."
+      }
+    }
+  },
+  {
+    "slug": "input",
+    "domain": "form",
+    "folder": "input",
+    "name": "Input",
+    "title": "Input 输入框",
+    "description": {
+      "en": "Edit a single-line string with native keyboard and focus events.",
+      "zh": "使用原生键盘和焦点事件编辑单行文本。"
+    },
+    "when": {
+      "en": "Use for names, identifiers and short text.",
+      "zh": "用于名称、标识和短文本。"
+    },
+    "content": {
+      "zh": "设置 type=\"number\" 切换键盘；password 用于密码输入。maxlength=\"-1\" 不额外限制长度。outline 与 underline 可作为轻量外观，布局由 FormItem 管理。\n\n### 密码与只读\n\n替换示例中的字段即可；type 只改变键盘，不执行数值转换。\n\n```xml\n<rmp-field password=\"{{true}}\" maxlength=\"64\" confirm-type=\"done\" appearance=\"underline\" />\n<!-- For readonly display, set readonly=\"{{true}}\" instead. -->\n```",
+      "en": "Use type=\"number\" for a numeric keyboard and password for password input. maxlength=\"-1\" adds no limit. outline and underline provide light wrappers while FormItem owns layout.\n\n### Password and readonly\n\nReplace the field in the basic example. The input type changes the keyboard without coercing the model.\n\n```xml\n<rmp-field password=\"{{true}}\" maxlength=\"64\" confirm-type=\"done\" appearance=\"underline\" />\n<!-- For readonly display, set readonly=\"{{true}}\" instead. -->\n```"
+    },
+    "faq": {
+      "zh": "键盘类型不会把模型自动转换成 number。文本默认 blur 校验；已有可见错误时，后续输入会重新检查未指定 trigger 的规则。",
+      "en": "A numeric keyboard does not convert the model to a number. Text fields validate on blur by default; subsequent input rechecks rules without explicit triggers when an error is already visible."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "input",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ],
+      [
+        "focus",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ],
+      [
+        "blur",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ],
+      [
+        "confirm",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Input 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Input example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "textarea",
+    "domain": "form",
+    "folder": "textarea",
+    "name": "Textarea",
+    "title": "Textarea 多行输入",
+    "description": {
+      "en": "Edit longer text with automatic height and an optional character counter.",
+      "zh": "支持自动高度和可选字数统计的长文本输入。"
+    },
+    "when": {
+      "en": "Use for descriptions or notes that need multiple lines.",
+      "zh": "用于描述、备注等多行文字。"
+    },
+    "content": {
+      "zh": "autoHeight=\"{{true}}\" 随内容增高，showCount=\"{{true}}\" 显示计数。maxlength 可设置业务上限，appearance=\"outline\" 提供基础边框。\n\n### 固定业务上限\n\n替换基础字段并保留 FormItem。\n\n```xml\n<rmp-field placeholder=\"Up to 500 characters\" maxlength=\"500\" auto-height=\"{{true}}\" show-count=\"{{true}}\" appearance=\"outline\" />\n```",
+      "en": "autoHeight=\"{{true}}\" grows with content; showCount=\"{{true}}\" displays a counter. Set maxlength for a business limit and appearance=\"outline\" for a base border.\n\n### Bounded long text\n\nReplace the basic field while retaining FormItem.\n\n```xml\n<rmp-field placeholder=\"Up to 500 characters\" maxlength=\"500\" auto-height=\"{{true}}\" show-count=\"{{true}}\" appearance=\"outline\" />\n```"
+    },
+    "faq": {
+      "zh": "不要用 fixed 高度与自动增高同时争夺布局。焦点与键盘上推由原生 textarea 决定，真机键盘行为不能由浏览器预览代替。",
+      "en": "Do not let a fixed height compete with automatic height. Native textarea controls focus and keyboard adjustment; browser previews do not verify device keyboard behavior."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "input",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ],
+      [
+        "focus",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ],
+      [
+        "blur",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ],
+      [
+        "confirm",
+        "保留原生 detail，并附加字段 path。",
+        "Preserves native detail and adds the field path."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Textarea 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Textarea example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "checkbox",
+    "domain": "form",
+    "folder": "checkbox",
+    "name": "Checkbox",
+    "title": "Checkbox 复选框",
+    "description": {
+      "en": "Represent a Boolean choice, including a valid false value.",
+      "zh": "表示布尔选择，false 也是有效值。"
+    },
+    "when": {
+      "en": "Use for an agreement or an independent yes/no choice.",
+      "zh": "用于协议确认或独立的是非选择。"
+    },
+    "content": {
+      "zh": "用 accepted 规则要求必须勾选，而不是仅配置 required。默认 false 是有效的布尔值。独立使用时监听 change 并同步 value。\n\n### 必须同意\n\n在页面事件或 onReady 中设置 accepted 规则，并将 rules=\"{{rules}}\" 绑定到 Form。\n\n```js\nthis.setData({ rules: { value: [{ accepted: true, message: 'Agreement is required' }] } });\n```",
+      "en": "Use an accepted rule when checking is mandatory. A false Boolean remains a valid nonempty value. For standalone use, synchronize value from change.\n\n### Require agreement\n\nSet an accepted rule in a Page handler or onReady, and bind rules=\"{{rules}}\" on Form.\n\n```js\nthis.setData({ rules: { value: [{ accepted: true, message: 'Agreement is required' }] } });\n```"
+    },
+    "faq": {
+      "zh": "required 不把 false 当空值，因此无法表达“必须同意”。禁用字段不参与校验；readonly 仍参与校验。",
+      "en": "required does not treat false as empty, so it cannot enforce agreement. Disabled fields are excluded from validation, while readonly fields remain included."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Checkbox 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Checkbox example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "switch",
+    "domain": "form",
+    "folder": "switch",
+    "name": "Switch",
+    "title": "Switch 开关",
+    "description": {
+      "en": "Toggle a Boolean setting through a native switch.",
+      "zh": "通过原生开关切换布尔设置。"
+    },
+    "when": {
+      "en": "Use for a setting whose effect is understood immediately.",
+      "zh": "用于含义明确、需要即时切换的设置。"
+    },
+    "content": {
+      "zh": "在 Form 中由 name 对应的模型值控制开关；也可独立绑定 value。禁用或只读时不会提交交互修改。\n\n### 展示只读设置\n\n替换字段后，模型仍参与校验，但用户不能切换。\n\n```xml\n<rmp-field readonly=\"{{true}}\" />\n```",
+      "en": "Inside Form, the model value at name controls the switch. Standalone switches may bind value directly. Disabled or readonly switches reject interaction changes.\n\n### Readonly setting\n\nReplace the field; it remains in validation while interaction is blocked.\n\n```xml\n<rmp-field readonly=\"{{true}}\" />\n```"
+    },
+    "faq": {
+      "zh": "Switch 表达 Boolean，不能用数字或字符串作为多个状态。一次 change 的 value 是布尔值，不是原生事件对象。",
+      "en": "Switch represents a Boolean rather than several numeric or string states. change.detail.value is the Boolean value, not a native event object."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Switch 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Switch example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "radio-group",
+    "domain": "form",
+    "folder": "radio-group",
+    "name": "RadioGroup",
+    "title": "RadioGroup 单选组",
+    "description": {
+      "en": "Choose one scalar value from visible options.",
+      "zh": "从可见选项中选择一个标量值。"
+    },
+    "when": {
+      "en": "Use when alternatives should remain visible.",
+      "zh": "需要始终展示互斥选项时使用。"
+    },
+    "content": {
+      "zh": "options 使用 {label,value,disabled?}；0 可作为选项值。variant=\"buttons\" 显示按钮布局；collapseAfter 可折叠长列表。\n\n### 按钮与折叠列表\n\n沿用基础示例 options，分别选择一种展示方式。\n\n```xml\n<rmp-field options=\"{{options}}\" variant=\"buttons\" />\n<!-- Or: variant=\"list\" collapse-after=\"2\" -->\n```",
+      "en": "Use {label,value,disabled?} options; 0 is a valid option value. variant=\"buttons\" selects the button layout, and collapseAfter collapses long lists.\n\n### Buttons or a collapsed list\n\nReuse options from the basic example and choose one presentation.\n\n```xml\n<rmp-field options=\"{{options}}\" variant=\"buttons\" />\n<!-- Or: variant=\"list\" collapse-after=\"2\" -->\n```"
+    },
+    "faq": {
+      "zh": "模型中保存选项值，不保存选项序号。labelKey/valueKey 映射业务字段；禁用选项不能被点击选择。",
+      "en": "The model stores the option value rather than its index. labelKey/valueKey map business data, and disabled options cannot be selected."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 RadioGroup 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this RadioGroup example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "checkbox-group",
+    "domain": "form",
+    "folder": "checkbox-group",
+    "name": "CheckboxGroup",
+    "title": "CheckboxGroup 复选组",
+    "description": {
+      "en": "Choose an ordered array of option values.",
+      "zh": "选择由选项值组成的数组。"
+    },
+    "when": {
+      "en": "Use when several options may be selected together.",
+      "zh": "允许同时选择多个选项时使用。"
+    },
+    "content": {
+      "zh": "模型值为选项值数组。variant=\"buttons\" 改变展示，collapseAfter=\"2\" 折叠后续选项，展开不会丢弃已选值。\n\n### 自定义选项键\n\n先在 Page 中将 options 设置为具有 text、id 的对象数组，再替换字段。\n\n```xml\n<rmp-field options=\"{{options}}\" label-key=\"text\" value-key=\"id\" variant=\"buttons\" />\n```",
+      "en": "The model holds an array of option values. variant=\"buttons\" changes presentation; collapseAfter=\"2\" collapses later options without discarding selections.\n\n### Map application option keys\n\nSet options to an array with text/id fields in Page, then replace the field.\n\n```xml\n<rmp-field options=\"{{options}}\" label-key=\"text\" value-key=\"id\" variant=\"buttons\" />\n```"
+    },
+    "faq": {
+      "zh": "不要使用逗号分隔字符串代替数组。重复值不能表达多个独立选项，业务 options 的 value 应唯一。",
+      "en": "Use an array rather than a comma-separated string. Duplicate values cannot represent independent options; option values should be unique."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 CheckboxGroup 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this CheckboxGroup example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "select",
+    "domain": "form",
+    "folder": "select",
+    "name": "Select",
+    "title": "Select 选择器",
+    "description": {
+      "en": "Choose mapped option values with a native picker or a confirmation popup.",
+      "zh": "通过原生 picker 或确认弹窗选择映射后的选项值。"
+    },
+    "when": {
+      "en": "Use for longer option lists; use popup for multiple selections.",
+      "zh": "用于较长选项列表；多选使用 popup 模式。"
+    },
+    "content": {
+      "zh": "presentation=\"native\" 使用原生单选。presentation=\"popup\" 配合 multiple=\"{{true}}\" 使用多选确认弹窗，勾选只改草稿，确认后才更新模型。\n\n### 弹窗多选与取消\n\n先在 Page 中把 model.value 初始化为 []，再替换字段；取消不会提交草稿。\n\n```xml\n<rmp-field options=\"{{options}}\" presentation=\"popup\" multiple=\"{{true}}\" title=\"Choose cities\" />\n```",
+      "en": "presentation=\"native\" uses a native single-choice picker. Combine presentation=\"popup\" with multiple=\"{{true}}\" for a confirmation popup: toggles edit a draft, and confirm commits it.\n\n### Popup multiple selection\n\nInitialize model.value to [] in Page, then replace the field. Cancel discards the draft.\n\n```xml\n<rmp-field options=\"{{options}}\" presentation=\"popup\" multiple=\"{{true}}\" title=\"Choose cities\" />\n```"
+    },
+    "faq": {
+      "zh": "取消弹窗丢弃草稿。多选需要数组模型；单选输出选项值，原生滚轮索引不会进入模型。",
+      "en": "Cancelling discards the draft. Multiple selection requires an array model. Single selection returns an option value; native wheel indices do not enter the model."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "open",
+        "当前值；close 还包含 reason。",
+        "Current value; close also includes reason."
+      ],
+      [
+        "close",
+        "当前值；close 还包含 reason。",
+        "Current value; close also includes reason."
+      ],
+      [
+        "cancel",
+        "当前值；close 还包含 reason。",
+        "Current value; close also includes reason."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Select 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Select example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "column-picker",
+    "domain": "form",
+    "folder": "column-picker",
+    "name": "ColumnPicker",
+    "title": "ColumnPicker 多列选择器",
+    "description": {
+      "en": "Return one selected value from each independent column.",
+      "zh": "返回各个独立列选中的值。"
+    },
+    "when": {
+      "en": "Use for several parallel wheels, not dependent tree levels.",
+      "zh": "用于多个并列滚轮；树形依赖使用 Cascader。"
+    },
+    "content": {
+      "zh": "options 为各列选项数组，model 中存放每列选中的值。各列独立；需要随上一级变化刷新下一级时，由应用更新 options 或使用 Cascader。\n\n### 调整并列选项\n\n在页面方法中替换 options；模型中的每个值仍对应一列。\n\n```js\nthis.setData({\n  options: [[{ label: 'Small', value: 's' }, { label: 'Large', value: 'l' }],\n    [{ label: 'Black', value: 'black' }, { label: 'White', value: 'white' }]],\n  model: { value: ['s', 'black'] },\n});\n```",
+      "en": "options is an array of option arrays, and the model stores one value per column. Columns are independent; update options externally or use Cascader for dependent levels.\n\n### Update independent columns\n\nReplace options from a Page method; each model entry still corresponds to a column.\n\n```js\nthis.setData({\n  options: [[{ label: 'Small', value: 's' }, { label: 'Large', value: 'l' }],\n    [{ label: 'Black', value: 'black' }, { label: 'White', value: 'white' }]],\n  model: { value: ['s', 'black'] },\n});\n```"
+    },
+    "faq": {
+      "zh": "此组件不是树形级联选择。返回值不是滚轮索引数组，而是各列实际的 value。",
+      "en": "This is not a tree cascader. Its result contains actual option values rather than wheel indices."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "cancel",
+        "原生 picker 取消，包含当前值。",
+        "Native picker cancellation with the current value."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 ColumnPicker 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this ColumnPicker example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "date-picker",
+    "domain": "form",
+    "folder": "date-picker",
+    "name": "DatePicker",
+    "title": "DatePicker 日期时间选择器",
+    "description": {
+      "en": "Select a date or time through the native picker.",
+      "zh": "通过原生 picker 选择日期或时间。"
+    },
+    "when": {
+      "en": "Use for compact date/time input with explicit bounds.",
+      "zh": "需要紧凑的日期时间输入与明确范围时使用。"
+    },
+    "content": {
+      "zh": "mode=\"date\" 使用 YYYY-MM-DD，mode=\"time\" 使用 HH:mm。min/max 与 mode 的格式保持一致；fields 可设置日期精度。\n\n### 时间选择\n\n将 model.value 改为 HH:mm，例如 09:00，再使用此字段。\n\n```xml\n<rmp-field mode=\"time\" min=\"09:00\" max=\"18:00\" default-picker-value=\"09:00\" />\n```",
+      "en": "mode=\"date\" uses YYYY-MM-DD; mode=\"time\" uses HH:mm. Format min/max for the selected mode. fields controls date precision.\n\n### Time selection\n\nSet model.value to an HH:mm string such as 09:00, then use this field.\n\n```xml\n<rmp-field mode=\"time\" min=\"09:00\" max=\"18:00\" default-picker-value=\"09:00\" />\n```"
+    },
+    "faq": {
+      "zh": "defaultPickerValue 只在没有模型值时定位滚轮，不等于提交值。需要业务校验时另配规则，不要只依赖选择范围。",
+      "en": "defaultPickerValue positions an empty picker but does not commit a value. Add validation rules for business requirements rather than relying only on picker bounds."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "cancel",
+        "原生 picker 取消，包含当前值。",
+        "Native picker cancellation with the current value."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 DatePicker 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this DatePicker example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "region-picker",
+    "domain": "form",
+    "folder": "region-picker",
+    "name": "RegionPicker",
+    "title": "RegionPicker 地区选择器",
+    "description": {
+      "en": "Select native administrative regions and retain native change metadata.",
+      "zh": "选择原生行政地区，并保留原生 change 元数据。"
+    },
+    "when": {
+      "en": "Use for WeChat-provided regions; use Cascader for business-specific trees.",
+      "zh": "用于微信提供的行政地区；业务树使用 Cascader。"
+    },
+    "content": {
+      "zh": "模型值为地区名称数组，level 控制原生选择级别。change 会保留原生地区编码等详情，可用于提交业务需要的编码。\n\n### 限定原生选择级别\n\nlevel 由微信原生 picker 决定，业务分类树应使用 Cascader。\n\n```xml\n<rmp-field level=\"city\" />\n```",
+      "en": "The model holds an array of region names. level selects the native region level. change retains native metadata, including codes when provided by the platform.\n\n### Choose the native region level\n\nWeChat native picker defines level behavior; use Cascader for application category trees.\n\n```xml\n<rmp-field level=\"city\" />\n```"
+    },
+    "faq": {
+      "zh": "地区数据由微信平台提供；任意业务分类树请使用 Cascader。不要把 names 数组误当地区编码。",
+      "en": "WeChat provides the region dataset; use Cascader for custom category trees. Do not interpret the names array as administrative codes."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "cancel",
+        "原生 picker 取消，包含当前值。",
+        "Native picker cancellation with the current value."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 RegionPicker 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this RegionPicker example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "cascader",
+    "domain": "form",
+    "folder": "cascader",
+    "name": "Cascader",
+    "title": "Cascader 级联选择器",
+    "description": {
+      "en": "Select a path in a tree, with optional external child loading.",
+      "zh": "选择树形路径，可由外部按需加载子节点。"
+    },
+    "when": {
+      "en": "Use for categories and dependent hierarchical options.",
+      "zh": "用于分类和存在依赖关系的多级选项。"
+    },
+    "content": {
+      "zh": "树节点默认通过 children 连接；children=[] 明确表示叶子。缺少 children 时触发 loadchildren，应用加载后替换 options。\n\n### 异步补充子节点\n\n在字段绑定 loadchildren；事件中读取 path、option，加载完成后替换页面 options。未知子节点先省略 children。\n\n```xml\n<rmp-field options=\"{{options}}\" bind:loadchildren=\"loadChildren\" />\n```\n\n在 Page 中加入下列本地加载示例；初始 options 的根节点不包含 children。此示例加载一层业务子项，真实接口可替换 Promise.resolve 的数据来源。\n\n```js\nonReady() {\n  this.setData({ options: [{ label: 'Clothing', value: 'clothing' }] });\n},\nasync loadChildren(event) {\n  const { option } = event.detail;\n  const children = await Promise.resolve([{ label: 'Shirts', value: 'shirts', children: [] }]);\n  this.setData({ options: this.data.options.map(node =>\n    node.value === option.value ? { ...node, children } : node) });\n}\n```",
+      "en": "Tree nodes use children by default; children=[] explicitly marks a leaf. Missing children emits loadchildren; load data externally and replace options.\n\n### Load children externally\n\nBind loadchildren on the field. Read path/option, load children externally and replace Page options. Omit children while it is unknown.\n\n```xml\n<rmp-field options=\"{{options}}\" bind:loadchildren=\"loadChildren\" />\n```\n\nAdd this local loading example to Page. The initial root has no children property. This example loads one level; replace the Promise.resolve data source with your business endpoint when needed.\n\n```js\nonReady() {\n  this.setData({ options: [{ label: 'Clothing', value: 'clothing' }] });\n},\nasync loadChildren(event) {\n  const { option } = event.detail;\n  const children = await Promise.resolve([{ label: 'Shirts', value: 'shirts', children: [] }]);\n  this.setData({ options: this.data.options.map(node =>\n    node.value === option.value ? { ...node, children } : node) });\n}\n```"
+    },
+    "faq": {
+      "zh": "异步加载由应用负责，不要把未知 children 写成 []，否则会被当作叶子提交。路径值数组保存逐级的选项 value。",
+      "en": "Applications own asynchronous loading. Do not use [] for unknown children: that marks a leaf and permits committing it. The path array stores each selected option value."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ],
+      [
+        "loadchildren",
+        "{path,option}，应用补齐子节点。",
+        "{path,option}; the application supplies child nodes."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Cascader 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Cascader example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "calendar",
+    "domain": "form",
+    "folder": "calendar",
+    "name": "Calendar",
+    "title": "Calendar 日历",
+    "description": {
+      "en": "Choose a YYYY-MM-DD date in an inline month grid.",
+      "zh": "在内嵌月视图中选择 YYYY-MM-DD 日期。"
+    },
+    "when": {
+      "en": "Use when surrounding dates should stay visible.",
+      "zh": "需要同时查看相邻日期时使用。"
+    },
+    "content": {
+      "zh": "month 选择显示月份，min/max 和 disabledDates 控制不可选日期；weekdays 可替换七个星期表头，应用可进行本地化。\n\n### 明确选择范围\n\n替换字段；没有显式 min 时，过去日期不会默认禁用。\n\n```xml\n<rmp-field month=\"2026-11\" min=\"2026-11-01\" max=\"2026-11-30\" disabled-dates=\"{{disabledDates}}\" />\n```",
+      "en": "month controls the visible month; min/max and disabledDates constrain dates. Replace the seven weekdays labels for localization.\n\n### Constrain date selection\n\nReplace the field. Without an explicit min, past dates are not disabled automatically.\n\n```xml\n<rmp-field month=\"2026-11\" min=\"2026-11-01\" max=\"2026-11-30\" disabled-dates=\"{{disabledDates}}\" />\n```"
+    },
+    "faq": {
+      "zh": "不会默认禁用过去日期。日期使用 YYYY-MM-DD 字符串；范围与时区业务规则由应用定义。",
+      "en": "Past dates are not disabled automatically. Dates use YYYY-MM-DD strings; applications define range and timezone policies."
+    },
+    "events": [
+      [
+        "change",
+        "{value,previousValue,path,source,...}；Upload 的 change 为 {value,path,source}。",
+        "{value,previousValue,path,source,...}; Upload uses {value,path,source}."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Calendar 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Calendar example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "upload",
+    "domain": "form",
+    "folder": "upload",
+    "name": "Upload",
+    "title": "Upload 文件上传",
+    "description": {
+      "en": "Select image/video files and coordinate upload tasks through an application adapter.",
+      "zh": "选择图片或视频，通过应用适配器协调上传任务。"
+    },
+    "when": {
+      "en": "Use when files belong to a form and unfinished uploads must block submission.",
+      "zh": "文件属于表单且未完成上传需要阻止提交时使用。"
+    },
+    "content": {
+      "zh": "不配置 adapter 时只选择本地文件。上传时在 Form.setUploadAdapters 注册名称，或在独立 Upload 上调用 setAdapter；适配器返回 {result,abort?}，进度通过 onProgress 上报。\n\n### 手动上传\n\n在示例字段添加 id=\"upload\" 和 auto-upload=\"{{false}}\"。在 Page 的 onReady 中给独立 Upload 注册适配器；连接 Form 时也可用 Form.setUploadAdapters。\n\n```js\nonReady() {\n  const upload = this.selectComponent('#upload');\n  upload.setAdapter((file, { onProgress }) => {\n    let task;\n    const result = new Promise((resolve, reject) => {\n      task = wx.uploadFile({ url: 'https://your-upload-domain.example/upload',\n        filePath: file.tempFilePath, name: 'file',\n        success: response => {\n          try { resolve({ url: JSON.parse(response.data).url }); } catch (error) { reject(error); }\n        }, fail: reject });\n      task.onProgressUpdate(event => onProgress(event.progress));\n    });\n    return { result, abort: () => task.abort() };\n  });\n}\n// In another Page handler: this.selectComponent('#upload').upload();\n```",
+      "en": "Without an adapter, Upload only selects local files. Register a named adapter with Form.setUploadAdapters, or call setAdapter on a standalone Upload. An adapter returns {result,abort?} and reports progress through onProgress.\n\n### Start uploads manually\n\nAdd id=\"upload\" and auto-upload=\"{{false}}\" to the field. Register an adapter in Page onReady; Form-connected fields may also resolve a named Form adapter.\n\n```js\nonReady() {\n  const upload = this.selectComponent('#upload');\n  upload.setAdapter((file, { onProgress }) => {\n    let task;\n    const result = new Promise((resolve, reject) => {\n      task = wx.uploadFile({ url: 'https://your-upload-domain.example/upload',\n        filePath: file.tempFilePath, name: 'file',\n        success: response => {\n          try { resolve({ url: JSON.parse(response.data).url }); } catch (error) { reject(error); }\n        }, fail: reject });\n      task.onProgressUpdate(event => onProgress(event.progress));\n    });\n    return { result, abort: () => task.abort() };\n  });\n}\n// In another Page handler: this.selectComponent('#upload').upload();\n```"
+    },
+    "faq": {
+      "zh": "未完成、失败的上传任务阻止提交；删除文件解除阻塞。服务地址、认证、预览和错误提示由应用管理，不能在 data/WXML 传函数适配器。",
+      "en": "Unfinished and failed uploads block submission; removal releases the blocker. Applications own endpoints, authentication, preview and messages. Do not pass adapter functions through data or WXML."
+    },
+    "events": [
+      ["change", "{value,path,source}。", "{value,path,source}."],
+      ["select", "{file}。", "{file}."],
+      ["uploadstart", "{file,attempt}。", "{file,attempt}."],
+      [
+        "progress",
+        "{id,progress}，progress 为百分比。",
+        "{id,progress}, with percentage progress."
+      ],
+      ["uploadsuccess", "{file}。", "{file}."],
+      ["uploaderror", "{file,message}。", "{file,message}."],
+      ["remove", "{id}。", "{id}."],
+      [
+        "preview",
+        "{file}，应用决定如何预览。",
+        "{file}; the application decides how to preview."
+      ],
+      [
+        "error",
+        "{type:\"selection\",message}，原生选择失败。",
+        "{type:\"selection\",message}, native selection failure."
+      ]
+    ],
+    "methods": [
+      [
+        "setValidators(registry)",
+        "注册供字符串规则引用的函数，不通过 WXML 传函数。",
+        "Register functions referenced by named rules without passing functions through WXML."
+      ],
+      [
+        "setMessages(messages)",
+        "设置规则消息文本。",
+        "Configure rule message text."
+      ],
+      [
+        "upload()",
+        "上传当前待上传文件，返回 Promise<结果数组>。",
+        "Start pending uploads and return a Promise resolving to their result array."
+      ],
+      [
+        "retry(id)",
+        "按文件 id 重试失败任务。",
+        "Retry a failed task by file ID."
+      ],
+      [
+        "remove(id)",
+        "按 id 移除文件并解除相应提交阻塞。",
+        "Remove a file by ID and release its submission blocker."
+      ],
+      [
+        "addFiles(files)",
+        "添加应用提供的文件，并按 autoUpload 策略处理。",
+        "Add application-provided files and follow autoUpload policy."
+      ],
+      [
+        "setAdapter(adapter)",
+        "在逻辑层为当前 Upload 实例设置适配器函数。",
+        "Set the adapter function for this Upload instance in logic."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Upload 示例；修改字段后点击 Submit，页面显示提交的模型；Reset 恢复初始值。",
+      "en": "Interact with this Upload example. Edit the field and choose Submit to display the submitted model; Reset restores initial values."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "video",
+    "domain": "video",
+    "folder": "video",
+    "name": "Video",
+    "title": "Video 视频",
+    "description": {
+      "en": "Coordinate playback intent, visibility, progress and sound around native video.",
+      "zh": "围绕原生 video 协调播放意图、可见性、进度和声音。"
+    },
+    "when": {
+      "en": "Use when playback must cooperate with lifecycle and visibility.",
+      "zh": "播放需要配合页面生命周期和可见性时使用。"
+    },
+    "content": {
+      "zh": "muted 默认 true，loop 默认 true。autoObserve 根据可见性阻塞播放，paused 是优先级更高的外部阻塞。play() 表达播放意图，不会绕过这些阻塞。\n\n### 自定义播放按钮\n\n替换基础 Video；controls=\"{{false}}\" 关闭原生栏，自定义按钮仍走同一播放意图控制。\n\n```xml\n<rmp-video id=\"video\" src=\"{{src}}\" controls=\"{{false}}\" show-custom-play-btn=\"{{true}}\">\n  <text slot=\"play\">Play this video</text>\n</rmp-video>\n```",
+      "en": "muted and loop both default to true. autoObserve blocks playback based on visibility; paused is a higher-priority external blocker. play() expresses intent without bypassing blockers.\n\n### Custom play control\n\nReplace the basic Video. controls=\"{{false}}\" hides the native bar; the custom button still follows the same playback intent.\n\n```xml\n<rmp-video id=\"video\" src=\"{{src}}\" controls=\"{{false}}\" show-custom-play-btn=\"{{true}}\">\n  <text slot=\"play\">Play this video</text>\n</rmp-video>\n```"
+    },
+    "faq": {
+      "zh": "必须给外层容器确定高度，并提供可访问的视频资源。自动播放、全屏和声音受平台策略影响；playbacksummary.duration 是区间观看时长，mediaDuration 是素材时长。",
+      "en": "Give the outer container a definite height and supply an accessible video. Platform policies govern autoplay, fullscreen and sound. playbacksummary.duration is interval watch time; mediaDuration is the asset duration."
+    },
+    "events": [
+      [
+        "play",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "pause",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "ended",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "waiting",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "error",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "loadedmetadata",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "timeupdate",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "fullscreenchange",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "progress",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "controlstoggle",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      [
+        "seekcomplete",
+        "对应原生 video 的 event.detail。",
+        "The matching native video event.detail."
+      ],
+      ["mutedchange", "{muted:boolean}。", "{muted:boolean}."],
+      ["soundon", "参与者开启声音。", "The participant activates sound."],
+      [
+        "playbacksummary",
+        "{startTime,currentTime,duration,mediaDuration,reason,finished}。",
+        "{startTime,currentTime,duration,mediaDuration,reason,finished}."
+      ]
+    ],
+    "methods": [
+      [
+        "play()",
+        "请求播放；可见性、外部 paused 等阻塞仍生效。",
+        "Request playback while preserving visibility and external pause blockers."
+      ],
+      [
+        "pause()",
+        "请求暂停，保留可恢复的播放状态。",
+        "Request a pause while retaining resumable playback state."
+      ],
+      [
+        "stop()",
+        "停止播放并结束当前播放区间。",
+        "Stop playback and end the current playback interval."
+      ],
+      [
+        "seek(seconds)",
+        "跳转到指定秒数，交给原生 video 上下文。",
+        "Seek to the specified position in seconds through the native video context."
+      ],
+      [
+        "seekToPercent(percent)",
+        "percent 为 0–1，按素材时长换算；不是 0–100。",
+        "percent is 0–1 and is converted using media duration; it is not 0–100."
+      ],
+      [
+        "mute()",
+        "静音当前视频；MediaSwiper 则静音全部媒体项。",
+        "Mute this video, or all items when called on MediaSwiper."
+      ],
+      [
+        "setMuted(muted)",
+        "设置本视频静音状态，并触发相应声音协调。",
+        "Set this video muted state and run sound coordination."
+      ],
+      [
+        "playbackRate(rate)",
+        "设置原生播放倍速，平台支持范围由微信决定。",
+        "Set native playback speed within WeChat platform limits."
+      ],
+      [
+        "requestFullScreen(options?)",
+        "请求原生全屏；可传 direction。",
+        "Request native fullscreen with optional direction."
+      ],
+      ["exitFullScreen()", "退出原生全屏。", "Exit native fullscreen."],
+      [
+        "sendDanmu(options)",
+        "发送弹幕，options 含 text、color。",
+        "Send danmu with text and optional color."
+      ],
+      [
+        "showStatusBar()",
+        "调用原生上下文显示状态栏。",
+        "Ask the native context to show its status bar."
+      ],
+      [
+        "hideStatusBar()",
+        "调用原生上下文隐藏状态栏。",
+        "Ask the native context to hide its status bar."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Video 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。",
+      "en": "Interact with this Video example. Supply the images or videos referenced under /assets, then tap or swipe to observe the interaction."
+    },
+    "propertyDescriptions": {
+      "duration": {
+        "zh": "指定素材时长，单位秒；0 时等待原生元数据。",
+        "en": "Specified media duration in seconds; 0 waits for native metadata."
+      }
+    }
+  },
+  {
+    "slug": "video-group",
+    "domain": "video",
+    "folder": "group",
+    "name": "VideoGroup",
+    "title": "VideoGroup 视频声音分组",
+    "description": {
+      "en": "Coordinate audible playback among descendant video participants without imposing a layout.",
+      "zh": "协调后代视频参与者的声音，不规定版式。"
+    },
+    "when": {
+      "en": "Use around related videos that should not play sound together.",
+      "zh": "用于不希望同时有声播放的一组视频。"
+    },
+    "content": {
+      "zh": "用同一组包住多段 Video。当某一参与者打开声音时，其余成员被静音。也可显式调用 muteAll()，不影响组外的视频。\n\n### 保留一个参与者的声音\n\n给组内两个视频各加 id，在 Page 事件中执行。\n\n```js\nconst current = this.selectComponent('#first-video');\nthis.selectComponent('#group').muteAll(current);\n```",
+      "en": "Wrap related Videos in one group. When a participant activates sound, other members are muted. Call muteAll() explicitly without affecting videos outside the group.\n\n### Keep one participant audible\n\nGive the two child videos IDs and run this in a Page handler.\n\n```js\nconst current = this.selectComponent('#first-video');\nthis.selectComponent('#group').muteAll(current);\n```"
+    },
+    "faq": {
+      "zh": "分组只协调声音，不自动组织布局，也不等于全局单例。自定义视频参与者可通过 useVideoParticipant 连接同一组。",
+      "en": "A group coordinates sound rather than layout and is not a global singleton. Custom video participants can join with useVideoParticipant."
+    },
+    "events": [],
+    "methods": [
+      [
+        "muteAll(except?)",
+        "静音组内其他参与者。",
+        "Mute other participants in this group."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 VideoGroup 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。",
+      "en": "Interact with this VideoGroup example. Supply the images or videos referenced under /assets, then tap or swipe to observe the interaction."
+    },
+    "propertyDescriptions": {}
+  },
+  {
+    "slug": "swiper",
+    "domain": "swiper",
+    "folder": "swiper",
+    "name": "Swiper",
+    "title": "Swiper 轮播",
+    "description": {
+      "en": "Coordinate index, native transitions, stable item identity and optional carousel layouts.",
+      "zh": "协调索引、原生切换、稳定内容身份和可选轮播版式。"
+    },
+    "when": {
+      "en": "Use for images or custom generic item components.",
+      "zh": "用于图片或通过泛型内容组件展示的卡片。"
+    },
+    "content": {
+      "zh": "layout=\"focus\" 或 \"coverflow\" 提供相邻项展示；peek、gap 调整留白。默认泛型内容为 ImageItem，可用 generic:item 接入自己的内容组件。\n\n### 相邻内容与指示器\n\n替换基础示例的轮播，父容器继续保留确定高度。\n\n```xml\n<rmp-gallery id=\"gallery\" items=\"{{items}}\" item-key=\"id\" layout=\"focus\" peek=\"32px\" gap=\"12px\" indicator=\"{{true}}\" />\n```",
+      "en": "layout=\"focus\" or \"coverflow\" displays neighboring items; peek and gap adjust spacing. ImageItem is the default generic renderer; generic:item can supply an application component.\n\n### Neighboring content and indicators\n\nReplace the basic carousel and retain a definite parent height.\n\n```xml\n<rmp-gallery id=\"gallery\" items=\"{{items}}\" item-key=\"id\" layout=\"focus\" peek=\"32px\" gap=\"12px\" indicator=\"{{true}}\" />\n```"
+    },
+    "faq": {
+      "zh": "父容器必须确定高度。items 变更时通过 itemKey 保持身份；少于两项时不循环也不自动播放。to() 会归一化目标索引。",
+      "en": "The parent must define a height. itemKey preserves identity when items change. Fewer than two items disable looping and autoplay. to() normalizes the target index."
+    },
+    "events": [
+      ["change", "{current,source}。", "{current,source}."],
+      [
+        "animationfinish",
+        "{current,source?,...原生详情}。",
+        "{current,source?,...native detail}."
+      ],
+      ["transitionstart", "{dx,dy?}。", "{dx,dy?}."],
+      ["itemclick", "{index,active,item}。", "{index,active,item}."],
+      ["itemevent", "{index,item,detail}。", "{index,item,detail}."],
+      ["transition", "{dx,dy?}。", "{dx,dy?}."]
+    ],
+    "methods": [
+      [
+        "to(index)",
+        "跳到目标索引，归一化越界值。",
+        "Move to the target index, normalizing out-of-range values."
+      ],
+      [
+        "next()",
+        "切换到下一项，遵循 circular 与边界规则。",
+        "Move to the next item using circular/boundary rules."
+      ],
+      [
+        "previous()",
+        "切换到上一项，遵循 circular 与边界规则。",
+        "Move to the previous item using circular/boundary rules."
+      ],
+      [
+        "refresh()",
+        "重新测量容器并刷新版式。",
+        "Measure the container again and refresh its layout."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 Swiper 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。",
+      "en": "Interact with this Swiper example. Supply the images or videos referenced under /assets, then tap or swipe to observe the interaction."
+    },
+    "propertyDescriptions": {
+      "duration": {
+        "zh": "切换动画时长，单位毫秒。",
+        "en": "Slide animation duration in milliseconds."
+      }
+    }
+  },
+  {
+    "slug": "image-item",
+    "domain": "swiper",
+    "folder": "image-item",
+    "name": "ImageItem",
+    "title": "ImageItem 图片内容项",
+    "description": {
+      "en": "Render an image item for Swiper without controlling the carousel layout.",
+      "zh": "为 Swiper 渲染图片内容，不控制轮播版式。"
+    },
+    "when": {
+      "en": "Use as the default generic item renderer or on its own inside a sized container.",
+      "zh": "用于默认泛型内容渲染，也可在明确尺寸的容器内单独使用。"
+    },
+    "content": {
+      "zh": "item.src 提供图片路径，item.mode 默认 aspectFill。Swiper 自动传入 item、index、active；应用只需要提供 items 数组。\n\n### 改变图片填充方式\n\n在 Page 方法中更新 item；item 与 active 由 Swiper 使用时自动传入。\n\n```js\nthis.setData({ item: { src: '/assets/first.jpg', mode: 'aspectFit' } });\n```",
+      "en": "item.src supplies the image path, and item.mode defaults to aspectFill. Swiper supplies item, index and active; applications usually only provide the items array.\n\n### Change image fitting\n\nUpdate item in a Page method. Swiper normally supplies item and active itself.\n\n```js\nthis.setData({ item: { src: '/assets/first.jpg', mode: 'aspectFit' } });\n```"
+    },
+    "faq": {
+      "zh": "ImageItem 不管理 current、循环或声音。自定义 item 必须接受同样的三项属性，尺寸由轮播容器和项目布局决定。",
+      "en": "ImageItem does not manage current index, looping or sound. A custom item must accept the same three properties; carousel and application layout determine dimensions."
+    },
+    "events": [],
+    "methods": [],
+    "expected": {
+      "zh": "运行后可直接操作此 ImageItem 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。",
+      "en": "Interact with this ImageItem example. Supply the images or videos referenced under /assets, then tap or swipe to observe the interaction."
+    },
+    "propertyDescriptions": {
+      "active": {
+        "zh": "接收激活标志；默认图片模板不据此改变渲染。",
+        "en": "Receives the active flag; the default image template does not vary its rendering with it."
+      }
+    }
+  },
+  {
+    "slug": "media-item",
+    "domain": "swiper",
+    "folder": "media-item",
+    "name": "MediaItem",
+    "title": "MediaItem 媒体内容项",
+    "description": {
+      "en": "Adapt image/video items and forward video events with their event type.",
+      "zh": "适配图片和视频内容，并携带事件类型转发视频事件。"
+    },
+    "when": {
+      "en": "Use as the generic renderer for mixed media.",
+      "zh": "用于图片和视频混排的泛型内容渲染。"
+    },
+    "content": {
+      "zh": "item.type=\"video\" 时使用视频适配，否则显示图片。active 控制视频是否可以播放；itemevent 的 type 区分 soundon、mutedchange、playbacksummary 和 error。\n\n### 转发媒体事件\n\n在 rmp-item 上绑定 bind:itemevent=\"onItemEvent\"，并将下面方法加到 Page。\n\n```js\nonItemEvent(event) {\n  const { type, detail } = event.detail;\n  console.log(type, detail);\n}\n```",
+      "en": "item.type=\"video\" selects the video adapter; other items render as images. active controls whether video may play. itemevent.type distinguishes soundon, mutedchange, playbacksummary and error.\n\n### Read media events\n\nBind bind:itemevent=\"onItemEvent\" on rmp-item and add this method to Page.\n\n```js\nonItemEvent(event) {\n  const { type, detail } = event.detail;\n  console.log(type, detail);\n}\n```"
+    },
+    "faq": {
+      "zh": "MediaItem 是内容适配器，不负责索引推进。独立使用时应用必须同步 active，避免离屏视频继续保留播放意图。",
+      "en": "MediaItem is a content adapter and does not advance the index. Standalone use must synchronize active so offscreen videos do not retain playback intent."
+    },
+    "events": [
+      [
+        "itemevent",
+        "{type,detail}；type 为声音、播放区间或错误事件。",
+        "{type,detail}; type identifies sound, playback summary or error events."
+      ]
+    ],
+    "methods": [],
+    "expected": {
+      "zh": "运行后可直接操作此 MediaItem 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。",
+      "en": "Interact with this MediaItem example. Supply the images or videos referenced under /assets, then tap or swipe to observe the interaction."
+    },
+    "propertyDescriptions": {
+      "active": {
+        "zh": "是否为当前媒体项；只有激活项的视频允许播放。",
+        "en": "Whether this is the active media item; only an active video may play."
+      }
+    }
+  },
+  {
+    "slug": "media-swiper",
+    "domain": "swiper",
+    "folder": "media-swiper",
+    "name": "MediaSwiper",
+    "title": "MediaSwiper 媒体轮播",
+    "description": {
+      "en": "Compose Swiper with mixed media, active-item playback and sound coordination.",
+      "zh": "组合轮播、混合媒体、激活项播放和声音协调。"
+    },
+    "when": {
+      "en": "Use for galleries containing both images and videos.",
+      "zh": "用于同时包含图片和视频的媒体画廊。"
+    },
+    "content": {
+      "zh": "items 可混合 {type:\"image\",src} 与 {type:\"video\",src,poster,muted}。只有激活的视频参与播放；mute() 静音本轮播中的媒体项。\n\n### 关闭声音并切换\n\n在 Page 的按钮事件中执行；不会影响轮播之外的视频。\n\n```js\nconst gallery = this.selectComponent('#gallery');\ngallery.mute();\ngallery.next();\n```",
+      "en": "items may mix {type:\"image\",src} and {type:\"video\",src,poster,muted}. Only the active video participates in playback. mute() mutes media in this carousel.\n\n### Mute and advance\n\nRun this from a Page button handler; videos outside this carousel are unaffected.\n\n```js\nconst gallery = this.selectComponent('#gallery');\ngallery.mute();\ngallery.next();\n```"
+    },
+    "faq": {
+      "zh": "素材切换与声音协调由组合逻辑处理，业务统计应读取事件详情而不是推测播放成功。布局属性与 Swiper 相同。",
+      "en": "Composition handles item activation and sound coordination. Use event details for analytics rather than assuming playback succeeded. Layout properties match Swiper."
+    },
+    "events": [
+      ["change", "{current,source}。", "{current,source}."],
+      [
+        "animationfinish",
+        "{current,source?,...原生详情}。",
+        "{current,source?,...native detail}."
+      ],
+      ["transitionstart", "{dx,dy?}。", "{dx,dy?}."],
+      ["itemclick", "{index,active,item}。", "{index,active,item}."],
+      ["itemevent", "{index,item,detail}。", "{index,item,detail}."]
+    ],
+    "methods": [
+      [
+        "to(index)",
+        "跳到目标索引，归一化越界值。",
+        "Move to the target index, normalizing out-of-range values."
+      ],
+      [
+        "next()",
+        "切换到下一项，遵循 circular 与边界规则。",
+        "Move to the next item using circular/boundary rules."
+      ],
+      [
+        "previous()",
+        "切换到上一项，遵循 circular 与边界规则。",
+        "Move to the previous item using circular/boundary rules."
+      ],
+      [
+        "refresh()",
+        "重新测量容器并刷新版式。",
+        "Measure the container again and refresh its layout."
+      ],
+      [
+        "mute()",
+        "静音当前视频；MediaSwiper 则静音全部媒体项。",
+        "Mute this video, or all items when called on MediaSwiper."
+      ]
+    ],
+    "expected": {
+      "zh": "运行后可直接操作此 MediaSwiper 示例；请先把示例中 /assets 下的图片或视频放入工程；点击或滑动可观察组件交互。",
+      "en": "Interact with this MediaSwiper example. Supply the images or videos referenced under /assets, then tap or swipe to observe the interaction."
+    },
+    "propertyDescriptions": {
+      "duration": {
+        "zh": "切换动画时长，单位毫秒。",
+        "en": "Slide animation duration in milliseconds."
+      }
+    }
+  }
+]

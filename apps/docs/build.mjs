@@ -20,6 +20,7 @@ import {
   sitePages,
 } from './navigation.mjs';
 import { renderPage } from './template.mjs';
+import { buildPublicSite } from './public-site.mjs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 export const output = 'apps/docs/dist';
@@ -219,10 +220,20 @@ export async function build({ packageName, outputRoot = output } = {}) {
   );
   await rm(clean, { recursive: true, force: true });
   for (const site of selected) {
-    await buildSite(site, outputRoot);
+    if (site.packageName) {
+      await mkdir(path.join(root, 'artifacts'), { recursive: true });
+      await buildPublicSite(
+        site,
+        path.resolve(root, outputFor(site, outputRoot)),
+      );
+    } else {
+      await buildSite(site, outputRoot);
+    }
   }
   for (const site of selected) {
-    await verifySite(site, outputRoot);
+    if (!site.packageName) {
+      await verifySite(site, outputRoot);
+    }
     console.log(
       `Built ${sitePages(site).length} ${site.id} documentation pages in ${outputFor(site, outputRoot)}`,
     );

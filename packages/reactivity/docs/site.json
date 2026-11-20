@@ -6,17 +6,21 @@
     {
       "title": "开始使用",
       "pages": [
-        ["index", "概览"],
-        ["getting-started", "快速上手"]
-      ]
+        ["index", "概览", "Overview"],
+        ["getting-started", "快速上手", "Quick start"]
+      ],
+      "titleEn": "Get started"
     },
     {
       "title": "使用指南",
-      "pages": [["guide", "状态、监听与作用域"]]
+      "pages": [["guide", "状态、监听与作用域", "State, watchers and scopes"]],
+      "titleEn": "Guides"
     },
     {
       "title": "参考",
-      "pages": [["api", "API 参考"]]
+      "pages": [["api", "API 参考", "API reference"]],
+      "titleEn": "Reference"
     }
-  ]
+  ],
+  "descriptionEn": "Platform-independent signals, derived state, watchers and scopes"
 }

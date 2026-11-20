@@ -8,23 +8,68 @@
   "groups": [
     {
       "title": "开始使用",
+      "titleEn": "Get started",
       "pages": [
-        ["index", "概览"],
-        ["getting-started", "快速上手"]
+        ["index", "概览", "Overview"],
+        ["getting-started", "快速上手", "Quick start"],
+        ["catalog", "组件总览", "Component catalog"],
+        ["guide", "无头组合与自定义", "Headless composition"]
       ]
     },
     {
-      "title": "使用指南",
+      "title": "表单与布局",
+      "titleEn": "Form and layout",
       "pages": [
-        ["guide", "组合与自定义"],
-        ["form", "表单"],
-        ["video", "视频"],
-        ["swiper", "轮播"]
+        ["form", "Form 表单", "Form"],
+        ["form-item", "FormItem 表单项", "FormItem"],
+        ["form-button", "FormButton 表单按钮", "FormButton"]
       ]
     },
     {
-      "title": "参考",
-      "pages": [["api", "API 参考"]]
+      "title": "数据输入",
+      "titleEn": "Data entry",
+      "pages": [
+        ["input", "Input 输入框", "Input"],
+        ["textarea", "Textarea 多行输入", "Textarea"],
+        ["checkbox", "Checkbox 复选框", "Checkbox"],
+        ["switch", "Switch 开关", "Switch"],
+        ["radio-group", "RadioGroup 单选组", "RadioGroup"],
+        ["checkbox-group", "CheckboxGroup 复选组", "CheckboxGroup"],
+        ["select", "Select 选择器", "Select"],
+        ["column-picker", "ColumnPicker 多列选择器", "ColumnPicker"],
+        ["date-picker", "DatePicker 日期时间选择器", "DatePicker"],
+        ["region-picker", "RegionPicker 地区选择器", "RegionPicker"],
+        ["cascader", "Cascader 级联选择器", "Cascader"],
+        ["calendar", "Calendar 日历", "Calendar"],
+        ["upload", "Upload 文件上传", "Upload"]
+      ]
+    },
+    {
+      "title": "媒体与展示",
+      "titleEn": "Media and presentation",
+      "pages": [
+        ["video", "Video 视频", "Video"],
+        ["video-group", "VideoGroup 视频声音分组", "VideoGroup"],
+        ["swiper", "Swiper 轮播", "Swiper"],
+        ["image-item", "ImageItem 图片内容项", "ImageItem"],
+        ["media-item", "MediaItem 媒体内容项", "MediaItem"],
+        ["media-swiper", "MediaSwiper 媒体轮播", "MediaSwiper"]
+      ]
+    },
+    {
+      "title": "组合式能力",
+      "titleEn": "Composition APIs",
+      "pages": [
+        ["form-guide", "模型与校验", "Models and validation"],
+        ["hooks", "Hooks 与控制器", "Hooks and controllers"],
+        ["styling", "样式与插槽", "Styling and slots"]
+      ]
+    },
+    {
+      "title": "API 参考",
+      "titleEn": "API reference",
+      "pages": [["api", "完整类型签名", "Complete type signatures"]]
     }
-  ]
+  ],
+  "descriptionEn": "Headless interactions, composable hooks and native wrappers for WeChat Mini Programs"
 }

@@ -104,3 +104,9 @@ Kit 内的 Wechat、Images Preloader 由 packages/kit/docs 提供指南和 API�
 - [代码检查与验收标准](code-review-standard.md)
 - [架构与贡献](architecture.md)
 - [开发宿主与验证](validation.md)
+
+## 双语与组件参考
+
+所有公开站点的使用文档必须提供完整的中文和英文版本。中文保存在所属包 docs，英文保存在 docs/en，随同一个 npm 包交付。标题、侧栏、搜索、API、上下篇与页内目录随语言切换；缺译必须在构建前报错。签名和默认值引用同一真实定义，不能以中文回退或只有英文标题冒充英文文档。
+
+组件站按实际原生 wrappers 建立逐组件文档，每页说明适用任务、完整 JS/JSON/WXML、属性类型/默认值、事件详情、插槽、实例方法与边界。复杂行为另有模型校验、Hooks 和样式指南。可选 wrapper 的基础外观与应用视觉职责必须清楚，不把文档站样式捆绑给消费项目。

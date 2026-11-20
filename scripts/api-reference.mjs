@@ -1,5 +1,5 @@
 /** 根据实际包导出和模块类型生成 API 参考，拒绝声明与实现漂移。 */
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import ts from 'typescript';
 import path from 'node:path';
 import { workspacePackages } from './lib/workspace.mjs';
@@ -77,10 +77,15 @@ export async function references() {
         `packages/${pkg.folder}/docs/api.md`,
         blocks.filter((block) => block.packageName === pkg.manifest.name),
       );
+      documents.set(
+        `packages/${pkg.folder}/docs/en/api.md`,
+        blocks.filter((block) => block.packageName === pkg.manifest.name),
+      );
     }
   }
   return new Map(
     [...documents].map(([file, selected]) => {
+      const english = file.includes('/en/');
       const body = selected
         .map(({ name, folder, types, source, markdown }) => {
           const link = (target) =>
@@ -88,12 +93,14 @@ export async function references() {
               path.posix.dirname(file),
               `packages/${folder}/${target}`,
             );
-          return `## ${name}\n\n[类型及完整签名](${link(types)}) · [实现入口](${link(source)})\n\n${markdown}`;
+          return `## ${name}\n\n[${english ? 'Types and complete signatures' : '类型及完整签名'}](${link(types)}) · [${english ? 'Implementation' : '实现入口'}](${link(source)})\n\n${english ? markdown.replace('类型签名', 'Type signature') : markdown}`;
         })
         .join('');
       return [
         file,
-        '# API 参考\n\n公开接口与类型签名。参数、默认值、生命周期和原生映射见相应指南。\n\n' +
+        (english
+          ? '# API reference\n\nPublic exports and their actual type signatures. Refer to the guides for parameters, defaults, lifecycle, and native bindings.\n\n'
+          : '# API 参考\n\n公开接口与类型签名。参数、默认值、生命周期和原生映射见相应指南。\n\n') +
           body,
       ];
     }),
@@ -101,6 +108,7 @@ export async function references() {
 }
 if (process.argv.includes('--write')) {
   for (const [file, markdown] of await references()) {
+    await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, markdown);
   }
   console.log(

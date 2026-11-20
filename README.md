@@ -75,7 +75,7 @@ npm run docs:build
 npm run docs:dev -- --package @reactive-mp/components
 ```
 
-各公开包在自己的 `docs` 中提供随 npm 包交付的概览、接入、指南与 API。Reactivity 的在线文档由主包站点承载，其 npm 包和版本独立维护；其余公开包拥有各自站点。文档站提供全文搜索、明暗主题、移动导航和版本标识。完整构建在 `apps/docs/dist/<站点所属包目录名>` 生成独立产物。内容维护、素材和部署见 [apps/docs](apps/docs/README.md)；架构、计划与验证记录从[维护者入口](docs/architecture.md)进入。
+各公开包在自己的 `docs` 中提供随 npm 包交付的概览、接入、指南与 API。Reactivity 的在线文档由主包站点承载，其 npm 包和版本独立维护；其余公开包拥有各自站点。文档站提供完整中英文内容、按语言检索、明暗主题、移动导航和版本标识。完整构建在 `apps/docs/dist/<站点所属包目录名>` 生成独立产物。内容维护、素材和部署见 [apps/docs](apps/docs/README.md)；架构、计划与验证记录从[维护者入口](docs/architecture.md)进入。
 
 线上文档：[Reactive MP](https://reactive-mp-docs.pages.jangts.cafe/) · [Reactivity（主站）](https://reactive-mp-docs.pages.jangts.cafe/reactivity-index.html) · [Store](https://reactive-mp-store-docs.pages.jangts.cafe/) · [Kit](https://reactive-mp-kit-docs.pages.jangts.cafe/) · [Components](https://reactive-mp-components-docs.pages.jangts.cafe/)。
 
